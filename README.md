@@ -77,11 +77,19 @@ Some examples.
 using FiniteDifferenceFormula
 
 computecoefs(1, 0:2, true)   # find and print 3-point forward finite difference formula for f'(x[i])
+
 computecoefs(2, -3:0, true)  # find and print 4-point backward finite difference formula for f''(x[i])
+
 computecoefs(1, -2:2, true)  # find and print 5-point central finite difference formula for f'(x[i])
+
 computecoefs(1, 2:5, true)   # find and print finite difference formula for f'(x[i]), using points
+
                              # x[i+2], x[i+3], x[i+4], x[i+5], for fun?
+
 computecoefs(3, -6:6, true)  # find and print 13-point central finite difference formula for f'''(x[i])
+
 computecoefs(8, -5:5, true)  # find and print 11-point central finite difference formula for f'(x[i])
+
 computecoefs(10, -5:5)       # find 11-point central finite difference formula for f'(x[i])
+
 formula()                    # print the formula computed last time you called computecoefs(...)
