@@ -47,8 +47,7 @@ end
 function c2s(c, first_termq = false)
     s = ""
     if c < 0
-        s = " -"
-        if !first_termq; s *= " "; end
+		s = first_termq ? "-" : s = " - "
     elseif !first_termq
         s = " + "
     end
@@ -86,15 +85,15 @@ function print_taylor(coefs, num_of_nonzero_terms = max_num_of_taylor_terms)
         if coefs[N] == 0; continue; end
 
 		print(c2s(coefs[N], first_termq))
+		if abs(coefs[N]) != 1; print("* "); end
         if n <= 3
             print("f$("'" ^ n)(x[i])")
         else
             print("f^($n)(x[i])")
         end
-
-        if N >= 2
+        if n >= 1
 			print(" h")
-			if N > 2; print("^$n"); end
+			if n > 1; print("^$n"); end
 		end
         first_termq = false
 		
@@ -221,31 +220,54 @@ end   # computecoefs
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
 function print_lcombination(data::FDData)
     for i = eachindex(data.points)
+		times = abs(data.k[i]) == 1 ? "" : "* "
         if i == 1
-            print(c2s(data.k[i], true), f2s(data.points[i]))   # assume k[1] != 0
+            print(c2s(data.k[i], true), times, f2s(data.points[i]))   # assume k[1] != 0
         else
             if data.k[i] != 0
-                print(c2s(data.k[i]), f2s(data.points[i]))
+                print(c2s(data.k[i]), times, f2s(data.points[i]))
             end
         end
     end
 end
 
-function print_formula(data::FDData, bigO)
-    if data.n <= 3
-        print("f" * "'"^(data.n))
-    else
-        print("f^($(data.n))")
+function print_formula(data::FDData, bigO="")
+    if bigO == ""    # it is to print Julia formula
+		th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : "th")
+		s = "mixed"
+		if -data.points.start == data.points.stop
+			s = "central"
+		elseif data.points.start == 0
+			s = "forward"
+		elseif data.points.stop == 0
+			s = "backward"
+		end
+		
+		n = 0  # how many points are involved?
+		for i in eachindex(data.points)
+			if data.k[i] == 0; continue; end
+			n += 1
+		end
+		
+		print("f_$(n)_points_$(s)_$(data.n)$(th)_derivative(f, x, i, h)")
+	else
+		if data.n <= 3
+			print("f" * "'"^(data.n))
+		else
+			print("f^($(data.n))")
+		end
+		print("(x[i])")
     end
-    print("(x[i]) =\n{ ")
+	print(" = ( ")
     print_lcombination(data)
-    print(" } / ")
+    print(" ) / ")
 
-	if data.m > 1; print("($(data.m) "); end
+	if data.m > 1; print("($(data.m) * "); end
 	print("h")
 	if data.n > 1; print("^$(data.n)"); end
 	if data.m > 1; print(")"); end
-	print(" + $bigO\n\n")
+	if bigO != ""; print(" + $bigO"); end
+	print("\n\n")
 end
 
 # print readable formula and other computing results
@@ -303,6 +325,8 @@ function formula()
 			print("Or\n\n")
 			print_formula(data1, bigO)
 		end
+		print("Julia function:\n\n")
+		print_formula(data)
 	else
 		th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : "th")
 		print("!!!!! The input $(data.points) is invalid because at least $(data.n + 1) points are required for the $(data.n)$th derivative.\n\n")
