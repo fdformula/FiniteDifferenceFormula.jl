@@ -1,6 +1,6 @@
 # FiniteDifferenceFormula
 
-[![Build Status](https://github.com/Winux2k/FiniteDifferenceFormula.jl.git/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Winux2k/FiniteDifferenceFormula.jl.git/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/Winux2k/FiniteDifferenceFormula.jl.git/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Winux2k/FiniteDifferenceFormula.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 It is a general and practical tool. The code can generate finite difference formulas for
 n-th order derivatives by using Taylor series expansions of a function at evenly spaced
