@@ -1,4 +1,4 @@
-# FDFormula
+# FiniteDifferenceFormula
 
 [![Build Status](https://github.com/Winux2k/FiniteDifferenceFormula.jl.git/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Winux2k/FiniteDifferenceFormula.jl.git/actions/workflows/CI.yml?query=branch%3Amain)
 
@@ -74,7 +74,7 @@ The function lists
              *     *     *     *     *     *     *     *     *     *
 Some examples.
 
-using FDFormula
+using FiniteDifferenceFormula
 
 computecoefs(1, 0:2, true)   # find and print 3-point forward finite difference formula for f'(x[i])
 computecoefs(2, -3:0, true)  # find and print 4-point backward finite difference formula for f''(x[i])
