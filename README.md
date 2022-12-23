@@ -82,9 +82,7 @@ computecoefs(2, -3:0, true)  # find and print 4-point backward finite difference
 
 computecoefs(1, -2:2, true)  # find and print 5-point central finite difference formula for f'(x[i])
 
-computecoefs(1, 2:5, true)   # find and print finite difference formula for f'(x[i]), using points
-
-                             # x[i+2], x[i+3], x[i+4], x[i+5], for fun?
+computecoefs(1, 2:5, true)   # find and print finite difference formula for f'(x[i]), using points x[i+2], x[i+3], x[i+4], x[i+5], for fun?
 
 computecoefs(3, -6:6, true)  # find and print 13-point central finite difference formula for f'''(x[i])
 
