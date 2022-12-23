@@ -34,7 +34,7 @@ function computecoefs(n::Int64, points::UnitRange{Int64}, printformulaq::Bool = 
 Input:
 
             n: the n-th order derivative to be found
-       points: in the format of a range, start:stop, e.g.,
+       points: in the format of a range, start:stop (See examples below.)
 printformulaq: print the computed formula?
 
    points  |  The points to be used
