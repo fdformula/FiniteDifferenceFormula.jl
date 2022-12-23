@@ -47,7 +47,7 @@ end
 function c2s(c, first_termq = false)
     s = ""
     if c < 0
-		s = first_termq ? "-" : s = " - "
+        s = first_termq ? "-" : s = " - "
     elseif !first_termq
         s = " + "
     end
@@ -84,21 +84,21 @@ function print_taylor(coefs, num_of_nonzero_terms = max_num_of_taylor_terms)
         N = n + 1
         if coefs[N] == 0; continue; end
 
-		print(c2s(coefs[N], first_termq))
-		if abs(coefs[N]) != 1; print("* "); end
+        print(c2s(coefs[N], first_termq))
+        if abs(coefs[N]) != 1; print("* "); end
         if n <= 3
             print("f$("'" ^ n)(x[i])")
         else
             print("f^($n)(x[i])")
         end
         if n >= 1
-			print(" h")
-			if n > 1; print("^$n"); end
-		end
+            print(" h")
+            if n > 1; print("^$n"); end
+        end
         first_termq = false
-		
-		num_of_nonzero_terms -= 1
-		if num_of_nonzero_terms == 0; break; end
+
+        num_of_nonzero_terms -= 1
+        if num_of_nonzero_terms == 0; break; end
     end
     println(" + ...\n")
 end  # print_taylor
@@ -220,7 +220,7 @@ end   # computecoefs
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
 function print_lcombination(data::FDData)
     for i = eachindex(data.points)
-		times = abs(data.k[i]) == 1 ? "" : "* "
+        times = abs(data.k[i]) == 1 ? "" : "* "
         if i == 1
             print(c2s(data.k[i], true), times, f2s(data.points[i]))   # assume k[1] != 0
         else
@@ -233,41 +233,41 @@ end
 
 function print_formula(data::FDData, bigO="")
     if bigO == ""    # it is to print Julia formula
-		th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : "th")
-		s = "mixed"
-		if -data.points.start == data.points.stop
-			s = "central"
-		elseif data.points.start == 0
-			s = "forward"
-		elseif data.points.stop == 0
-			s = "backward"
-		end
-		
-		n = 0  # how many points are involved?
-		for i in eachindex(data.points)
-			if data.k[i] == 0; continue; end
-			n += 1
-		end
-		
-		print("f_$(n)_points_$(s)_$(data.n)$(th)_derivative(f, x, i, h)")
-	else
-		if data.n <= 3
-			print("f" * "'"^(data.n))
-		else
-			print("f^($(data.n))")
-		end
-		print("(x[i])")
+        th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : "th")
+        s = "mixed"
+        if -data.points.start == data.points.stop
+            s = "central"
+        elseif data.points.start == 0
+            s = "forward"
+        elseif data.points.stop == 0
+            s = "backward"
+        end
+
+        n = 0  # how many points are involved?
+        for i in eachindex(data.points)
+            if data.k[i] == 0; continue; end
+            n += 1
+        end
+
+        print("f_$(n)_points_$(s)_$(data.n)$(th)_derivative(f, x, i, h)")
+    else
+        if data.n <= 3
+            print("f" * "'"^(data.n))
+        else
+            print("f^($(data.n))")
+        end
+        print("(x[i])")
     end
-	print(" = ( ")
+    print(" = ( ")
     print_lcombination(data)
     print(" ) / ")
 
-	if data.m > 1; print("($(data.m) * "); end
-	print("h")
-	if data.n > 1; print("^$(data.n)"); end
-	if data.m > 1; print(")"); end
-	if bigO != ""; print(" + $bigO"); end
-	print("\n\n")
+    if data.m > 1; print("($(data.m) * "); end
+    print("h")
+    if data.n > 1; print("^$(data.n)"); end
+    if data.m > 1; print(")"); end
+    if bigO != ""; print(" + $bigO"); end
+    print("\n\n")
 end
 
 # print readable formula and other computing results
@@ -295,42 +295,42 @@ function formula()
     print(" =\n")
     print_taylor(sum_coefs, 5); # print at most the number of nonzero terms
 
-	# invalid input because no sufficient points are provided?
-	valid_inputq = true
-	for i in 1 : data.n
-		if sum_coefs[i] != 0
-			valid_inputq = false;
-			break;
-		end
-	end
-	if valid_inputq # why not verify validity of input in the beginning? for teaching's purpose
-		println("****** This is the exact formula ******")
-		# print the very formula with big-O notation of the trucation error
-		#
-		# find x of O(h^x)
-		x = max_num_of_taylor_terms;
-		for i in data.n + 2 : length(sum_coefs)
-			if sum_coefs[i] != 0; x = i; break; end
-		end
-		x -= data.n + 1
-		bigO = "O(h"
-		if x > 1; bigO *= "^$x"; end
-		bigO *= ")"
+    # invalid input because no sufficient points are provided?
+    valid_inputq = true
+    for i in 1 : data.n
+        if sum_coefs[i] != 0
+            valid_inputq = false;
+            break;
+        end
+    end
+    if valid_inputq # why not verify validity of input in the beginning? for teaching's purpose
+        println("****** This is the exact formula ******")
+        # print the very formula with big-O notation of the trucation error
+        #
+        # find x of O(h^x)
+        x = max_num_of_taylor_terms;
+        for i in data.n + 2 : length(sum_coefs)
+            if sum_coefs[i] != 0; x = i; break; end
+        end
+        x -= data.n + 1
+        bigO = "O(h"
+        if x > 1; bigO *= "^$x"; end
+        bigO *= ")"
 
-		print_formula(data, bigO)
+        print_formula(data, bigO)
 
-		# print the formula in another format
-		if data.m > 1
-			data1 = FDData(data.n, data.points, data.k // data.m, 1, data.coefs)
-			print("Or\n\n")
-			print_formula(data1, bigO)
-		end
-		print("Julia function:\n\n")
-		print_formula(data)
-	else
-		th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : "th")
-		print("!!!!! The input $(data.points) is invalid because at least $(data.n + 1) points are required for the $(data.n)$th derivative.\n\n")
-	end
+        # print the formula in another format
+        if data.m > 1
+            data1 = FDData(data.n, data.points, data.k // data.m, 1, data.coefs)
+            print("Or\n\n")
+            print_formula(data1, bigO)
+        end
+        print("Julia function:\n\n")
+        print_formula(data)
+    else
+        th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : "th")
+        print("!!!!! The input $(data.points) is invalid because at least $(data.n + 1) points are required for the $(data.n)$th derivative.\n\n")
+    end
 end  # formula
 
 end # module
