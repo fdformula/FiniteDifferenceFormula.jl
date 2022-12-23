@@ -72,7 +72,7 @@ The function lists
    notation.
 
              *     *     *     *     *     *     *     *     *     *
-Some examples.
+Some examples:
 
 using FiniteDifferenceFormula
 
