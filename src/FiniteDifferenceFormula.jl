@@ -10,9 +10,9 @@ module FiniteDifferenceFormula
 
 export computecoefs, formula
 
-max_num_of_taylor_terms = 30 # number of the 1st terms of a Taylor series expansion
+max_num_of_taylor_terms = 500 # number of the 1st terms of a Taylor series expansion
 
-using RowEchelon             # provides rref used in the code
+using RowEchelon              # provides rref used in the code
 
 mutable struct FDData
     n
@@ -22,8 +22,8 @@ mutable struct FDData
     coefs
 end
 
-data = FDData                # share computing results between functions
-computedq::Bool = false      # make sure computecoefs(n, points) is called first
+data = FDData                 # share computing results between functions
+computedq::Bool = false       # make sure computecoefs(n, points) is called first
 
 # This function returns the first 'max_num_of_taylor_terms' of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed. The
@@ -40,7 +40,17 @@ computedq::Bool = false      # make sure computecoefs(n, points) is called first
 #   f(x[i-k]) - call taylor_coefs(-k)
 #   where k = 0, 1, 2, 3, ...
 function taylor_coefs(h)
-    return [1 // convert(BigInt,factorial(big(n))) * h^n for n in 0 : max_num_of_taylor_terms - 1]
+    # the simplest implementation:
+    #   return [1 // convert(BigInt,factorial(big(n))) * h^n for n in 0 : max_num_of_taylor_terms - 1]
+    # but the following code shows better time performance
+    result = Matrix{Rational{BigInt}}(undef, 1, max_num_of_taylor_terms)
+    factorial::BigInt = 1
+    for n in 1 : max_num_of_taylor_terms
+        N = n - 1
+        if n > 1; factorial *= N; end
+        result[n] = 1 // factorial * h^N
+    end
+    return result
 end
 
 # convert a coefficient to a readable string
@@ -232,7 +242,7 @@ function print_lcombination(data::FDData)
 end
 
 function print_formula(data::FDData, bigO="")
-    if bigO == ""    # it is to print Julia formula
+    if bigO == ""    # printing Julia function
         th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : "th")
         s = "mixed"
         if -data.points.start == data.points.stop
