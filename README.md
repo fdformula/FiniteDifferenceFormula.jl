@@ -37,7 +37,7 @@ wonderful and amazing computing platform.
 
 ```
             n: to find a formula for the n-th order derivative
-       points: in the format of a range, start:stop (See examples below.)
+       points: in the format of a range, start : stop (See examples below.)
 printformulaq: print the computed formula or not
 ```
 
@@ -53,7 +53,7 @@ The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m) where k[:]
 are described below. With the information, you may generate formulas for any
 programming language of your choice.
 
-The algorithm uses the linear combination of f(x[i+j]), j in start:stop, to eliminate
+The algorithm uses the linear combination of f(x[i+j]), j in start : stop, to eliminate
 f(x[i]), f'(x[i]), ..., so that the first term of the Taylor series expansion of the
 linear combination is f^(n)(x[i]):
 
