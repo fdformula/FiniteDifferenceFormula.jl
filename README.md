@@ -80,7 +80,7 @@ The function lists
 ### function decimalplaces(n)
 
 The function sets the decimal places to be n for printing Julia function for a formula.
-Without/before calling the function, 15 decimal placed are used by default.
+Without/before calling the function, 15 decimal places are used by default.
 
 ## Examples
 
