@@ -4,11 +4,11 @@ authors = ["David Wang"]
 version = "1.0.1"
 
 [deps]
-Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 RowEchelon = "af85af4c-bcd5-5d23-b03a-a909639aa875"
 
 [compat]
 julia = "1"
+RowEchelon = "0.2.1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
