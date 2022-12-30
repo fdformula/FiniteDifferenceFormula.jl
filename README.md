@@ -11,7 +11,7 @@ method. You can explore the distribution, symmetry, and beauty in the coefficien
 formulas and make some related conjectures and even give proofs to the conjectures.
 
 There is a natural constraint, i.e., the number of points to be used in a formula can't
-be too large due to
+be too large, due to
 
 1. the constraint of the largest integer computers can express and process.
 1. that we want "exact" formulas, i.e., coefficients in the formulas are exact, otherwise,
