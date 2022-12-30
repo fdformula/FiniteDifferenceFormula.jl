@@ -37,7 +37,7 @@ wonderful and amazing computing platform.
 
 ```
             n: to find a formula for the n-th order derivative
-       points: in the format of a range, start : stop (See examples below.)
+       points: in the format of a range, start : stop
 printformulaq: print the computed formula or not
 ```
 
