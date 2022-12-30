@@ -13,11 +13,11 @@ formulas and make some related conjectures and even give proofs to the conjectur
 There is a natural constraint, i.e., the number of points to be used in a formula can't
 be too large. It's due to
 
-1) that we want "exact" formulas, i.e., coefficients in the formulas are exact, otherwise,
+1) the constraint of the largest integer computers can express and process.
+2) that we want "exact" formulas, i.e., coefficients in the formulas are exact, otherwise,
    extra truncation errors occur already in the formulas.
-2) that, to explore the properties of coefficients in the formulas, we had better have
+3) that, to explore the properties of coefficients in the formulas, we had better have
    "exact" formulas.
-3) the constraint of the largest integer a computer can express and process.
 4) that practical applications usually don't allow too many points to be used for
    computing derivatives of a function at a single point because of the constraints of
    computing power.
@@ -27,7 +27,11 @@ wonderful and amazing computing platform.
 
              *     *     *     *     *     *     *     *     *     *
 
-The package exports two functions, computecoefs, and formula().
+The package exports three functions:
+
+1. computecoefs
+2. formula
+3. set_decimal_places:          15 by default
 
 function computecoefs(n::Int64, points::UnitRange{Int64}, printformulaq::Bool = false)
 --------------------------------------------------------------------------------------
@@ -57,11 +61,11 @@ linear combination is f^(n)(x[i]):
         = m*f^(n)(x[i]) + ..., m > 0
 
 It is this equation that gives the formula for computing f^(n)(x[i]) and the truncation
-error in the big-O notation.
+error in the big-O notation as well.
 
 function formula()
 ------------------
-The function lists
+The function presents
 
 1) k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
        = m*f^(n)(x[i]) + ..., m > 0
@@ -69,23 +73,29 @@ The function lists
 2) The formula for finding f^(n)(x[i]), including estimation of accuracy in the big-O
    notation.
 
+3) Julia function for f^(n)(x[i]).
+
              *     *     *     *     *     *     *     *     *     *
-Some examples:
+
+function set_decimal_places(n)
+------------------------------
+The function sets the decimal places to be n for printing Julia function for a formula.
+
+Examples
+========
 
 using FiniteDifferenceFormula
+
+set_decimal_places(6)        # n = 15 by default (without calling the function)
 
 computecoefs(1, 0:2, true)   # find and print 3-point forward finite difference formula for f'(x[i])
 
 computecoefs(2, -3:0, true)  # find and print 4-point backward finite difference formula for f''(x[i])
 
-computecoefs(1, -2:2, true)  # find and print 5-point central finite difference formula for f'(x[i])
+computecoefs(3, -9:9, true)  # find and print 19-point central finite difference formula for f'''(x[i])
 
-computecoefs(1, 2:5, true)   # find and print finite difference formula for f'(x[i]), using points x[i+2], x[i+3], x[i+4], x[i+5], for fun?
-
-computecoefs(3, -6:6, true)  # find and print 13-point central finite difference formula for f'''(x[i])
-
-computecoefs(8, -5:5, true)  # find and print 11-point central finite difference formula for f'(x[i])
-
-computecoefs(10, -5:5)       # find 11-point central finite difference formula for f'(x[i])
+# for fun
+computecoefs(4,-160:260)     # find 421-point finite difference formula for f''''(x[i])
+                             # it takes quite a while to finish the computation
 
 formula()                    # print the formula computed last time you called computecoefs(...)
