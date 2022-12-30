@@ -213,28 +213,28 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
         row += 1
     end
 
-	# purpose: determine 'which' so that k[which] != 0; it is not necessarily 1. 12/29/22
-	# note: except x[i], the closer a point is near x[i], the larger its weight is.
-	which = 1
-	if abs(points.start) == points.stop # central
-		which = ceil(Int, n / 2) # -2, -1, 0, 1, 2: -1 and 1 have same largest weight w/o considering x[i]
-	elseif points.start == 0 # forward
-		# which = 1
-	elseif points.stop == 0  # backward
-		which = len
-	else                     # mixed, e.g., -1:3, 2:5
-		if points.start < 0 && points.stop > 0
-			if abs(points.start) > abs(points.stop)
-				which = len
-			# else
-			#	which = 1
-			end
-		elseif points.start < 0 && points.stop < 0
-			which = len
-		#else # points.start > 0 && points.stop > 0
-		#	which = 1
-		end
-	end
+    # purpose: determine 'which' so that k[which] != 0; it is not necessarily 1. 12/29/22
+    # note: except x[i], the closer a point is near x[i], the larger its weight is.
+    which = 1
+    if abs(points.start) == points.stop # central
+        which = ceil(Int, n / 2) # -2, -1, 0, 1, 2: -1 and 1 have same largest weight w/o considering x[i]
+    elseif points.start == 0 # forward
+        # which = 1
+    elseif points.stop == 0  # backward
+        which = len
+    else                     # mixed, e.g., -1:3, 2:5
+        if points.start < 0 && points.stop > 0
+            if abs(points.start) > abs(points.stop)
+                which = len
+            # else
+            #    which = 1
+            end
+        elseif points.start < 0 && points.stop < 0
+            which = len
+        #else # points.start > 0 && points.stop > 0
+        #    which = 1
+        end
+    end
 
     A[len, 1 : len] .= 0;    # let k[which] = 1
     A[len, which] = 1
@@ -280,9 +280,9 @@ end   # computecoefs
 # print the linear combination
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
 function print_lcombination(data::FDData, decimal = false)
-	firstq = true
+    firstq = true
     for i = eachindex(data.points)
-	    if data.k[i] == 0; continue; end
+        if data.k[i] == 0; continue; end
         times = abs(data.k[i]) == 1 ? "" : "* "
         print(c2s(data.k[i], firstq, decimal), times, f2s(data.points[i]))
         firstq = false
@@ -312,7 +312,7 @@ function test_formula_validity()
             s += k[j]*coefs[j][i]
         end
         if s != 0
-			println("-" ^ 81)
+            println("-" ^ 81)
             println("***** Error:: n=$n, $(points.start):$(points.stop) :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
             if len <= n
                 th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
@@ -331,14 +331,14 @@ function test_formula_validity()
         m += k[i] * coefs[i][order_index]
     end
     if m == 0
-		println("-" ^ 81)
+        println("-" ^ 81)
         println("***** Error:: n=$n, $(points.start):$(points.stop) :: m = 0, so bad!")
         return
     end
 
     if sum(k) != 0   # sum of coefficients must be 0
         println("\n***** Warning:: n=$n, $(points.start):$(points.stop) :: sum(k[:]) != 0")
-		formula_status += 1
+        formula_status += 1
     end
 
     # must coefficients of central formulas be symmetrical?
@@ -347,7 +347,7 @@ function test_formula_validity()
         for i in 1 : round(Int64, length(k)/2)
             if abs(k[i]) != abs(k[j])
                 println("\n***** Warning:: n=$n, $(points.start):$(points.stop) :: k[$i] != k[$j]")
-				formula_status += 1
+                formula_status += 1
                 break
             end
             j -= 1
@@ -408,9 +408,9 @@ function formula()
     end
 
     if formula_status !=0
-		println("-" ^ 81)
-	    print("The following formula ")
-		if formula_status == 100
+        println("-" ^ 81)
+        print("The following formula ")
+        if formula_status == 100
             print("passed all tests: sum of coefs being zero")
             if abs(data.points.start) == data.points.stop
                 print(", symmetry of coefs about x[i]")
