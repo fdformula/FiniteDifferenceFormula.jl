@@ -41,11 +41,10 @@ Input:
               points: in the format of a range, start:stop (See examples below.)
        printformulaq: print the computed formula or not
 
-   points  |  The points to be used
-   --------+----------------------------------------------
-    0:2    |  x[i], x[i+1], x[i+2]
-   -2:2    |  x[i-2], x[i-1], x[i], x[i+1], x[i+2]
-   -3:2    |  x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2]
+   points    The points to be used
+    0:2      x[i], x[i+1], x[i+2]
+   -2:2      x[i-2], x[i-1], x[i], x[i+1], x[i+2]
+   -3:2      x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2]
 
 Output:
 
@@ -94,8 +93,7 @@ computecoefs(2, -3:0, true)  # find and print 4-point backward finite difference
 
 computecoefs(3, -9:9, true)  # find and print 19-point central finite difference formula for f'''(x[i])
 
-# for fun
-computecoefs(4,-160:260)     # find 421-point finite difference formula for f''''(x[i])
+computecoefs(4,-160:260)     # find 421-point finite difference formula for f''''(x[i])     # for fun
                              # it takes quite a while to finish the computation
 
 formula()                    # print the formula computed last time you called computecoefs(...)
