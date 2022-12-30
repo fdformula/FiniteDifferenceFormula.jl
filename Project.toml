@@ -1,7 +1,7 @@
 name = "FiniteDifferenceFormula"
 uuid = "fc1124c1-9066-4ec6-b9ac-c409d23c4e6c"
 authors = ["David Wang"]
-version = "1.0.5"
+version = "1.0.1"
 
 [deps]
 RowEchelon = "af85af4c-bcd5-5d23-b03a-a909639aa875"
