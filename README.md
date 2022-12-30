@@ -68,10 +68,10 @@ error in the big-O notation as well.
 ### function formula()
 
 The function lists
-
-1. ``` k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
-       = m*f^(n)(x[i]) + ..., m > 0 ```
-
+```
+1. k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+       = m*f^(n)(x[i]) + ..., m > 0
+```
 1. The formula for finding f^(n)(x[i]), including estimation of accuracy in the big-O
    notation.
 
