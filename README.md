@@ -25,13 +25,13 @@ be too large. It's due to
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-## The package exports three functions:
+## The package exports three functions
 
 - computecoefs
 - formula
 - decimalplaces
 
-### function computecoefs(n::Int64, points::UnitRange{Int64}, printformulaq::Bool = false)
+### function computecoefs(n, points, printformulaq = false)
 
 #### Input
 
@@ -82,7 +82,7 @@ The function lists
 The function sets the decimal places to be n for printing Julia function for a formula.
 Without/before calling the function, 15 decimal placed are used by default.
 
-### Examples
+## Examples
 
 ```Julia
 using FiniteDifferenceFormula
