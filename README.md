@@ -42,8 +42,11 @@ Input:
        printformulaq: print the computed formula or not
 
    points    The points to be used
+   -------------------------------
     0:2      x[i], x[i+1], x[i+2]
+   
    -2:2      x[i-2], x[i-1], x[i], x[i+1], x[i+2]
+   
    -3:2      x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2]
 
 Output:
