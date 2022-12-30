@@ -8,13 +8,13 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
-export computecoefs, formula, set_decimal_places
+export computecoefs, formula, decimalplaces
 
 max_num_of_taylor_terms = 30 # number of the 1st terms of a Taylor series expansion
                              # variable, depending on input to computecoefs
 
 decimal_places = 15          # use it to print Julia function for a formula
-                             # call set_decimal_places(n) to reset it
+                             # call decimalplaces(n) to reset it
 
 ####################################################################################
 
@@ -61,12 +61,12 @@ function taylor_coefs(h)
     return result
 end
 
-function set_decimal_places(n)
+function decimalplaces(n)
     global decimal_places
     if isinteger(n) && n >= 2
         decimal_places = n
     else
-        error("set_decimal_places(n): n must be integer greater than 1")
+        error("decimalplaces(n): n must be integer greater than 1")
     end
 end
 
