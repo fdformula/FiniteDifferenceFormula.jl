@@ -50,7 +50,7 @@ printformulaq: print the computed formula or not
 #### Output
 
 The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m) where k[:] and m
-are described belows. With the information, you may generate formulas for any
+are described below. With the information, you may generate formulas for any
 programming language of your choice.
 
 The algorithm uses the linear combination of f(x[i+j]), j in start:stop, to eliminate
