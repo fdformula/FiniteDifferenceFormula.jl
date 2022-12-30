@@ -89,13 +89,13 @@ using FiniteDifferenceFormula
 
 decimalplaces(6)
 
-computecoefs(1, 0:2, true)   # find and print 3-point forward finite difference formula for f'(x[i])
+computecoefs(1, 0:2, true)   # find and print "3"-point forward finite difference formula for f'(x[i])
 
-computecoefs(2, -3:0, true)  # find and print 4-point backward finite difference formula for f''(x[i])
+computecoefs(2, -3:0, true)  # find and print "4"-point backward finite difference formula for f''(x[i])
 
-computecoefs(3, -9:9, true)  # find and print 19-point central finite difference formula for f'''(x[i])
+computecoefs(3, -9:9, true)  # find and print "19"-point central finite difference formula for f'''(x[i])
 
-computecoefs(4,-160:260)     # find 421-point finite difference formula for f''''(x[i]) ---- for fun
+computecoefs(4,-160:260)     # find "421"-point finite difference formula for f''''(x[i]) ---- for fun
                              # it takes quite a while to finish the computation
 
 formula()                    # print the formula computed last time you called computecoefs(...)
