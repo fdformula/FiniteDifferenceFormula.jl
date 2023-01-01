@@ -204,7 +204,7 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     #
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[stop-start+1]*coefs[stop-start+1][j] = 0 ..... (1)
     #
-    # where j = 1, 2, ..., n - 1.
+    # where j = 1, 2, ..., n.
     #
     A = Matrix{Rational{BigInt}}(undef, len, len)
     row = 1
