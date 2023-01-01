@@ -184,21 +184,27 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
         coefs[i] = taylor_coefs(points[i])
     end
 
-    # The linear combination of f(x[i+start]), f(x[i+start+1]) ... f(x[i+stop])
+    # We find a linear combination of f(x[i+start]), f(x[i+start+1]) ... f(x[i+stop]),
     #
     # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + k[3]*f(x[i+start+2]) + k[stop-start+1]*f(x[i+stop])i
-    #  = m*f^(n)(x[i]) + ..., m != 0
+    #  = 0*f(x[i]) + 0*f'(x[i]) + ... + 0*f^(n-1)(x[i]) + m*f^(n)(x[i]) + ..., m != 0
     #
-    # eliminates f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]); if possible, it eliminates also
-    # f^(n+1)(x[i]), ..., on the right-hand side of all involved Taylor series expansions.
+    # so that it must eliminate f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]); if possible, it also
+    # eliminates f^(n+1)(x[i]), f^(n+2)(x[i]), ....
     #
-    # For example, to eliminate f(x[i]) on the righ-hand side, we have
+    # For example, to eliminate f(x[i]), we have
     #
-    #    k[1]*coefs[1][1] + k[2]*coefs[2][1] + ... + k[stop-start+1]*coefs[stop-start+1][1] = 0
+    #    k[1]*coefs[1][1] + k[2]*coefs[2][1] + ... + k[stop-start+1]*coefs[stop-start+1][1] = 0 
     #
     # and to eliminate f'(x[i]), we have
     #
     #    k[1]*coefs[1][2] + k[2]*coefs[2][2] + ... + k[stop-start+1]*coefs[stop-start+1][2] = 0
+    #
+    # Therefore, a linear system is detemined by the following equations
+    #
+    #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[stop-start+1]*coefs[stop-start+1][j] = 0 ..... (1)
+    #
+    # where j = 1, 2, ..., n - 1.
     #
     A = Matrix{Rational{BigInt}}(undef, len, len)
     row = 1
@@ -213,26 +219,30 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
         row += 1
     end
 
-    # purpose: determine 'which' so that k[which] != 0; it is not necessarily 1. 12/29/22
-    # note: except x[i], the closer a point is near x[i], the larger its weight is.
+    # The system (1) has no solution or has inifinitely many solutions. It is understandable that
+    # it may not have a solution. But why inifinitely many solutions? Because if k[:] is a solution,
+    # λ k[:] is also a solution, where λ is any real constant, i.e., solutions are parallel to each
+    # other. So, in the case that there are infinitely many solutions, if we know one entry k[which] 
+    # is nonzero and let it be a nonzero constant (say, 1), then, k[:] is unique.
+    #
+    # Purpose: determine 'which' so that k[which] != 0. It is not necessarily 1.
+    #
+    # Note: By commonsense, we assume that, except x[i], the closer a point is near x[i], the larger
+    # its weight is, and the closest points to x[i] are x[i ± 1] if available.
     which = 1
-    if abs(points.start) == points.stop # central
-        which = ceil(Int, n / 2) # -2, -1, 0, 1, 2: -1 and 1 have same largest weight w/o considering x[i]
-    elseif points.start == 0 # forward
-        # which = 1
-    elseif points.stop == 0  # backward
-        which = len
-    else                     # mixed, e.g., -1:3, 2:5
+    if -points.start == points.stop     # central
+        which = -points.start           # x[i - 1]
+    elseif points.start == 0            # forward
+        which = 2                       # x[i + 1]
+    elseif points.stop == 0             # backward
+        which = len - 1                 # x[i - 1]
+    else                                # mixed, e.g., -5:3, -4:-2, 2:5
         if points.start < 0 && points.stop > 0
-            if abs(points.start) > abs(points.stop)
-                which = len
-            # else
-            #    which = 1
-            end
+            which = -points.start       # x[i - 1]
         elseif points.start < 0 && points.stop < 0
-            which = len
-        #else # points.start > 0 && points.stop > 0
-        #    which = 1
+            which = len                 # the point closest to x[i]
+        #else points.start > 0 && points.stop > 0
+        #    which = 1                  # the point closest to x[i]
         end
     end
 
@@ -453,6 +463,7 @@ function formula()
 
         print_formula(data, bigO)
         # print the formula in another format
+		data1 = FDData
         if data.m > 1
             data1 = FDData(data.n, data.points, data.k // data.m, 1, data.coefs)
             print("Or\n\n")
@@ -460,12 +471,13 @@ function formula()
         end
 
         print("Julia function:\n\n")
-        print_formula(data)
+        print_formula(data)                # exact
         # print the function in decimal format
         if data.m > 1
-            data1 = FDData(data.n, data.points, data.k // data.m, 1, data.coefs)
             print("Or\n\n")
-            print_formula(data1, "", true)
+			print_formula(data1)           # exact
+            print("Or\n\n")
+			print_formula(data1, "", true) # decimal
         end
     end
 end  # formula
