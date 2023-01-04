@@ -8,7 +8,7 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
-export computecoefs, formula, decimalplaces
+export computecoefs, formula, decimalplaces, taylor
 
 max_num_of_taylor_terms = 30 # number of the 1st terms of a Taylor series expansion
                              # variable, depending on input to computecoefs
@@ -32,6 +32,10 @@ end
 data = FDData                # share computing results between functions
 computedq::Bool = false      # make sure computecoefs(n, points) is called first
 formula_status = 0           # a formula may not be valid
+
+# a vector of the coefficients of Taylor series expansion of the linear combination:
+# k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+lcombination_coefs = Array{Any}(undef, max_num_of_taylor_terms)
 
 # This function returns the first 'max_num_of_taylor_terms' of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed. The
@@ -105,6 +109,17 @@ function f2s(k)
     return "$s])"
 end  # f2s
 
+# print readable Taylor series expansion of f(x[i + j]) about x[i] (for teaching!)
+function taylor(j::Int, num_of_nonzero_terms = 10)
+    global max_num_of_taylor_terms
+    if max_num_of_taylor_terms < num_of_nonzero_terms
+        max_num_of_taylor_terms = num_of_nonzero_terms
+    end
+    coefs = taylor_coefs(j)
+    println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
+    print_taylor(coefs, num_of_nonzero_terms)
+end
+
 # print readable Taylor series
 #
 # Input: An array that contains the coefficients of the first
@@ -176,7 +191,8 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     if n < 1; @error "Wrong order of derivatives."; end
 
     len = length(points)
-    global max_num_of_taylor_terms = len + 8
+    global max_num_of_taylor_terms = max(len, n) + 8
+    global lcombination_coefs = Array{Any}(undef, max_num_of_taylor_terms)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the involved points
     coefs = Array{Any}(undef, len)
@@ -231,7 +247,7 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     # its weight is, and the closest points to x[i] are x[i ± 1] if available.
     which = 1
     if -points.start == points.stop     # central
-        which = -points.start           # x[i - 1]
+        which = points.stop             # x[i - 1]
     elseif points.start == 0            # forward
         which = 2                       # x[i + 1]
     elseif points.stop == 0             # backward
@@ -257,15 +273,26 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     k = rref([A B])[:, len + 1]   # package RowEchelon provides rref
     k = k // gcd(k)
 
-    # calculate m
-    m::Any = 0
-    order_index = n + 1
-    for i in eachindex(points)
-        m += k[i] * coefs[i][order_index]
+    # Taylor series expansion of the linear combination
+    # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+    lcombination_coefs = k[1] * coefs[1]
+    for i = eachindex(points)
+        if i == 1 || k[i] == 0; continue; end
+        lcombination_coefs += k[i] * coefs[i]
+    end
+
+    # find the first nonzero term, v1.0.3
+    m = lcombination_coefs[n + 1]
+    for i = 1 : n
+        if lcombination_coefs[i] != 0
+            m = lcombination_coefs[i]
+            break
+        end
     end
 
     # "normalize" k[:] and m so that m is a positive integer
-    if m < 0; k *= -1; m *= -1; end
+    if m < 0; k *= -1; lcombination_coefs *= -1; end
+    m = lcombination_coefs[n + 1]
     x = round(BigInt, m)
     if x == m; m = x; end
 
@@ -308,20 +335,20 @@ function test_formula_validity()
     # the most important step is to know if f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]) are all eliminated, i.e.,
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[stop-start+1]*coefs[stop-start+1][j] = 0
     # where j = 1:n
-    global data, formula_status
+    global data, formula_status, computedq
+    if !computedq
+        @error "Please call computecoefs(n, points) first!"
+    end
+
     n = data.n
     k = data.k
     coefs = data.coefs
     points = data.points
+	len = length(points)
 
     formula_status = 0
     for i = 1 : n
-        len = length(points)
-        s::Rational{BigInt} = 0
-        for j = 1 : len
-            s += k[j]*coefs[j][i]
-        end
-        if s != 0
+        if lcombination_coefs[i] != 0
             println("-" ^ 81)
             println("***** Error:: n=$n, $(points.start):$(points.stop) :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
             if len <= n
@@ -334,15 +361,10 @@ function test_formula_validity()
         end
     end
 
-    # calculate m
-    m::Any = 0
-    order_index = n + 1
-    for i in eachindex(points)
-        m += k[i] * coefs[i][order_index]
-    end
+    m = lcombination_coefs[n + 1]
     if m == 0
         println("-" ^ 81)
-        println("***** Error:: n=$n, $(points.start):$(points.stop) :: m = 0, so bad!")
+        println("***** Error:: n=$n, $(points.start):$(points.stop) :: m = 0, formula can't be found!")
         return
     end
 
@@ -435,17 +457,8 @@ function formula()
     # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
     println("The computing result:\n")
     print_lcombination(data)
-
-    # Taylor series expansion of the linear combination
-    sum_coefs = data.k[1] * data.coefs[1]
-    for i = eachindex(data.points)
-        if i > 1 && data.k[i] != 0
-            sum_coefs += data.k[i] * data.coefs[i]
-        end
-    end
-
     print(" =\n")
-    print_taylor(sum_coefs, 5); # print at most the number of nonzero terms
+    print_taylor(lcombination_coefs, 5); # print at most 5 nonzero terms
 
     if formula_status != 0
         println("The exact formula:\n")
@@ -453,8 +466,8 @@ function formula()
         #
         # find x of O(h^x)
         x = max_num_of_taylor_terms;
-        for i in data.n + 2 : length(sum_coefs)
-            if sum_coefs[i] != 0; x = i; break; end
+        for i in data.n + 2 : length(lcombination_coefs)
+            if lcombination_coefs[i] != 0; x = i; break; end
         end
         x -= data.n + 1
         bigO = "O(h"
@@ -463,7 +476,7 @@ function formula()
 
         print_formula(data, bigO)
         # print the formula in another format
-		data1 = FDData
+        data1 = FDData
         if data.m > 1
             data1 = FDData(data.n, data.points, data.k // data.m, 1, data.coefs)
             print("Or\n\n")
@@ -475,9 +488,9 @@ function formula()
         # print the function in decimal format
         if data.m > 1
             print("Or\n\n")
-			print_formula(data1)           # exact
+            print_formula(data1)           # exact
             print("Or\n\n")
-			print_formula(data1, "", true) # decimal
+            print_formula(data1, "", true) # decimal
         end
     end
 end  # formula
