@@ -110,8 +110,9 @@ computecoefs(3, -9:9, true)           # find and print "19"-point central formul
 
 computecoefs(2, [-3 -2 1 2 7], true)  # find and print 5-point formula for f''(x[i])
 
-computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i]) ---- for fun
-                                      # it takes quite a while to finish the computation
+computecoefs(3, 0:122, true)          # find and print "123"-point forward formula for f'''(x[i])
+
+computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i])
 
 formula()                             # print the formula computed last time you called computecoefs(...)
 
