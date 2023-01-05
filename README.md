@@ -6,12 +6,13 @@ of a function at evenly spaced points. It also gives the truncation error of a f
 in the big-O notation. You can use it to generate new formulas in addition to
 verification of known ones. See documentation in the source code for the algorithm.
 
-It is for fun when you teach/learn numerical computing, especially the finite difference
-method. You can explore the distribution, symmetry, and beauty in the coefficients in the
-formulas and make some related conjectures and even give proofs to the conjectures.
+You may play with this package when teaching/learning numerical computing, especially
+the finite difference method. You can explore the distribution, symmetry, and beauty in
+the coefficients in the formulas and make some related conjectures and even give proofs
+to the conjectures.
 
-There is a natural constraint, i.e., the number of points to be used in a formula can't
-be too large, due to
+Beware, there is a natural constraint, i.e., the number of points to be used in a formula
+can't be too large, due to
 
 1. the constraint of the largest integer computers can express and process.
 1. that we want "exact" formulas, i.e., coefficients in the formulas are exact, otherwise,
@@ -25,11 +26,12 @@ be too large, due to
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-## The package exports three functions
+## The package exports four functions
 
 - computecoefs
 - formula
 - decimalplaces
+- taylor
 
 ### function computecoefs(n, points, printformulaq = false)
 
@@ -82,6 +84,11 @@ The function lists
 The function sets the decimal places to be n for printing Julia function for a formula.
 Without/before calling the function, 15 decimal places are used by default.
 
+### function taylor(j, n = 10)
+
+The function prints the first n terms of Taylor series expansion of f(x[i+j]) about x[i].
+It is simply for teaching/learning the finite difference method.
+
 ## Examples
 
 ```Julia
@@ -99,4 +106,8 @@ computecoefs(4,-160:260)     # find "421"-point finite difference formula for f'
                              # it takes quite a while to finish the computation
 
 formula()                    # print the formula computed last time you called computecoefs(...)
+
+taylor(-2)                   # print the first 10 terms of Taylor series expansion of f(x[i-2]) about x[i]
+
+taylor(2, 7)                 # print the first 7 terms of Taylor series expansion of f(x[i+2]) about x[i]
 ```
