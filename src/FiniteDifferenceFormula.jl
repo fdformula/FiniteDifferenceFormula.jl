@@ -37,6 +37,10 @@ formula_status = 0           # a formula may not be valid
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
 lcombination_coefs = Array{Any}(undef, max_num_of_taylor_terms)
 
+range_inputq = false
+# If the input of computecoefs is a range, reset the value of this variable to it
+range_input::UnitRange{Int} = 0:0
+
 # This function returns the first 'max_num_of_taylor_terms' of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed. The
 # purpose is to obtain Taylor series expansions for f(x[i±k]) = f(x[i]±kh]) which
@@ -149,6 +153,45 @@ function print_taylor(coefs, num_of_nonzero_terms = max_num_of_taylor_terms)
     println(" + ...\n")
 end  # print_taylor
 
+function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
+    if n < 1; @error "Wrong order of derivatives :: n = $n. It must be a positive integer."; end
+
+    global range_inputq = true
+    global range_input  = points
+    computecoefs_main(n, collect(points), printformulaq)
+end
+
+# computecoefs(2, [1 2 3 -1])
+function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
+    if n < 1; @error "Wrong order of derivatives :: n = $n. It must be a positive integer."; end
+
+    if length(points) <= 1
+        error("Invalid input :: points = $points")
+    else
+        m, = size(points)
+        if m > 1 points = points'; end      # a column vector
+        points = sort(unique(points))
+        if length(points) == 1
+            error("Invalid input :: points = $(points')")
+        end
+
+        println("You input: $points")
+        # is the input 'points' actually a range?
+        if length(points[1]:points[end]) == length(points)
+            computecoefs(n, points[1]:points[end], printformulaq)
+        else
+            global range_inputq = false
+            global range_input  = 0:0
+            computecoefs_main(n, points, printformulaq)
+        end
+    end
+end
+
+# computecoefs(2, [1, 2, 3, -1])
+function computecoefs(n::Int, points::Array{Int}, printformulaq::Bool = false)
+    computecoefs(n, hcat(points), printformulaq)
+end
+
 #
 # Algorithm
 # ---------
@@ -186,10 +229,8 @@ end  # print_taylor
 # ------
 # The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m).
 #
-function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
+function computecoefs_main(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # setup a linear system Ax = B first
-    if n < 1; @error "Wrong order of derivatives."; end
-
     len = length(points)
     global max_num_of_taylor_terms = max(len, n) + 8
     global lcombination_coefs = Array{Any}(undef, max_num_of_taylor_terms)
@@ -210,7 +251,7 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     #
     # For example, to eliminate f(x[i]), we have
     #
-    #    k[1]*coefs[1][1] + k[2]*coefs[2][1] + ... + k[stop-start+1]*coefs[stop-start+1][1] = 0 
+    #    k[1]*coefs[1][1] + k[2]*coefs[2][1] + ... + k[stop-start+1]*coefs[stop-start+1][1] = 0
     #
     # and to eliminate f'(x[i]), we have
     #
@@ -245,33 +286,17 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     #
     # Beware, there may be multiple nontrivial solutions,
     #    k[:] = [k1, k2, ...], k[:] = [K1, K2, ...], ..., or k[:] = [κ1, κ2, ...]
-    # of which no two are parallel to each other. However, each of them must follow a GENERAL rule
-    # that, except x[i], the closer a point x[j] is near x[i], the larger its weight k[j] is as
-    # usual/expected, and the closest points to x[i] are x[i ± 1] if available.
-
-    # Now, determine 'which' so that k[which] != 0, applying the above-mentioned general rule.
-    which = 1
-    if -points.start == points.stop     # central
-        which = points.stop             # x[i - 1]
-    elseif points.start == 0            # forward
-        which = 2                       # x[i + 1]
-    elseif points.stop == 0             # backward
-        which = len - 1                 # x[i - 1]
-    else                                # mixed, e.g., -5:3, -4:-2, 2:5
-        if points.start < 0 && points.stop > 0
-            which = -points.start       # x[i - 1]
-        elseif points.start < 0 && points.stop < 0
-            which = len                 # the point closest to x[i]
-        #else points.start > 0 && points.stop > 0
-        #    which = 1                  # the point closest to x[i]
-        end
-    end
-
-    A[len, 1 : len] .= 0;               # let k[which] = 1
-    A[len, which] = 1
+    # of which no two are parallel to each other. However, each of these solutions must satisfy the
+    # condition that both k[1] and k[end] can't zero. Why? If, say, k[1] = 0, in other words, a formula
+    # only uses/depends om (at most) x[i+start+1], x[i+start+2], ..., x[i+stop], why should we say it
+    # is a formula that uses/depends on x[i+start], x[i+start+1], ..., x[i+stop]? Therefore, we can be
+    # sure that k[1] != 0.
+    #
+    A[len, 2 : len] .= 0                # setup an equation so that k[1] = 1
+    A[len, 1] = 1
 
     B = zeros(Rational{BigInt}, len, 1)
-    B[len] = 1                          # so that k[which] = 1
+    B[len] = 1                          # so that k[1] = 1
 
     # solve Ax = B for x, i.e., k[:]
     k = rref([A B])[:, len + 1]         # package RowEchelon provides rref
@@ -298,13 +323,7 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     if m < 0; k *= -1; lcombination_coefs *= -1; end
     m = lcombination_coefs[n + 1]
     x = round(BigInt, m)
-    if x == m; m = x; end
-
-    results = Matrix{Any}(undef, 1, len)
-    for i in eachindex(points)
-        x = round(BigInt, k[i])
-        results[i] = x == k[i] ? x : k[i]
-    end
+    if x == m; m = x; end  # so that m = 5 rather than 5//1
 
     # save the results in a global variable for other functions
     global data, computedq
@@ -315,7 +334,7 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
 
     if printformulaq; formula(); end
 
-    return (results, m)
+    return (coefs, m)
 end   # computecoefs
 
 # print the linear combination
@@ -339,7 +358,7 @@ function test_formula_validity()
     # the most important step is to know if f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]) are all eliminated, i.e.,
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[stop-start+1]*coefs[stop-start+1][j] = 0
     # where j = 1:n
-    global data, formula_status, computedq
+    global data, formula_status, computedq, range_inputq, range_input
     if !computedq
         @error "Please call computecoefs(n, points) first!"
     end
@@ -350,39 +369,62 @@ function test_formula_validity()
     points = data.points
     len = length(points)
 
+    input_points = range_inputq ? "$(range_input.start):$(range_input.stop)" : "$(points')"
+
     formula_status = 0
+    # Is there any equation in system (1) that is not satisfied?
+    has_solutionq = true
     for i = 1 : n
         if lcombination_coefs[i] != 0
             println("-" ^ 81)
-            println("***** Error:: n=$n, $(points.start):$(points.stop) :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
-            if len <= n
-                th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
-                println("The input $(points) is invalid because at least $(n + 1) points are needed for the $n$th derivative.\n")
-            else
-                println("A formula might not exist.\n")
-            end
-            return
+            println("***** Error:: n=$n, $input_points :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
+            has_solutionq = false
+            break
         end
     end
 
+    # Is k[1] == 0 ?
+    if k[1] == 0
+        println("***** Error:: k[1] = 0")
+        has_solutionq = false
+    end
+
+    # Is k[len] == 0 ?
+    if k[len] == 0
+        println("Error:: k[$len] = 0")
+        has_solutionq = false
+    end
+
+    if !has_solutionq
+        if len <= n
+            th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
+            println("The input $input_points is invalid because at least $(n + 1) points are needed for the $n$th derivative.\n")
+        else
+            println("A formula might not exist.\n")
+        end
+
+        return
+    end
+
+    # Is m == 0 ?
     m = lcombination_coefs[n + 1]
     if m == 0
         println("-" ^ 81)
-        println("***** Error:: n=$n, $(points.start):$(points.stop) :: m = 0, formula can't be found!")
+        println("***** Error:: n=$n, $input_points :: m = 0, formula can't be found!")
         return
     end
 
     if sum(k) != 0   # sum of coefficients must be 0
-        println("\n***** Warning:: n=$n, $(points.start):$(points.stop) :: sum(k[:]) != 0")
+        println("\n***** Warning:: n=$n, $input_points :: sum(k[:]) != 0")
         formula_status += 1
     end
 
     # must coefficients of central formulas be symmetrical?
-    if abs(points.start) == points.stop  # add && false to false to skip the test
+    if range_inputq && abs(range_input.start) == range_input.stop  # add && false to skip the test
         j = length(k)
         for i in 1 : round(Int64, length(k)/2)
             if abs(k[i]) != abs(k[j])
-                println("\n***** Warning:: n=$n, $(points.start):$(points.stop) :: k[$i] != k[$j]")
+                println("\n***** Warning:: n=$n, $input_points :: k[$i] != k[$j]")
                 formula_status += 1
                 break
             end
@@ -396,15 +438,18 @@ function test_formula_validity()
 end  # test_formula_validity
 
 function print_formula(data::FDData, bigO="", decimal = false)
+    global range_inputq, range_input
     if bigO == ""    # printing Julia function
         th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : (data.n == 3 ? "rd" : "th"))
-        s = "mixed"
-        if -data.points.start == data.points.stop
-            s = "central"
-        elseif data.points.start == 0
-            s = "forward"
-        elseif data.points.stop == 0
-            s = "backward"
+        s = ""
+        if range_inputq
+            if -range_input.start == range_input.stop
+                s = "central"
+            elseif range_input.start == 0
+                s = "forward"
+            elseif range_input.stop == 0
+                s = "backward"
+            end
         end
 
         n = 0  # how many points are involved?
@@ -437,7 +482,7 @@ end  # print_formula
 # print readable formula and other computing results
 # use data stored in global variable data
 function formula()
-    global data, computedq, formula_status
+    global data, computedq, formula_status, range_inputq, range_input
 
     if !computedq
         @error "Please call computecoefs(n, points) first!"
@@ -448,7 +493,7 @@ function formula()
         print("The following formula ")
         if formula_status == 100
             print("passed all tests: sum of coefs being zero")
-            if abs(data.points.start) == data.points.stop
+            if range_inputq && abs(range_input.start) == range_input.stop
                 print(", symmetry of coefs about x[i]")
             end
             println(", etc.\n")
