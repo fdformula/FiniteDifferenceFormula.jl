@@ -288,7 +288,7 @@ function computecoefs_main(n::Int, points::Vector{Int}, printformulaq::Bool = fa
     #    k[:] = [k1, k2, ...], k[:] = [K1, K2, ...], ..., or k[:] = [κ1, κ2, ...]
     # of which no two are parallel to each other. However, each of these solutions must satisfy the
     # condition that both k[1] and k[end] can't zero. Why? If, say, k[1] = 0, in other words, a formula
-    # only uses/depends om (at most) x[i+start+1], x[i+start+2], ..., x[i+stop], why should we say it
+    # only uses/depends on (at most) x[i+start+1], x[i+start+2], ..., x[i+stop], why should we say it
     # is a formula that uses/depends on x[i+start], x[i+start+1], ..., x[i+stop]? Therefore, we can be
     # sure that k[1] != 0.
     #
