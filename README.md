@@ -86,7 +86,7 @@ Without/before calling the function, 15 decimal places are used by default.
 
 ### function taylor(j, n = 10)
 
-The function prints the first n terms of Taylor series of f(x[i+j]) about x[i]. It is here
+The function prints the first n terms of the Taylor series of f(x[i+j]) centered at x[i]. It is here
 simply for teaching/learning the finite difference method.
 
 ## Examples
