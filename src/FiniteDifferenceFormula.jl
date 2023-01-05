@@ -58,8 +58,8 @@ function taylor_coefs(h)
     result = Matrix{Rational{BigInt}}(undef, 1, max_num_of_taylor_terms)
     factorial::BigInt = 1
     for n in 1 : max_num_of_taylor_terms
-        N = n - 1
-        if n > 1; factorial *= N; end
+        N = n - 1                        # order of a derivative in Taylor series
+        if N > 0; factorial *= N; end    # 0! = 1
         result[n] = 1 // factorial * h^N
     end
     return result
@@ -235,16 +235,17 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
         row += 1
     end
 
-    # The system (1) has no solution or has inifinitely many solutions. It is understandable that
-    # it may not have a solution. But why inifinitely many solutions? Because if k[:] is a solution,
-    # λ k[:] is also a solution, where λ is any real constant, i.e., solutions are parallel to each
-    # other. So, in the case that there are infinitely many solutions, if we know one entry k[which] 
-    # is nonzero and let it be a nonzero constant (say, 1), then, k[:] is unique.
+    # The homogeneous linear system (1) has no nontrivial solution or has inifinitely many nontrivial
+    # solutions. It is understandable that it may not have a nontrivial solution. But why inifinitely
+    # many solutions? Because if k[:] is a solution, λ k[:] is also a solution, where λ is any
+    # nonzero real constant, i.e., nontrivial solutions are parallel to each other. So, in the case
+    # that there are infinitely many nontrivial solutions, if we know one entry k[which] is nonzero
+    # and let it be a nonzero constant (say, 1), then, the solution k[:] is unique.
     #
     # Purpose: determine 'which' so that k[which] != 0. It is not necessarily 1.
     #
     # Note: By commonsense, we assume that, except x[i], the closer a point is near x[i], the larger
-    # its weight is, and the closest points to x[i] are x[i ± 1] if available.
+    # its weight is as usual/expected, and the closest points to x[i] are x[i ± 1] if available.
     which = 1
     if -points.start == points.stop     # central
         which = points.stop             # x[i - 1]
@@ -262,15 +263,14 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
         end
     end
 
-    A[len, 1 : len] .= 0;    # let k[which] = 1
+    A[len, 1 : len] .= 0;               # let k[which] = 1
     A[len, which] = 1
 
-    B = Array{Rational{BigInt}}(undef, len, 1)
-    fill!(B, 0)
-    B[len] = 1       # so that k[which] = 1
+    B = zeros(Rational{BigInt}, len, 1)
+    B[len] = 1                          # so that k[which] = 1
 
     # solve Ax = B for x, i.e., k[:]
-    k = rref([A B])[:, len + 1]   # package RowEchelon provides rref
+    k = rref([A B])[:, len + 1]         # package RowEchelon provides rref
     k = k // gcd(k)
 
     # Taylor series expansion of the linear combination
@@ -344,7 +344,7 @@ function test_formula_validity()
     k = data.k
     coefs = data.coefs
     points = data.points
-	len = length(points)
+    len = length(points)
 
     formula_status = 0
     for i = 1 : n
