@@ -238,16 +238,16 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     # The homogeneous linear system (1) has no nontrivial solution or has inifinitely many nontrivial
     # solutions. It is understandable that it may not have a nontrivial solution. But why inifinitely
     # many nontrivial solutions? It is because, if k[:] is a nontrivial solution, α k[:] is also a
-	# nontrivial solution, where α is any nonzero real constant, i.e., all nontrivial solutions (a
-	# subspace spanned by this k[:]) are parallel to each other. Therefore, in the case that there
-	# are infinitely many nontrivial solutions, if we know one entry k[which] is nonzero and let it
-	# be a nonzero constant (say, 1), then, a nontrivial solution k[:] is unique/found.
+    # nontrivial solution, where α is any nonzero real constant, i.e., all nontrivial solutions (a
+    # subspace spanned by this k[:]) are parallel to each other. Therefore, in the case that there
+    # are infinitely many nontrivial solutions, if we know one entry k[which] is nonzero and let it
+    # be a nonzero constant (say, 1), then, a nontrivial solution k[:] is unique/found.
     #
-	# Beware, there may be multiple nontrivial solutions,
-	#    k[:] = [k1, k2, ...], k[:] = [K1, K2, ...], ..., or k[:] = [κ1, κ2, ...]
-	# of which no two are parallel to each other. However, each of them must follow a GENERAL rule
-	# that, except x[i], the closer a point x[j] is near x[i], the larger its weight k[j] is as
-	# usual/expected, and the closest points to x[i] are x[i ± 1] if available.
+    # Beware, there may be multiple nontrivial solutions,
+    #    k[:] = [k1, k2, ...], k[:] = [K1, K2, ...], ..., or k[:] = [κ1, κ2, ...]
+    # of which no two are parallel to each other. However, each of them must follow a GENERAL rule
+    # that, except x[i], the closer a point x[j] is near x[i], the larger its weight k[j] is as
+    # usual/expected, and the closest points to x[i] are x[i ± 1] if available.
 
     # Now, determine 'which' so that k[which] != 0, applying the above-mentioned general rule.
     which = 1
