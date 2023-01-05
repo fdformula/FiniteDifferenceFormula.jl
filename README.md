@@ -39,15 +39,21 @@ wonderful and amazing computing platform.
 
 ```
             n: to find a formula for the n-th order derivative
-       points: in the format of a range, start : stop
+       points: it can be in the format of a range, start : stop, or
+               a vector
 printformulaq: print the computed formula or not
 ```
 
-|   points   |   The points/nodes to be used                  |
-|   -------- | ---------------------------------------------- |
-|    0:2     |   x[i], x[i+1], x[i+2]                         |
-|   -2:2     |   x[i-2], x[i-1], x[i], x[i+1], x[i+2]         |
-|   -3:2     |   x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2] |
+|   points     |   The points/nodes to be used                  |
+|   ---------- | ---------------------------------------------- |
+|    0:2       |   x[i], x[i+1], x[i+2]                         |
+|   -2:2       |   x[i-2], x[i-1], x[i], x[i+1], x[i+2]         |
+|   -3:2       |   x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2] |
+|   [1, 1, -1] |   x[i-1], x[i+1]                               |
+
+A vector can be like [1, 0, 2] or [1 0 2]. It will be rearranged so
+that elements are ordered from lowest to highest with duplicate ones
+removed.
 
 #### Output
 
@@ -86,8 +92,8 @@ Without/before calling the function, 15 decimal places are used by default.
 
 ### function taylor(j, n = 10)
 
-The function prints the first n terms of the Taylor series of f(x[i+j]) centered at x[i]. It is here
-simply for teaching/learning the finite difference method.
+The function prints the first n terms of Taylor series expansion of f(x[i+j]) about x[i].
+It is simply for teaching/learning the finite difference method.
 
 ## Examples
 
@@ -96,18 +102,20 @@ using FiniteDifferenceFormula
 
 decimalplaces(6)
 
-computecoefs(1, 0:2, true)   # find and print "3"-point forward finite difference formula for f'(x[i])
+computecoefs(1, 0:2, true)            # find and print "3"-point forward formula for f'(x[i])
 
-computecoefs(2, -3:0, true)  # find and print "4"-point backward finite difference formula for f''(x[i])
+computecoefs(2, -3:0, true)           # find and print "4"-point backward formula for f''(x[i])
 
-computecoefs(3, -9:9, true)  # find and print "19"-point central finite difference formula for f'''(x[i])
+computecoefs(3, -9:9, true)           # find and print "19"-point central formula for f'''(x[i])
 
-computecoefs(4,-160:260)     # find "421"-point finite difference formula for f''''(x[i]) ---- for fun
-                             # it takes quite a while to finish the computation
+computecoefs(2, [-3 -2 1 2 7], true)  # find and print 5-point formula for f''(x[i])
 
-formula()                    # print the formula computed last time you called computecoefs(...)
+computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i]) ---- for fun
+                                      # it takes quite a while to finish the computation
 
-taylor(-2)                   # print the first 10 terms of Taylor series expansion of f(x[i-2]) about x[i]
+formula()                             # print the formula computed last time you called computecoefs(...)
 
-taylor(2, 7)                 # print the first 7 terms of Taylor series expansion of f(x[i+2]) about x[i]
+taylor(-2)                            # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
+
+taylor(2, 7)                          # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
 ```
