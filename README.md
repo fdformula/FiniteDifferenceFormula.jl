@@ -21,7 +21,7 @@ can't be too large, due to
    "exact" formulas.
 1. that practical applications usually don't allow too many points to be used for
    computing derivatives of a function at a single point because of the constraints of
-   computing power.
+   computing power, not to mention that more operations cause possibly more rounding errors.
 
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
