@@ -1,12 +1,20 @@
 module FiniteDifferenceFormula
 
 #
-# This Julia code shows how to derive n-point finite difference formulas for
-# the 1st, 2nd, ..., derivatives by using Taylor series expansions of a function
-# at evenly spaced points.
+# This Julia module generates n-point finite difference formulas for the 1st, 2nd, ...,
+# derivatives by using Taylor series expansions of a function at evenly spaced points.
+# It also allows users to examine and test formulas right away in Julia REPL. It surely
+# helps when we teach/learn numerical computing, especially, the finite difference
+# method.
 #
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
+
+# Coding conventions:
+#
+# 1. Symbols starting with '_' are "invisible" to users.
+#
+# 2. Symbols starting with 'a' : 'z' are visible to users.
 
 export computecoefs, formula, decimalplaces, taylor, activatefunction
 
