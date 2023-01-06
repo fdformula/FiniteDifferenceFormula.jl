@@ -30,6 +30,7 @@ wonderful and amazing computing platform.
 
 - computecoefs
 - formula
+- activatefunction
 - decimalplaces
 - taylor
 
@@ -85,6 +86,22 @@ The function lists
 
 1. Julia function for f^(n)(x[i]).
 
+### function activatefunction()
+
+Call this function to make active the Julia function(s) based on the newly computed
+finite difference formula. E.g.,
+
+```Julia
+f1stderiv2ptcentrale(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
+f1stderiv2ptcentralx(f, x, i, h) = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
+```
+The suffix 'e' and 'd' stand for 'exact' and 'decimal', respectively.
+
+After activating the functions, you can evaluat, say,
+
+```Julia
+FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
+```
 ### function decimalplaces(n)
 
 The function sets the decimal places to be n for printing Julia function for a formula.
@@ -98,25 +115,27 @@ It is simply for teaching/learning the finite difference method.
 ## Examples
 
 ```Julia
-using FiniteDifferenceFormula
+import FiniteDifferenceFormula as fd
 
-decimalplaces(6)
+fd.decimalplaces(6)
 
-computecoefs(1, 0:2, true)            # find and print "3"-point forward formula for f'(x[i])
+fd.computecoefs(1, 0:2, true)            # find and print "3"-point forward formula for f'(x[i])
 
-computecoefs(2, -3:0, true)           # find and print "4"-point backward formula for f''(x[i])
+fd.computecoefs(2, -3:0, true)           # find and print "4"-point backward formula for f''(x[i])
 
-computecoefs(3, -9:9, true)           # find and print "19"-point central formula for f'''(x[i])
+fd.computecoefs(3, -9:9, true)           # find and print "19"-point central formula for f'''(x[i])
 
-computecoefs(2, [-3 -2 1 2 7], true)  # find and print 5-point formula for f''(x[i])
+fd.computecoefs(2, [-3 -2 1 2 7], true)  # find and print 5-point formula for f''(x[i])
 
-computecoefs(3, 0:122, true)          # find and print "123"-point forward formula for f'''(x[i])
+fd.computecoefs(3, 0:122, true)          # find and print "123"-point forward formula for f'''(x[i])
 
-computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i])
+fd.computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i])
 
-formula()                             # print the formula computed last time you called computecoefs(...)
+fd.formula()                             # print the formula computed last time you called computecoefs(...)
 
-taylor(-2)                            # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
+fd.taylor(-2)                            # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
 
-taylor(2, 7)                          # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
+fd.taylor(2, 7)                          # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
+
+fd.activatefunction()                    # define Julia function(s) of newly computed formula in present REPL session
 ```
