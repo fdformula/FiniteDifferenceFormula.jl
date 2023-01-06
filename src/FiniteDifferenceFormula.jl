@@ -166,7 +166,7 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
 
     global _range_inputq = true
     global _range_input  = points
-    _computecoefs(n, collect(points), printformulaq)
+    return _computecoefs(n, collect(points), printformulaq)
 end
 
 # computecoefs(2, [1 2 3 -1])
@@ -350,13 +350,13 @@ end   # computecoefs
 
 # print the linear combination
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
-function _lcombination_expr(_data::FDData, decimal = false)
+function _lcombination_expr(data::FDData, decimal = false)
     firstq = true
     s = ""
-    for i = eachindex(_data.points)
-        if _data.k[i] == 0; continue; end
-        times = abs(_data.k[i]) == 1 ? "" : "* "
-        s *= _c2s(_data.k[i], firstq, decimal) * times * _f2s(_data.points[i])
+    for i = eachindex(data.points)
+        if data.k[i] == 0; continue; end
+        times = abs(data.k[i]) == 1 ? "" : "* "
+        s *= _c2s(data.k[i], firstq, decimal) * times * _f2s(data.points[i])
         firstq = false
     end
     return s
@@ -460,12 +460,12 @@ function _test_formula_validity()
 end  # _test_formula_validity
 
 # print and return the function for the newly computed finite difference formula
-function _print_formula(_data::FDData, bigO="", decimal = false)
+function _print_formula(data::FDData, bigO="", decimal = false)
     global _range_inputq, _range_input, _julia_func_basename
 
     fexpr = ""
     if bigO == ""    # printing Julia function
-        th = _data.n == 1 ? "st" : (_data.n == 2 ? "nd" : (_data.n == 3 ? "rd" : "th"))
+        th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : (data.n == 3 ? "rd" : "th"))
         s = ""
         if _range_inputq
             if -_range_input.start == _range_input.stop
@@ -478,31 +478,31 @@ function _print_formula(_data::FDData, bigO="", decimal = false)
         end
 
         n = 0    # how many points are involved?
-        for i in eachindex(_data.points)
-            if _data.k[i] == 0; continue; end
+        for i in eachindex(data.points)
+            if data.k[i] == 0; continue; end
             n += 1
         end
 
-        _julia_func_basename = "f$(_data.n)$(th)deriv$(n)pt$(s)"
+        _julia_func_basename = "f$(data.n)$(th)deriv$(n)pt$(s)"
         fexpr  = "(f, x, i, h) = ( "
-        fexpr *= _lcombination_expr(_data, decimal)
+        fexpr *= _lcombination_expr(data, decimal)
         fexpr *= " ) / "
     else
-        if _data.n <= 3
-            print("f" * "'"^(_data.n))
+        if data.n <= 3
+            print("f" * "'"^(data.n))
         else
-            print("f^($(_data.n))")
+            print("f^($(data.n))")
         end
 
         print("(x[i]) = ( ")
-        print(_lcombination_expr(_data, decimal))
+        print(_lcombination_expr(data, decimal))
         print(" ) / ")
     end
 
-    s  = _data.m > 1 ? "($(_data.m) * " : ""
+    s  = data.m > 1 ? "($(data.m) * " : ""
     s *= "h"
-    if _data.n > 1; s *= "^$(_data.n)"; end
-    if _data.m > 1; s *= ")"; end
+    if data.n > 1; s *= "^$(data.n)"; end
+    if data.m > 1; s *= ")"; end
     if bigO != ""
         print("$s + $bigO")
     else
