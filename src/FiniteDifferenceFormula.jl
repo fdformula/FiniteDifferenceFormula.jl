@@ -362,6 +362,13 @@ function _lcombination_expr(_data::FDData, decimal = false)
     return s
 end  # _lcombination_expr
 
+# check if the newly computed formula is valid or not. results are saved in the global variable
+# _formula_status:
+#      0 - invalid
+#    100 - perfect, even satifiying some commonly seen "rules", such as sum of coefficients = 0,
+#          symmetry of cofficients about x[i] in a central formula
+#  other - mathematically, the formula is still valid, but not perfect
+#
 function _test_formula_validity()
     # to find f^(n)(x[i]) by obtaining
     #
@@ -452,6 +459,7 @@ function _test_formula_validity()
     return
 end  # _test_formula_validity
 
+# print and return the function for the newly computed finite difference formula
 function _print_formula(_data::FDData, bigO="", decimal = false)
     global _range_inputq, _range_input, _julia_func_basename
 
