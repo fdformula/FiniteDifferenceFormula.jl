@@ -92,7 +92,7 @@ Call this function to make active the Julia function(s) based on the newly compu
 finite difference formula. E.g.,
 
 ```Julia
-f1stderiv2ptcentrale(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
+f1stderiv2ptcentrale(f, x, i, h) = ( -f(x[i-1]) + f(x[i+1]) ) / (2 * h)
 f1stderiv2ptcentrald(f, x, i, h) = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
 ```
 The suffix 'e' and 'd' stand for 'exact' and 'decimal', respectively.
