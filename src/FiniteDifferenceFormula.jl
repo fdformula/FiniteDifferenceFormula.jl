@@ -80,6 +80,7 @@ function decimalplaces(n)
     else
         error("decimalplaces(n): n must be integer greater than 1")
     end
+	return
 end  # decimalplaces
 
 # convert a coefficient to a readable string
@@ -126,6 +127,7 @@ function taylor(j::Int, num_of_nonzero_terms = 10)
     coefs = _taylor_coefs(j)
     println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
     _print_taylor(coefs, num_of_nonzero_terms)
+	return
 end  # taylor
 
 # print readable Taylor series
@@ -155,6 +157,7 @@ function _print_taylor(coefs, num_of_nonzero_terms = _max_num_of_taylor_terms)
         if num_of_nonzero_terms == 0; break; end
     end
     println(" + ...\n")
+	return
 end  # _print_taylor
 
 function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
@@ -189,11 +192,14 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
             _computecoefs(n, points, printformulaq)
         end
     end
+
+	return
 end  # computecoefs
 
 # computecoefs(2, [1, 2, 3, -1])
 function computecoefs(n::Int, points::Array{Int}, printformulaq::Bool = false)
     computecoefs(n, hcat(points), printformulaq)
+	return
 end
 
 #
@@ -234,6 +240,10 @@ end
 # The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m).
 #
 function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
+    global _julia_exact_func_expr   = ""
+    global _julia_decimal_func_expr = ""
+	global _computedq = false
+
     # setup a linear system Ax = B first
     len = length(points)
     global _max_num_of_taylor_terms = max(len, n) + 8
@@ -330,12 +340,8 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if x == m; m = x; end  # so that m = 5 rather than 5//1
 
     # save the results in a global variable for other functions
-    global _data, _computedq
-    _data = FDData(n, points, k, m, coefs)
+    global _data = FDData(n, points, k, m, coefs)
     _computedq = true
-
-    global _julia_exact_func_expr   = ""
-    global _julia_decimal_func_expr = ""
 
     _test_formula_validity()
 
@@ -444,6 +450,8 @@ function _test_formula_validity()
     if _formula_status == 0
         _formula_status = 100    # perfect
     end
+
+	return
 end  # _test_formula_validity
 
 function _print_formula(_data::FDData, bigO="", decimal = false)
@@ -495,6 +503,8 @@ function _print_formula(_data::FDData, bigO="", decimal = false)
         print(_julia_func_name, decimal ? "d" : "e", _julia_func_expr)
     end
     println("\n")
+
+	return
 end  # _print_formula
 
 # print readable formula and other computing results
@@ -564,7 +574,9 @@ function formula()
             _print_formula(data1, "", true)     # decimal
             _julia_decimal_func_expr, _julia_func_expr = _julia_func_expr, ""
         end
-    end
+	end
+
+	return
 end  # formula
 
 # activate function(s) for the newly computed finite difference formula, allowing
@@ -583,11 +595,14 @@ function activatefunction()
     else
         print("One function, $(_julia_func_name)e, is")
     end
-    println(" available temporiarily in the FiniteDifferenceFormula module. Usage:")
-    println("  FiniteDifferenceFormula.$(_julia_func_name)e(sin, 0:0.01:50, 250, 0.01)")
+    println(" available temporiarily in the FiniteDifferenceFormula module. Usage:\n")
+	println("  import FiniteDifferenceFormula as fd\n")
+    println("  fd.$(_julia_func_name)e(sin, 0:0.01:50, 250, 0.01)")
     if _julia_decimal_func_expr != ""
-        println("  FiniteDifferenceFormula.$(_julia_func_name)d(sin, 0:0.01:50, 250, 0.01)")
+        println("  fd.$(_julia_func_name)d(sin, 0:0.01:50, 250, 0.01)")
     end
+
+	return  # stop Julia from returning something users never expect
 end  # activatefunction
 
 end # module
