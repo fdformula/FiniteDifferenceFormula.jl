@@ -38,12 +38,11 @@ _formula_status              = 0          # a formula may not be valid
 _lcombination_coefs          = Array{Any}(undef, _max_num_of_taylor_terms)
 
 _range_inputq                = false
-_range_input::UnitRange{Int} = 0:0        # if computecoefs receives a range, store it to this variable
+_range_input::UnitRange{Int} = 0:0        # if computecoefs receives a range, save it
 
 _julia_exact_func_expr       = ""         # string of exact Julia function for f^(n)(x[i])
 _julia_decimal_func_expr     = ""         # string of decimal Julia function for f^(n)(x[i])
-_julia_func_expr             = ""
-_julia_func_name             = ""
+_julia_func_basename         = ""
 
 # This function returns the first '_max_num_of_taylor_terms' of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed. The
@@ -77,12 +76,12 @@ function decimalplaces(n)
     global _decimal_places
     if isinteger(n) && n > 0
         _decimal_places = n
-		println("Please call formula() to generate a Julia function using the new decimal places.")
+        println("Please call formula() to generate a Julia function using the new decimal places.")
     else
         println("decimalplaces(n): n must be a positive integer.")
     end
 
-	return
+    return
 end  # decimalplaces
 
 # convert a coefficient to a readable string
@@ -129,7 +128,7 @@ function taylor(j::Int, num_of_nonzero_terms = 10)
     coefs = _taylor_coefs(j)
     println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
     _print_taylor(coefs, num_of_nonzero_terms)
-	return
+    return
 end  # taylor
 
 # print readable Taylor series
@@ -159,7 +158,7 @@ function _print_taylor(coefs, num_of_nonzero_terms = _max_num_of_taylor_terms)
         if num_of_nonzero_terms == 0; break; end
     end
     println(" + ...\n")
-	return
+    return
 end  # _print_taylor
 
 function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
@@ -168,10 +167,10 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
     global _range_inputq = true
     global _range_input  = points
     _computecoefs(n, collect(points), printformulaq)
-    end
+end
 
-    # computecoefs(2, [1 2 3 -1])
-    function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
+# computecoefs(2, [1 2 3 -1])
+function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
     if n < 1; @error "Wrong order of derivatives :: n = $n. It must be a positive integer."; end
 
     if length(points) <= 1
@@ -187,21 +186,18 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
         println("You input: $points")
         # is the input 'points' actually a range?
         if length(points[1]:points[end]) == length(points)
-            computecoefs(n, points[1]:points[end], printformulaq)
+            return computecoefs(n, points[1]:points[end], printformulaq)
         else
             global _range_inputq = false
             global _range_input  = 0:0
-            _computecoefs(n, points, printformulaq)
+            return _computecoefs(n, points, printformulaq)
         end
     end
-
-	return
 end  # computecoefs
 
 # computecoefs(2, [1, 2, 3, -1])
 function computecoefs(n::Int, points::Array{Int}, printformulaq::Bool = false)
-    computecoefs(n, hcat(points), printformulaq)
-	return
+    return computecoefs(n, hcat(points), printformulaq)
 end
 
 #
@@ -244,7 +240,7 @@ end
 function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     global _julia_exact_func_expr   = ""
     global _julia_decimal_func_expr = ""
-	global _computedq = false
+    global _computedq = false
 
     # setup a linear system Ax = B first
     len = length(points)
@@ -393,7 +389,6 @@ function _test_formula_validity()
     has_solutionq = true
     for i = 1 : n
         if _lcombination_coefs[i] != 0
-            println("-" ^ 81)
             println("***** Error:: n=$n, $input_points :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
             has_solutionq = false
             break
@@ -402,17 +397,17 @@ function _test_formula_validity()
 
     # k[1] or k[len] == 0 ?
     if k[1] == 0
-		if k[len] == 0
-			s = _range_inputq ? (_range_input.start + 1 : _range_input.stop - 1) : points[2 : end - 1]
-			println("\n***** Error:: k[1] = k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).")
-		else
-			s = _range_inputq ? (_range_input.start + 1 : _range_input.stop) : points[2 : end]
-			println("\n***** Error:: k[1] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).")
+        if k[len] == 0
+            s = _range_inputq ? (_range_input.start + 1 : _range_input.stop - 1) : points[2 : end - 1]
+            println("\n***** Error:: k[1] = k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).\n")
+        else
+            s = _range_inputq ? (_range_input.start + 1 : _range_input.stop) : points[2 : end]
+            println("\n***** Error:: k[1] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).\n")
         end
         has_solutionq = false
-	elseif k[len] == 0
-		s = _range_inputq ? (_range_input.start : _range_input.stop - 1) : points[1 : end - 1]
-		println("\n***** Error:: k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).")
+    elseif k[len] == 0
+        s = _range_inputq ? (_range_input.start : _range_input.stop - 1) : points[1 : end - 1]
+        println("\n***** Error:: k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).\n")
         has_solutionq = false
     end
 
@@ -421,17 +416,14 @@ function _test_formula_validity()
     if m == 0
         println("-" ^ 81)
         println("\n***** Error:: n=$n, $input_points :: m = 0, formula can't be found!")
-		has_solutionq = false
+        has_solutionq = false
     end
 
     if !has_solutionq
         if len <= n
             th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
             println("The input $input_points is invalid because at least $(n + 1) points are needed for the $n$th derivative.\n")
-        else
-            println("A formula might not exist.\n")
         end
-
         return
     end
 
@@ -457,12 +449,13 @@ function _test_formula_validity()
         _formula_status = 100    # perfect
     end
 
-	return
+    return
 end  # _test_formula_validity
 
 function _print_formula(_data::FDData, bigO="", decimal = false)
-    global _range_inputq, _range_input, _julia_func_expr, _julia_func_name
+    global _range_inputq, _range_input, _julia_func_basename
 
+    fexpr = ""
     if bigO == ""    # printing Julia function
         th = _data.n == 1 ? "st" : (_data.n == 2 ? "nd" : (_data.n == 3 ? "rd" : "th"))
         s = ""
@@ -482,10 +475,10 @@ function _print_formula(_data::FDData, bigO="", decimal = false)
             n += 1
         end
 
-        _julia_func_name        = "f$(_data.n)$(th)deriv$(n)pt$(s)"
-        _julia_func_expr  = "(f, x, i, h) = ( "
-        _julia_func_expr *= _lcombination_expr(_data, decimal)
-        _julia_func_expr *= " ) / "
+        _julia_func_basename = "f$(_data.n)$(th)deriv$(n)pt$(s)"
+        fexpr  = "(f, x, i, h) = ( "
+        fexpr *= _lcombination_expr(_data, decimal)
+        fexpr *= " ) / "
     else
         if _data.n <= 3
             print("f" * "'"^(_data.n))
@@ -505,12 +498,12 @@ function _print_formula(_data::FDData, bigO="", decimal = false)
     if bigO != ""
         print("$s + $bigO")
     else
-        _julia_func_expr *= s;
-        print(_julia_func_name, decimal ? "d" : "e", _julia_func_expr)
+        fexpr *= s;
+        print(_julia_func_basename, decimal ? "d" : "e", fexpr)
     end
     println("\n")
 
-	return
+    return fexpr
 end  # _print_formula
 
 # print readable formula and other computing results
@@ -567,22 +560,18 @@ function formula()
         end
 
         print("Julia function:\n\n")
-        global _julia_exact_func_expr, _julia_decimal_func_expr, _julia_func_expr
-        _print_formula(_data)                    # exact
-		_julia_exact_func_expr, _julia_func_expr = _julia_func_expr, ""
+        global _julia_exact_func_expr = _print_formula(_data)
         # print the function in decimal format
         if _data.m > 1
             print("Or\n\n")
-            _print_formula(data1)               # exact, remember this
-            _julia_func_expr = ""
+            _print_formula(data1)     # exact, skip it
 
             print("Or\n\n")
-            _print_formula(data1, "", true)     # decimal
-            _julia_decimal_func_expr, _julia_func_expr = _julia_func_expr, ""
+            global _julia_decimal_func_expr = _print_formula(data1, "", true)
         end
-	end
+    end
 
-	return
+    return
 end  # formula
 
 # activate function(s) for the newly computed finite difference formula, allowing
@@ -594,21 +583,21 @@ function activatefunction()
         println("Please run 'computecoefs' and 'formula' first.")
         return
     end
-    eval(Meta.parse("$(_julia_func_name)e$(_julia_exact_func_expr)"))
+    eval(Meta.parse("$(_julia_func_basename)e$(_julia_exact_func_expr)"))
     if _julia_decimal_func_expr != ""
-        eval(Meta.parse(_julia_func_name * "d" * _julia_decimal_func_expr))
-        print("Two functions, $(_julia_func_name)e and $(_julia_func_name)d, are")
+        eval(Meta.parse(_julia_func_basename * "d" * _julia_decimal_func_expr))
+        print("Two functions, $(_julia_func_basename)e and $(_julia_func_basename)d, are")
     else
-        print("One function, $(_julia_func_name)e, is")
+        print("One function, $(_julia_func_basename)e, is")
     end
     println(" available temporiarily in the FiniteDifferenceFormula module. Usage:\n")
-	println("  import FiniteDifferenceFormula as fd\n")
-    println("  fd.$(_julia_func_name)e(sin, 0:0.01:50, 250, 0.01)")
+    println("  import FiniteDifferenceFormula as fd\n")
+    println("  fd.$(_julia_func_basename)e(sin, 0:0.01:50, 250, 0.01)")
     if _julia_decimal_func_expr != ""
-        println("  fd.$(_julia_func_name)d(sin, 0:0.01:50, 250, 0.01)")
+        println("  fd.$(_julia_func_basename)d(sin, 0:0.01:50, 250, 0.01)")
     end
 
-	return  # stop Julia from returning something users never expect
+    return  # stop Julia from returning something users never expect
 end  # activatefunction
 
 end # module
