@@ -77,7 +77,7 @@ function decimalplaces(n)
     global _decimal_places
     if isinteger(n) && n > 0
         _decimal_places = n
-		println("Please call formula() to generate a Julia function using $n decimal places.")
+		println("Please call formula() to generate a Julia function using the new decimal places.")
     else
         println("decimalplaces(n): n must be a positive integer.")
     end
@@ -400,16 +400,28 @@ function _test_formula_validity()
         end
     end
 
-    # Is k[1] == 0 ?
+    # k[1] or k[len] == 0 ?
     if k[1] == 0
-        println("***** Error:: k[1] = 0")
+		if k[len] == 0
+			s = _range_inputq ? (_range_input.start + 1 : _range_input.stop - 1) : points[2 : end - 1]
+			println("\n***** Error:: k[1] = k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).")
+		else
+			s = _range_inputq ? (_range_input.start + 1 : _range_input.stop) : points[2 : end]
+			println("\n***** Error:: k[1] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).")
+        end
+        has_solutionq = false
+	elseif k[len] == 0
+		s = _range_inputq ? (_range_input.start : _range_input.stop - 1) : points[1 : end - 1]
+		println("\n***** Error:: k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).")
         has_solutionq = false
     end
 
-    # Is k[len] == 0 ?
-    if k[len] == 0
-        println("Error:: k[$len] = 0")
-        has_solutionq = false
+    # Is m == 0 ?
+    m = _lcombination_coefs[n + 1]
+    if m == 0
+        println("-" ^ 81)
+        println("\n***** Error:: n=$n, $input_points :: m = 0, formula can't be found!")
+		has_solutionq = false
     end
 
     if !has_solutionq
@@ -420,14 +432,6 @@ function _test_formula_validity()
             println("A formula might not exist.\n")
         end
 
-        return
-    end
-
-    # Is m == 0 ?
-    m = _lcombination_coefs[n + 1]
-    if m == 0
-        println("-" ^ 81)
-        println("***** Error:: n=$n, $input_points :: m = 0, formula can't be found!")
         return
     end
 
