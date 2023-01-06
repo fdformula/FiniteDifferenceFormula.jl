@@ -75,11 +75,13 @@ end  # _taylor_coefs
 
 function decimalplaces(n)
     global _decimal_places
-    if isinteger(n) && n >= 2
+    if isinteger(n) && n > 0
         _decimal_places = n
+		println("Please call formula() to generate a Julia function using $n decimal places.")
     else
-        error("decimalplaces(n): n must be integer greater than 1")
+        println("decimalplaces(n): n must be a positive integer.")
     end
+
 	return
 end  # decimalplaces
 
