@@ -132,7 +132,7 @@ fd.computecoefs(3, 0:122, true)          # find and print "123"-point forward fo
 
 fd.computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i])
 
-fd.formula()                             # print the formula computed last time you called computecoefs(...)
+fd.formula()                             # make and print the formula computed last time you called computecoefs(...)
 
 fd.taylor(-2)                            # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
 
