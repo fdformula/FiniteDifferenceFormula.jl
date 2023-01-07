@@ -506,7 +506,7 @@ function _print_bigo_formula(data::_FDData, bigO)
     print(" ) / ", _denominator_expr(data), " + $bigO\n\n")
 end  # _print_bigo_formula
 
-# print readable formula and other computing results
+# create and print readable formula and other computing results
 # using data stored in global variable _data
 function formula()
     global _data, _computedq, _formula_status, _range_inputq, _range_input
