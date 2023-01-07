@@ -10,13 +10,7 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
-# Coding conventions:
-#
-# 1. Symbols starting with '_' are "invisible" to users.
-#
-# 2. Symbols starting with 'a' : 'z' are visible to users.
-
-export computecoefs, formula, decimalplaces, taylor, activatefunction
+export computecoefs, formula, activatefunction, decimalplaces, taylor
 
 _max_num_of_taylor_terms = 30 # number of the 1st terms of a Taylor series expansion
                               # variable, depending on input to computecoefs
@@ -29,7 +23,7 @@ _decimal_places = 15          # use it to print Julia function for a formula
 using Printf
 using RowEchelon              # provide rref
 
-mutable struct FDData
+mutable struct _FDData
     n
     points
     k
@@ -37,7 +31,7 @@ mutable struct FDData
     coefs
 end
 
-_data                        = FDData     # share computing results between functions
+_data                        = _FDData    # share computing results between functions
 _computedq::Bool             = false      # make sure computecoefs(n, points) is called first
 _formula_status              = 0          # a formula may not be valid
 
@@ -309,8 +303,8 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # of which no two are parallel to each other. However, each of these solutions must satisfy the
     # condition that both k[1] and k[end] can't zero. Why? If, say, k[1] = 0, in other words, a formula
     # only uses/depends on (at most) x[i+start+1], x[i+start+2], ..., x[i+stop], why should we say it
-    # is a formula that uses/depends on x[i+start], x[i+start+1], ..., x[i+stop]? Therefore, we can be
-    # sure that k[1] != 0.
+    # is a formula that uses/depends on x[i+start] (and x[i+start+1], ..., x[i+stop])? Therefore, we
+    # can be sure that k[1] != 0.
     #
     A[len, 2 : len] .= 0                # setup an equation so that k[1] = 1
     A[len, 1] = 1
@@ -346,7 +340,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if x == m; m = x; end  # so that m = 5 rather than 5//1
 
     # save the results in a global variable for other functions
-    global _data = FDData(n, points, k, m, coefs)
+    global _data = _FDData(n, points, k, m, coefs)
     _computedq = true
 
     _test_formula_validity()
@@ -356,9 +350,9 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     return (coefs, m)
 end   # computecoefs
 
-# print the linear combination
+# return a string of the linear combination
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
-function _lcombination_expr(data::FDData, decimal = false)
+function _lcombination_expr(data::_FDData, decimal = false)
     firstq = true
     s = ""
     for i = eachindex(data.points)
@@ -414,15 +408,15 @@ function _test_formula_validity()
     if k[1] == 0
         if k[len] == 0
             s = _range_inputq ? (_range_input.start + 1 : _range_input.stop - 1) : points[2 : end - 1]
-            println("\n***** Error:: k[1] = k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).\n")
+            println("\n***** Error:: n=$n, $input_points :: k[1] = k[$len] = 0. You may try computecoefs($n, $s).\n")
         else
             s = _range_inputq ? (_range_input.start + 1 : _range_input.stop) : points[2 : end]
-            println("\n***** Error:: k[1] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).\n")
+            println("\n***** Error:: n=$n, $input_points :: k[1] = 0. You may try computecoefs($n, $s).\n")
         end
         has_solutionq = false
     elseif k[len] == 0
         s = _range_inputq ? (_range_input.start : _range_input.stop - 1) : points[1 : end - 1]
-        println("\n***** Error:: k[$len] = 0. You may try FiniteDifferenceFormula.computecoefs($n, $s).\n")
+        println("\n***** Error:: n=$n, $input_points :: k[$len] = 0. You may try computecoefs($n, $s).\n")
         has_solutionq = false
     end
 
@@ -467,72 +461,63 @@ function _test_formula_validity()
     return
 end  # _test_formula_validity
 
-# print and return the function for the newly computed finite difference formula
-function _print_formula(data::FDData, bigO="", decimal = false)
-    global _range_inputq, _range_input, _julia_func_basename
-
-    fexpr = ""
-    if bigO == ""    # printing Julia function
-        th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : (data.n == 3 ? "rd" : "th"))
-        s = ""
-        if _range_inputq
-            if -_range_input.start == _range_input.stop
-                s = "central"
-            elseif _range_input.start == 0
-                s = "forward"
-            elseif _range_input.stop == 0
-                s = "backward"
-            end
-        end
-
-        n = 0    # how many points are involved?
-        for i in eachindex(data.points)
-            if data.k[i] == 0; continue; end
-            n += 1
-        end
-
-        _julia_func_basename = "f$(data.n)$(th)deriv$(n)pt$(s)"
-        fexpr  = "(f, x, i, h) = ( "
-        fexpr *= _lcombination_expr(data, decimal)
-        fexpr *= " ) / "
-    else
-        if data.n <= 3
-            print("f" * "'"^(data.n))
-        else
-            print("f^($(data.n))")
-        end
-
-        print("(x[i]) = ( ")
-        print(_lcombination_expr(data, decimal))
-        print(" ) / ")
-    end
-
+function _denominator_expr(data::_FDData)
     s  = data.m > 1 ? "($(data.m) * " : ""
     s *= "h"
     if data.n > 1; s *= "^$(data.n)"; end
     if data.m > 1; s *= ")"; end
-    if bigO != ""
-        print("$s + $bigO")
-    else
-        fexpr *= s;
-        print(_julia_func_basename, decimal ? "d" : "e", fexpr)
+    return s
+end
+
+# print and return the function for the newly computed finite difference formula
+function _julia_func_expr(data::_FDData, decimal = false)
+    global _range_inputq, _range_input
+
+    s = ""
+    if _range_inputq
+        if -_range_input.start == _range_input.stop
+            s = "central"
+        elseif _range_input.start == 0
+            s = "forward"
+        elseif _range_input.stop == 0
+            s = "backward"
+        end
     end
-    println("\n")
+
+    n = 0    # how many points are actually involved?
+    for i in eachindex(data.points)
+        if data.k[i] == 0; continue; end
+        n += 1
+    end
+
+    th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : (data.n == 3 ? "rd" : "th"))
+    global _julia_func_basename = "f$(data.n)$(th)deriv$(n)pt$(s)"
+    fexpr  = "(f, x, i, h) = ( "
+    fexpr *= _lcombination_expr(data, decimal)
+    fexpr *= " ) / " * _denominator_expr(data)
 
     return fexpr
-end  # _print_formula
+end  # _julia_func_expr
+
+# print the formula with big-O notation for the newly computed formula
+function _print_bigo_formula(data::_FDData, bigO)
+    print(data.n <= 3 ? "f" * "'"^(data.n) : "f^($(data.n))")
+    print("(x[i]) = ( ", _lcombination_expr(data, false))
+    print(" ) / ", _denominator_expr(data), " + $bigO\n\n")
+end  # _print_bigo_formula
 
 # print readable formula and other computing results
-# use _data stored in global variable _data
+# using data stored in global variable _data
 function formula()
     global _data, _computedq, _formula_status, _range_inputq, _range_input
 
     if !_computedq
-        @error "Please call computecoefs(n, points) first!"
+        println("Please call computecoefs(n, points) first!")
+        return
     end
 
     if _formula_status !=0
-        println("-" ^ 81)
+        println("-" ^ 80)
         print("The following formula ")
         if _formula_status == 100
             print("passed all tests: sum of coefs being zero")
@@ -548,16 +533,13 @@ function formula()
     # print Taylor series expansion of the linear combination:
     # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
     println("The computing result:\n")
-    print(_lcombination_expr(_data))
-    print(" =\n")
+    print(_lcombination_expr(_data), " =\n")
     _print_taylor(_lcombination_coefs, 5);       # print at most 5 nonzero terms
 
     if _formula_status != 0
         println("The exact formula:\n")
-        # print the very formula with big-O notation of the trucation error
-        #
-        # find x of O(h^x)
-        x = _max_num_of_taylor_terms;
+        # find x in the big-O notation O(h^x)
+        x = _max_num_of_taylor_terms
         for i in _data.n + 2 : length(_lcombination_coefs)
             if _lcombination_coefs[i] != 0; x = i; break; end
         end
@@ -566,24 +548,21 @@ function formula()
         if x > 1; bigO *= "^$x"; end
         bigO *= ")"
 
-        _print_formula(_data, bigO)
-        # print the formula in another format
-        data1 = FDData
-        if _data.m > 1
-            data1 = FDData(_data.n, _data.points, _data.k // _data.m, 1, _data.coefs)
+        _print_bigo_formula(_data, bigO)
+        data1 = _FDData
+        if _data.m > 1           # print in another format
+            data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1, _data.coefs)
             print("Or\n\n")
-            _print_formula(data1, bigO)
+            _print_bigo_formula(data1, bigO)
         end
 
-        print("Julia function:\n\n")
-        global _julia_exact_func_expr = _print_formula(_data)
-        # print the function in decimal format
-        if _data.m > 1
-            print("Or\n\n")
-            _print_formula(data1)     # exact, skip it
-
-            print("Or\n\n")
-            global _julia_decimal_func_expr = _print_formula(data1, "", true)
+        println("Julia function:\n")
+        global _julia_exact_func_expr = _julia_func_expr(_data)
+        print(_julia_func_basename, "e", _julia_exact_func_expr, "\n\n")
+        if _data.m > 1           # print in other formats
+            print("Or\n\n", _julia_func_basename, "e", _julia_func_expr(data1), "\n\nOr\n\n") # exact, skip it
+            global _julia_decimal_func_expr = _julia_func_expr(data1, true)
+            print(_julia_func_basename, "d", _julia_decimal_func_expr, "\n\n")
         end
     end
 
