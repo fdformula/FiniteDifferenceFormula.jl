@@ -76,10 +76,12 @@ series of the linear combination is f^(n)(x[i]):
 It is this equation that gives the formula for computing f^(n)(x[i]) and the truncation
 error in the big-O notation as well.
 
+### function decimalplaces()
 ### function decimalplaces(n)
 
-The function sets the decimal places to be n for generating Julia function for a formula.
-Without/before calling the function, 15 decimal places are used by default.
+Without argument, the function returns current decimal places. With arugment n, it sets the
+decimal places to be n for generating Julia function for a formula. Without/before calling
+the function, 16 decimal places are used by default.
 
 ### function formula()
 
