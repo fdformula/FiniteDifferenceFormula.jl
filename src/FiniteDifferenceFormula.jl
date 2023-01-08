@@ -10,7 +10,7 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
-export computecoefs, formula, activatefunction, decimalplaces, taylor
+export computecoefs, formula, decimalplaces, taylor, activatejuliafunction
 
 _max_num_of_taylor_terms = 30 # number of the 1st terms of a Taylor series expansion
                               # variable, depending on input to computecoefs
@@ -33,7 +33,8 @@ end
 
 _data                        = _FDData    # share computing results between functions
 _computedq::Bool             = false      # make sure computecoefs(n, points) is called first
-_formula_status              = 0          # a formula may not be valid
+_formula_status              = 0          # a formula may not be available
+                                          # values? see function _test_formula_validity()
 
 # a vector of the coefficients of Taylor series expansion of the linear combination:
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
@@ -42,7 +43,8 @@ _lcombination_coefs          = Array{Any}(undef, _max_num_of_taylor_terms)
 _range_inputq                = false
 _range_input::UnitRange{Int} = 0:0        # if computecoefs receives a range, save it
 
-_julia_exact_func_expr       = ""         # string of exact Julia function for f^(n)(x[i])
+_julia_exact_func_expr       = ""         # string of 1st exact Julia function for f^(n)(x[i])
+_julia_exact_func_expr1      = ""         # string of 2nd exact Julia function for f^(n)(x[i])
 _julia_decimal_func_expr     = ""         # string of decimal Julia function for f^(n)(x[i])
 _julia_func_basename         = ""
 
@@ -87,7 +89,7 @@ function decimalplaces(n)
 end  # decimalplaces
 
 # convert a coefficient to a readable string
-function _c2s(c, first_termq = false, floating = false)
+function _c2s(c, first_termq = false, floatingq = false)
     s = ""
     if c < 0
         s = first_termq ? "-" : s = " - "
@@ -100,7 +102,7 @@ function _c2s(c, first_termq = false, floating = false)
         if c != 1
             s *= string(round(BigInt, c), " ")
         end
-    elseif floating
+    elseif floatingq
         global _decimal_places
         fmt = Printf.Format("%.$(_decimal_places)f ")
         s *= Printf.format(fmt, convert(Float64, c))
@@ -164,7 +166,7 @@ function _print_taylor(coefs, num_of_nonzero_terms = _max_num_of_taylor_terms)
 end  # _print_taylor
 
 function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
-    if n < 1; @error "Wrong order of derivatives :: n = $n. It must be a positive integer."; end
+    if n < 1; @error "Wrong order of derivatives :: $n. It must be a positive integer."; end
 
     global _range_inputq = true
     global _range_input  = points
@@ -173,7 +175,7 @@ end
 
 # computecoefs(2, [1 2 3 -1])
 function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
-    if n < 1; @error "Wrong order of derivatives :: n = $n. It must be a positive integer."; end
+    if n < 1; @error "Wrong order of derivatives :: $n. It must be a positive integer."; end
 
     if length(points) <= 1
         error("Invalid input :: points = $points")
@@ -240,9 +242,15 @@ end
 # The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m).
 #
 function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
-    global _julia_exact_func_expr   = ""
-    global _julia_decimal_func_expr = ""
     global _computedq = false
+
+    # for teaching's purpose, we don't do so
+    # if length(points) <= n
+    #     input_points = _range_inputq ? "$(_range_input.start):$(_range_input.stop)" : "$(points')"
+    #     th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
+    #     println("The input $input_points is invalid because at least $(n + 1) points are needed for the $n$th derivative.")
+    #     return
+    # end
 
     # setup a linear system Ax = B first
     len = length(points)
@@ -251,7 +259,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the involved points
     coefs = Array{Any}(undef, len)
-    for i in eachindex(points)
+    for i in 1 : len
         coefs[i] = _taylor_coefs(points[i])
     end
 
@@ -260,32 +268,32 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + k[3]*f(x[i+start+2]) + k[stop-start+1]*f(x[i+stop])i
     #  = 0*f(x[i]) + 0*f'(x[i]) + ... + 0*f^(n-1)(x[i]) + m*f^(n)(x[i]) + ..., m != 0
     #
-    # so that it must eliminate f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]); if possible, it also
-    # eliminates f^(n+1)(x[i]), f^(n+2)(x[i]), ....
+    # so that it must eliminate f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]); given more points are provided,
+    # it also eliminates f^(n+1)(x[i]), f^(n+2)(x[i]), ....
     #
     # For example, to eliminate f(x[i]), we have
     #
-    #    k[1]*coefs[1][1] + k[2]*coefs[2][1] + ... + k[stop-start+1]*coefs[stop-start+1][1] = 0
+    #    k[1]*coefs[1][1] + k[2]*coefs[2][1] + ... + k[len]*coefs[len][1] = 0
     #
     # and to eliminate f'(x[i]), we have
     #
-    #    k[1]*coefs[1][2] + k[2]*coefs[2][2] + ... + k[stop-start+1]*coefs[stop-start+1][2] = 0
+    #    k[1]*coefs[1][2] + k[2]*coefs[2][2] + ... + k[len]*coefs[len][2] = 0
     #
     # Therefore, a linear system is detemined by the following equations
     #
-    #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[stop-start+1]*coefs[stop-start+1][j] = 0 ..... (1)
+    #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0 ..... (1)
     #
-    # where j = 1, 2, ..., n.
+    # where j = 1, 2, ..., len.
     #
     A = Matrix{Rational{BigInt}}(undef, len, len)
     row = 1
     for order = 0 : len - 1
-        if order == n; continue; end
+        if order == n; continue; end     # skip f^(n)(x[i])
 
         # eliminating f^(order)(x[i])
-        order_index = order + 1
-        for i = eachindex(points)
-            A[row, i] = coefs[i][order_index]
+        # A[:,j] corresponds to k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0
+        for i = 1 : len
+            A[row, i] = coefs[i][order + 1]
         end
         row += 1
     end
@@ -301,32 +309,32 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # Beware, there may be multiple nontrivial solutions,
     #    k[:] = [k1, k2, ...], k[:] = [K1, K2, ...], ..., or k[:] = [κ1, κ2, ...]
     # of which no two are parallel to each other. However, each of these solutions must satisfy the
-    # condition that both k[1] and k[end] can't zero. Why? If, say, k[1] = 0, in other words, a formula
-    # only uses/depends on (at most) x[i+start+1], x[i+start+2], ..., x[i+stop], why should we say it
-    # is a formula that uses/depends on x[i+start] (and x[i+start+1], ..., x[i+stop])? Therefore, we
-    # can be sure that k[1] != 0.
+    # condition that both k[1] and k[end] can't be zero. Why? If, say, k[1] = 0, in other words, a
+    # formula only uses/depends on (at most) x[i+start+1], x[i+start+2], ..., x[i+stop], why should
+    # we say it is a formula that uses/depends on x[i+start] (and x[i+start+1], ..., x[i+stop])?
+    # Therefore, we can assume that k[1] != 0.
     #
-    A[len, 2 : len] .= 0                # setup an equation so that k[1] = 1
-    A[len, 1] = 1
+    A[len, 2 : len] .= 0                  # setup an equation so that k[1] = 1
+    A[len, 1]        = 1
 
     B = zeros(Rational{BigInt}, len, 1)
-    B[len] = 1                          # so that k[1] = 1
+    B[len] = 1                            # so that k[1] = 1
 
     # solve Ax = B for x, i.e., k[:]
-    k = rref([A B])[:, len + 1]         # package RowEchelon provides rref
+    k = rref([A B])[:, len + 1]           # package RowEchelon provides rref
     k = k // gcd(k)
 
     # Taylor series expansion of the linear combination
     # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
-    _lcombination_coefs = k[1] * coefs[1]
-    for i = eachindex(points)
-        if i == 1 || k[i] == 0; continue; end
+    _lcombination_coefs = k[1] * coefs[1] # let Julia determine the type
+    for i in 2 : len
+        if k[i] == 0; continue; end
         _lcombination_coefs += k[i] * coefs[i]
     end
 
     # find the first nonzero term, v1.0.3
     m = _lcombination_coefs[n + 1]
-    for i = 1 : n
+    for i in 1 : n
         if _lcombination_coefs[i] != 0
             m = _lcombination_coefs[i]
             break
@@ -352,24 +360,42 @@ end   # computecoefs
 
 # return a string of the linear combination
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
-function _lcombination_expr(data::_FDData, decimal = false)
+#
+# To test in Julia if a formula is valid, we must convert the data to BigInt or BigBloat
+# becasue, say, for computecoefs(2, -12:12), without the conversion, the formula will
+# give obviously wrong answers because of overflow and rounding errors. julia_REPL_funcq
+# is here for testing in Julia REPL only. For ordinary definition of a function, call
+# formula().
+#
+function _lcombination_expr(data::_FDData, decimalq = false, julia_REPL_funcq = false)
     firstq = true
     s = ""
     for i = eachindex(data.points)
         if data.k[i] == 0; continue; end
         times = abs(data.k[i]) == 1 ? "" : "* "
-        s *= _c2s(data.k[i], firstq, decimal) * times * _f2s(data.points[i])
+        if julia_REPL_funcq && firstq
+            c2s = _c2s(data.k[i], true, decimalq)
+            if c2s == ""
+                c2s = "1"
+            elseif c2s == "-"
+                c2s = "-1"
+            end
+            s *= "big(" * c2s * ")"     # convert one value to BigInt/BigFloat
+        else
+            s *= _c2s(data.k[i], firstq, decimalq)
+        end
+        s *= times * _f2s(data.points[i])
         firstq = false
     end
     return s
 end  # _lcombination_expr
 
-# check if the newly computed formula is valid or not. results are saved in the global variable
+# check if the newly computed formula is valid. results are saved in the global variable
 # _formula_status:
-#      0 - invalid
-#    100 - perfect, even satifiying some commonly seen "rules", such as sum of coefficients = 0,
+#    100 - Perfect, even satifiying some commonly seen "rules", such as sum of coefficients = 0,
 #          symmetry of cofficients about x[i] in a central formula
-#  other - mathematically, the formula is still valid, but not perfect
+#   -100 - No formula can't be found
+#   > 0  - Mathematically, the formula is still valid, but not for trhe very input points
 #
 function _test_formula_validity()
     # to find f^(n)(x[i]) by obtaining
@@ -380,7 +406,7 @@ function _test_formula_validity()
     # the most important step is to know if f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]) are all eliminated, i.e.,
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[stop-start+1]*coefs[stop-start+1][j] = 0
     # where j = 1:n
-    global _data, _formula_status, _computedq, _range_inputq, _range_input
+    global _data, _computedq, _range_inputq, _range_input
     if !_computedq
         @error "Please call computecoefs(n, points) first!"
     end
@@ -391,53 +417,56 @@ function _test_formula_validity()
     points = _data.points
     len = length(points)
 
-    input_points = _range_inputq ? "$(_range_input.start):$(_range_input.stop)" : "$(points')"
+    input_points = _range_inputq ? _range_input : points'
 
-    _formula_status = 0
-    # Is there any equation in system (1) that is not satisfied?
+    global _formula_status = 0
+
+    # Is there any equation in system (1) that is not satisfied? fatal error!
     has_solutionq = true
     for i = 1 : n
         if _lcombination_coefs[i] != 0
-            println("***** Error:: n=$n, $input_points :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
+            println("***** Error:: $n, $input_points :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
+            fatal_errorq  = true
             has_solutionq = false
             break
         end
     end
 
-    # k[1] or k[len] == 0 ?
-    if k[1] == 0
-        if k[len] == 0
-            s = _range_inputq ? (_range_input.start + 1 : _range_input.stop - 1) : points[2 : end - 1]
-            println("\n***** Error:: n=$n, $input_points :: k[1] = k[$len] = 0. You may try computecoefs($n, $s).\n")
-        else
-            s = _range_inputq ? (_range_input.start + 1 : _range_input.stop) : points[2 : end]
-            println("\n***** Error:: n=$n, $input_points :: k[1] = 0. You may try computecoefs($n, $s).\n")
+    if has_solutionq  # Is m == 0 ?
+        m = _lcombination_coefs[n + 1]
+        if m == 0
+            println("-" ^ 81)
+            println("\n***** Error:: $n, $input_points :: m = 0, formula can't be found.")
+            has_solutionq = false
         end
-        has_solutionq = false
-    elseif k[len] == 0
-        s = _range_inputq ? (_range_input.start : _range_input.stop - 1) : points[1 : end - 1]
-        println("\n***** Error:: n=$n, $input_points :: k[$len] = 0. You may try computecoefs($n, $s).\n")
-        has_solutionq = false
     end
 
-    # Is m == 0 ?
-    m = _lcombination_coefs[n + 1]
-    if m == 0
-        println("-" ^ 81)
-        println("\n***** Error:: n=$n, $input_points :: m = 0, formula can't be found!")
-        has_solutionq = false
+    # there could be a solution that doesn't use the whole range of input (points)
+    if has_solutionq
+        start, stop = 1, len    # actual left and right endpoints
+        while start <= len && k[start] == 0; start += 1; end
+        while stop >= 1 && k[stop] == 0; stop -= 1; end
+        if start >= stop
+            has_solutionq = false
+        elseif start > 1 || stop < len
+            s = _range_inputq ? (points[start] : points[stop]) : points[start : stop]
+            println("Error:: $n, $input_points :: A formula can't be found.\n")
+            println("Warning:: $n, $s might be your input for which the following formula is found.\n")
+        end
     end
 
     if !has_solutionq
         if len <= n
             th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
-            println("The input $input_points is invalid because at least $(n + 1) points are needed for the $n$th derivative.\n")
+            println("Error:: $n, $input_points :: Invalid input because at least $(n + 1) points are needed for the $n$th derivative.\n")
+        else
+            println("Error:: $n, $input_points :: A formula can't be found.")
         end
         return
     end
 
     if sum(k) != 0   # sum of coefficients must be 0
-        println("\n***** Warning:: n=$n, $input_points :: sum(k[:]) != 0")
+        println("\n***** Warning:: $n, $input_points :: sum(k[:]) != 0")
         _formula_status += 1
     end
 
@@ -446,7 +475,7 @@ function _test_formula_validity()
         j = length(k)
         for i in 1 : round(Int64, length(k)/2)
             if abs(k[i]) != abs(k[j])
-                println("\n***** Warning:: n=$n, $input_points :: k[$i] != k[$j]")
+                println("\n***** Warning:: $n, $input_points :: k[$i] != k[$j]")
                 _formula_status += 1
                 break
             end
@@ -470,7 +499,7 @@ function _denominator_expr(data::_FDData)
 end
 
 # print and return the function for the newly computed finite difference formula
-function _julia_func_expr(data::_FDData, decimal = false)
+function _julia_func_expr(data::_FDData, decimalq = false, julia_REPL_funcq = false)
     global _range_inputq, _range_input
 
     s = ""
@@ -492,9 +521,12 @@ function _julia_func_expr(data::_FDData, decimal = false)
 
     th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : (data.n == 3 ? "rd" : "th"))
     global _julia_func_basename = "f$(data.n)$(th)deriv$(n)pt$(s)"
-    fexpr  = "(f, x, i, h) = ( "
-    fexpr *= _lcombination_expr(data, decimal)
+    fexpr  = "(f, x, i, h) = "
+    if julia_REPL_funcq; fexpr *= "Float64("; end
+    fexpr *= "( "
+    fexpr *= _lcombination_expr(data, decimalq, julia_REPL_funcq)
     fexpr *= " ) / " * _denominator_expr(data)
+    if julia_REPL_funcq; fexpr *= ")"; end
 
     return fexpr
 end  # _julia_func_expr
@@ -508,6 +540,8 @@ end  # _print_bigo_formula
 
 # create and print readable formula and other computing results
 # using data stored in global variable _data
+#
+# No valid formula can be found? Still dump the computing result for teaching.
 function formula()
     global _data, _computedq, _formula_status, _range_inputq, _range_input
 
@@ -516,7 +550,7 @@ function formula()
         return
     end
 
-    if _formula_status !=0
+    if _formula_status > 0
         println("-" ^ 80)
         print("The following formula ")
         if _formula_status == 100
@@ -536,7 +570,7 @@ function formula()
     print(_lcombination_expr(_data), " =\n")
     _print_taylor(_lcombination_coefs, 5);       # print at most 5 nonzero terms
 
-    if _formula_status != 0
+    if _formula_status > 0
         println("The exact formula:\n")
         # find x in the big-O notation O(h^x)
         x = _max_num_of_taylor_terms
@@ -559,11 +593,14 @@ function formula()
         println("Julia function:\n")
         global _julia_exact_func_expr = _julia_func_expr(_data)
         print(_julia_func_basename, "e", _julia_exact_func_expr, "\n\n")
-        if _data.m > 1           # print in other formats
-            print("Or\n\n", _julia_func_basename, "e", _julia_func_expr(data1), "\n\nOr\n\n") # exact, skip it
+        if _data.m > 1           # other formats
+            global _julia_exact_func_expr1  = _julia_func_expr(data1)
+            print("Or\n\n", _julia_func_basename, "e1", _julia_exact_func_expr1, "\n\nOr\n\n")
             global _julia_decimal_func_expr = _julia_func_expr(data1, true)
             print(_julia_func_basename, "d", _julia_decimal_func_expr, "\n\n")
-        end
+        end  # m = 1? No decimal formula
+    else
+        _formula_status = -100 # no formula can't be generated
     end
 
     return
@@ -571,28 +608,51 @@ end  # formula
 
 # activate function(s) for the newly computed finite difference formula, allowing
 # immediate evaluation of the formula in present Julia REPL session.
-function activatefunction()
-    global _julia_exact_func_expr, _julia_decimal_func_expr, _data
+function activatejuliafunction()
+    global _computedq, _formula_status, _data
 
-    if _julia_exact_func_expr == ""
-        println("Please run 'computecoefs' and 'formula' first.")
+    if !_computedq
+        println("Please run 'computecoefs' first.")
         return
     end
-    eval(Meta.parse("$(_julia_func_basename)e$(_julia_exact_func_expr)"))
-    if _julia_decimal_func_expr != ""
-        eval(Meta.parse(_julia_func_basename * "d" * _julia_decimal_func_expr))
-        print("Two functions, $(_julia_func_basename)e and $(_julia_func_basename)d, are")
+
+    global _julia_exact_func_expr  = ""
+    global _julia_exact_func_expr1  = ""
+    global _julia_decimal_func_expr = ""
+
+    # generate Julia function for current REPL session
+    if _formula_status > 0
+        global _julia_exact_func_expr = _julia_func_expr(_data, false, true)
+        if _data.m > 1           # print in other formats
+            data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1, _data.coefs)
+            global _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
+            global _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
+        end  # m = 1? No decimal formula
     else
-        print("One function, $(_julia_func_basename)e, is")
-    end
-    println(" available temporiarily in the FiniteDifferenceFormula module. Usage:\n")
-    println("  import FiniteDifferenceFormula as fd\n")
-    println("  fd.$(_julia_func_basename)e(sin, 0:0.01:50, 250, 0.01)")
-    if _julia_decimal_func_expr != ""
-        println("  fd.$(_julia_func_basename)d(sin, 0:0.01:50, 250, 0.01)")
+        println("No valid formula is for activation. Please run 'computecoefs' with different input again.")
+        return
     end
 
+    eval(Meta.parse(_julia_func_basename * "e" * _julia_exact_func_expr))
+    if _julia_decimal_func_expr != ""
+        eval(Meta.parse(_julia_func_basename * "e1" * _julia_exact_func_expr1))
+        eval(Meta.parse(_julia_func_basename * "d" * _julia_decimal_func_expr))
+    end
+
+    println("The following function(s) are available temporiarily in the FiniteDifferenceFormula module. Usage:\n")
+    println("  import FiniteDifferenceFormula as fd\n")
+    println("  f, x, i, h = sin, 0:0.01:10, 501, 0.01")
+    eval(Meta.parse("f, x, i, h = sin, 0:0.01:10, 501, 0.01"))
+    println("  fd.$(_julia_func_basename)e(f, x, i, h)    # output: ", eval(Meta.parse("$(_julia_func_basename)e(f, x, i, h)")))
+    if _julia_decimal_func_expr != ""
+        println("  fd.$(_julia_func_basename)e1(f, x, i, h)   # output: ", eval(Meta.parse("$(_julia_func_basename)e1(f, x, i, h)")))
+        println("  fd.$(_julia_func_basename)d(f, x, i, h)    # output: ", eval(Meta.parse("$(_julia_func_basename)d(f, x, i, h)")))
+    end
+    len = length("fd.$(_julia_func_basename)")
+    println(" "^(len + 19) * "# cp:     ", sin(_data.n * pi /2 + 5))
+    println("\nCall fd.formula() to view the very definition.")
+
     return  # stop Julia from returning something users never expect
-end  # activatefunction
+end  # activatejuliafunction
 
 end # module
