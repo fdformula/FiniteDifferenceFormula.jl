@@ -16,7 +16,7 @@ export decimalplaces, activatejuliafunction, taylor
 _max_num_of_taylor_terms = 30 # number of the 1st terms of a Taylor series expansion
                               # variable, depending on input to computecoefs
 
-_decimal_places = 15          # use it to print Julia function for a formula
+_decimal_places = 16          # use it to print Julia function for a formula
                               # call decimalplaces(n) to reset it
 
 ####################################################################################
@@ -79,7 +79,12 @@ function _taylor_coefs(h)
     return result
 end  # _taylor_coefs
 
-function decimalplaces(n = 16)  # default: Float64
+function decimalplaces()
+    global _decimal_places
+    return _decimal_places
+end  # decimalplaces
+
+function decimalplaces(n)
     global _decimal_places, _computedq
     if isinteger(n) && n > 0
         _decimal_places = n
