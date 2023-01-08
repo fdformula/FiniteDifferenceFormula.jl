@@ -10,7 +10,8 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
-export computecoefs, formula, decimalplaces, taylor, activatejuliafunction
+export computecoefs, formula, truncationerror
+export decimalplaces, activatejuliafunction, taylor
 
 _max_num_of_taylor_terms = 30 # number of the 1st terms of a Taylor series expansion
                               # variable, depending on input to computecoefs
@@ -47,6 +48,8 @@ _julia_exact_func_expr       = ""         # string of 1st exact Julia function f
 _julia_exact_func_expr1      = ""         # string of 2nd exact Julia function for f^(n)(x[i])
 _julia_decimal_func_expr     = ""         # string of decimal Julia function for f^(n)(x[i])
 _julia_func_basename         = ""
+
+_bigO                        = ""         # truncation error of a finidifference formula
 
 # This function returns the first '_max_num_of_taylor_terms' of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed. The
@@ -166,7 +169,10 @@ function _print_taylor(coefs, num_of_nonzero_terms = _max_num_of_taylor_terms)
 end  # _print_taylor
 
 function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
-    if n < 1; @error "Wrong order of derivatives :: $n. It must be a positive integer."; end
+    if n < 1
+        println("Wrong order of derivatives :: $n. It must be a positive integer.")
+        return
+    end
 
     global _range_inputq = true
     global _range_input  = points
@@ -175,27 +181,32 @@ end
 
 # computecoefs(2, [1 2 3 -1])
 function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
-    if n < 1; @error "Wrong order of derivatives :: $n. It must be a positive integer."; end
+    if n < 1
+        println("Wrong order of derivatives :: $n. It must be a positive integer.")
+        return
+    end
 
     if length(points) <= 1
-        error("Invalid input :: points = $points")
-    else
-        m, = size(points)
-        if m > 1 points = points'; end      # a column vector
-        points = sort(unique(points))
-        if length(points) == 1
-            error("Invalid input :: points = $(points')")
-        end
+        println("Invalid input :: $points - more points are needed.")
+        return
+    end
 
-        println("You input: $points")
-        # is the input 'points' actually a range?
-        if length(points[1]:points[end]) == length(points)
-            return computecoefs(n, points[1]:points[end], printformulaq)
-        else
-            global _range_inputq = false
-            global _range_input  = 0:0
-            return _computecoefs(n, points, printformulaq)
-        end
+    m, = size(points)
+    if m > 1 points = points'; end      # a column vector
+    points = sort(unique(points))
+    if length(points) == 1
+         println("Invalid input :: points = $(points')")
+         return
+    end
+
+    println("You input: $points")
+    # is the input 'points' actually a range?
+    if length(points[1]:points[end]) == length(points)
+        return computecoefs(n, points[1]:points[end], printformulaq)
+    else
+        global _range_inputq = false
+        global _range_input  = 0:0
+        return _computecoefs(n, points, printformulaq)
     end
 end  # computecoefs
 
@@ -243,12 +254,14 @@ end
 #
 function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     global _computedq = false
+    global _formula_status = 0
+    global _bigO = ""
 
     # for teaching's purpose, we don't do so
     # if length(points) <= n
-    #     input_points = _range_inputq ? "$(_range_input.start):$(_range_input.stop)" : "$(points')"
+    #     pts = _range_inputq ? "$(_range_input)" : "$(points')"
     #     th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
-    #     println("The input $input_points is invalid because at least $(n + 1) points are needed for the $n$th derivative.")
+    #     println("$pts is invalid b/c at least $(n + 1) points are needed for the $n$th derivative.")
     #     return
     # end
 
@@ -283,17 +296,17 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     #
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0 ..... (1)
     #
-    # where j = 1, 2, ..., len.
+    # where j = 1, 2, ..., len but not n.
     #
     A = Matrix{Rational{BigInt}}(undef, len, len)
     row = 1
-    for order = 0 : len - 1
+    for order in 0 : len - 1             # corresponding to f(x[i]), f'(x[i]), f''(x[i]), ...
         if order == n; continue; end     # skip f^(n)(x[i])
 
         # eliminating f^(order)(x[i])
-        # A[:,j] corresponds to k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0
-        for i = 1 : len
-            A[row, i] = coefs[i][order + 1]
+        # A[:,j] stores coefs of k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0
+        for j = 1 : len
+            A[row, j] = coefs[j][order + 1]
         end
         row += 1
     end
@@ -356,7 +369,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if printformulaq; formula(); end
 
     return (coefs, m)
-end   # computecoefs
+end   # _computecoefs
 
 # return a string of the linear combination
 # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
@@ -395,7 +408,8 @@ end  # _lcombination_expr
 #    100 - Perfect, even satifiying some commonly seen "rules", such as sum of coefficients = 0,
 #          symmetry of cofficients about x[i] in a central formula
 #   -100 - No formula can't be found
-#   > 0  - Mathematically, the formula is still valid, but not for trhe very input points
+#   > 0  - Mathematically, the formula is still valid but may not satisfy some commonly seen "rules"
+#          such as sum of coefficients = 0 and symmetry of coefficients about x[i]
 #
 function _test_formula_validity()
     # to find f^(n)(x[i]) by obtaining
@@ -406,10 +420,7 @@ function _test_formula_validity()
     # the most important step is to know if f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]) are all eliminated, i.e.,
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[stop-start+1]*coefs[stop-start+1][j] = 0
     # where j = 1:n
-    global _data, _computedq, _range_inputq, _range_input
-    if !_computedq
-        @error "Please call computecoefs(n, points) first!"
-    end
+    global _data, _range_inputq, _range_input
 
     n = _data.n
     k = _data.k
@@ -419,20 +430,19 @@ function _test_formula_validity()
 
     input_points = _range_inputq ? _range_input : points'
 
-    global _formula_status = 0
-
-    # Is there any equation in system (1) that is not satisfied? fatal error!
+    # Is there any equation in system (1) that is not satisfied?
     has_solutionq = true
+    global _formula_status = 0
     for i = 1 : n
         if _lcombination_coefs[i] != 0
             println("***** Error:: $n, $input_points :: i = $i, k[1]*coefs[1][$i] + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
-            fatal_errorq  = true
             has_solutionq = false
             break
         end
     end
 
-    if has_solutionq  # Is m == 0 ?
+    # Is m = 0 ?
+    if has_solutionq
         m = _lcombination_coefs[n + 1]
         if m == 0
             println("-" ^ 81)
@@ -451,7 +461,7 @@ function _test_formula_validity()
         elseif start > 1 || stop < len
             s = _range_inputq ? (points[start] : points[stop]) : points[start : stop]
             println("Error:: $n, $input_points :: A formula can't be found.\n")
-            println("Warning:: $n, $s might be your input for which the following formula is found.\n")
+            println("Warning:: $n, $s might be your input for which a formula is found.\n")
         end
     end
 
@@ -543,7 +553,7 @@ end  # _print_bigo_formula
 #
 # No valid formula can be found? Still dump the computing result for teaching.
 function formula()
-    global _data, _computedq, _formula_status, _range_inputq, _range_input
+    global _data, _computedq, _formula_status, _range_inputq, _range_input, _bigO
 
     if !_computedq
         println("Please call computecoefs(n, points) first!")
@@ -578,16 +588,16 @@ function formula()
             if _lcombination_coefs[i] != 0; x = i; break; end
         end
         x -= _data.n + 1
-        bigO = "O(h"
-        if x > 1; bigO *= "^$x"; end
-        bigO *= ")"
+        _bigO = "O(h"
+        if x > 1; _bigO *= "^$x"; end
+        _bigO *= ")"
 
-        _print_bigo_formula(_data, bigO)
+        _print_bigo_formula(_data, _bigO)
         data1 = _FDData
         if _data.m > 1           # print in another format
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1, _data.coefs)
             print("Or\n\n")
-            _print_bigo_formula(data1, bigO)
+            _print_bigo_formula(data1, _bigO)
         end
 
         println("Julia function:\n")
@@ -605,6 +615,23 @@ function formula()
 
     return
 end  # formula
+
+# print _bigO, the estimation of trucation error in the big-O notation
+function truncationerror()
+    global _bigO, _computedq, _formula_status
+    if _computedq
+        if _bigO == ""; formula(); end
+
+        if _formula_status == -100
+            println("No valid formula is available. Please call 'computecoefs' again.")
+        else
+            println(_bigO)
+        end
+    else
+        println("Please call 'computecoefs' first.")
+    end
+    return
+end
 
 # activate function(s) for the newly computed finite difference formula, allowing
 # immediate evaluation of the formula in present Julia REPL session.
