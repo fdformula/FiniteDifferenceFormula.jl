@@ -80,10 +80,14 @@ function _taylor_coefs(h)
 end  # _taylor_coefs
 
 function decimalplaces(n = 16)  # default: Float64
-    global _decimal_places
+    global _decimal_places, _computedq
     if isinteger(n) && n > 0
         _decimal_places = n
-        println("Please call 'formula' to generate (or 'activatejuliafunction' to generate and activate) a Julia function using the new decimal places.")
+        if _computedq
+            println("Please call 'formula' to generate (or 'activatejuliafunction' to generate and activate) a Julia function for the newly computed formula, using the new decimal places.")
+        else
+            println("You may start your work by calling 'computecoefs'.")
+        end
     else
         println("decimalplaces(n): n must be a positive integer.")
     end
@@ -670,13 +674,19 @@ function activatejuliafunction()
     println("  import FiniteDifferenceFormula as fd\n")
     println("  f, x, i, h = sin, 0:0.01:10, 501, 0.01")
     eval(Meta.parse("f, x, i, h = sin, 0:0.01:10, 501, 0.01"))
-    println("  fd.$(_julia_func_basename)e(f, x, i, h)    # output: ", eval(Meta.parse("$(_julia_func_basename)e(f, x, i, h)")))
+
+    exact = sin(_data.n * pi /2 + 5)
+    apprx = eval(Meta.parse("$(_julia_func_basename)e(f, x, i, h)"))
+    println("  fd.$(_julia_func_basename)e(f, x, i, h)    # output: ", apprx)
     if _julia_decimal_func_expr != ""
-        println("  fd.$(_julia_func_basename)e1(f, x, i, h)   # output: ", eval(Meta.parse("$(_julia_func_basename)e1(f, x, i, h)")))
-        println("  fd.$(_julia_func_basename)d(f, x, i, h)    # output: ", eval(Meta.parse("$(_julia_func_basename)d(f, x, i, h)")))
+        apprx = eval(Meta.parse("$(_julia_func_basename)e1(f, x, i, h)"))
+        println("  fd.$(_julia_func_basename)e1(f, x, i, h)   # output: ", apprx)
+
+        approx = eval(Meta.parse("$(_julia_func_basename)d(f, x, i, h)"))
+        println("  fd.$(_julia_func_basename)d(f, x, i, h)    # output: ", apprx)
     end
     len = length("fd.$(_julia_func_basename)")
-    println(" "^(len + 19) * "# cp:     ", sin(_data.n * pi /2 + 5))
+    println(" "^(len + 19) * "# cp:     ", exact)
     println("\nCall fd.formula() to view the very definition.")
 
     return  # stop Julia from returning something users never expect
