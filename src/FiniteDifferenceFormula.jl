@@ -79,11 +79,11 @@ function _taylor_coefs(h)
     return result
 end  # _taylor_coefs
 
-function decimalplaces(n)
+function decimalplaces(n = 16)  # default: Float64
     global _decimal_places
     if isinteger(n) && n > 0
         _decimal_places = n
-        println("Please call formula() to generate a Julia function using the new decimal places.")
+        println("Please call 'formula' to generate (or 'activatejuliafunction' to generate and activate) a Julia function using the new decimal places.")
     else
         println("decimalplaces(n): n must be a positive integer.")
     end
