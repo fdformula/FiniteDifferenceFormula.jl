@@ -82,7 +82,7 @@ Without argument, the function returns current decimal places. With arugment n, 
 decimal places to be n for generating Julia function for a formula. Without/before calling
 the function, 16 decimal places are used by default.
 
-### function formula()
+### function formula( )
 
 The function generates and lists
 
@@ -94,7 +94,7 @@ The function generates and lists
 
 1. Julia function for f^(n)(x[i]).
 
-### function activatejuliafunction()
+### function activatejuliafunction( )
 
 Call this function to activate the Julia function(s) based on the newly computed
 finite difference formula. E.g.,
@@ -113,7 +113,7 @@ session.
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 ```
 
-### function truncationerror()
+### function truncationerror( )
 
 The function shows the truncation error of the newly computed finite difference formula.
 
