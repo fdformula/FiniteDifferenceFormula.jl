@@ -131,7 +131,7 @@ fd.computecoefs(2, [-3 -2 1 2 7], true)  # find and print 5-point formula for f'
 
 fd.computecoefs(3, 0:122, true)          # find and print "123"-point forward formula for f'''(x[i])
 
-fd.computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i])
+fd.computecoefs(2,-50:60)                # find "111"-point central formula for f''(x[i])
 
 fd.formula()                             # print the formula computed last time you called computecoefs(...)
 
