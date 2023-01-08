@@ -7,7 +7,7 @@ in the big-O notation. You can use it to generate new formulas in addition to
 verification of known ones. See documentation in the source code for the algorithm.
 
 You may play with this package when teaching/learning numerical computing, especially
-the finite difference method. You can explore the distribution, symmetry, and beauty in
+the finite difference method, and explore the distribution, symmetry, and beauty in
 the coefficients of the formulas.
 
 Beware, there is a natural constraint, i.e., the number of points and the order
