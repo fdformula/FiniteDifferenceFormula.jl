@@ -8,30 +8,29 @@ verification of known ones. See documentation in the source code for the algorit
 
 You may play with this package when teaching/learning numerical computing, especially
 the finite difference method. You can explore the distribution, symmetry, and beauty in
-the coefficients in the formulas and make some related conjectures and even give proofs
-to the conjectures.
+the coefficients of the formulas.
 
-Beware, there is a natural constraint, i.e., the number of points to be used in a formula
-can't be too large, due to
+Beware, there is a natural constraint, i.e., the number of points and the order
+of derivatives to be in a formula can't be too large, due to
 
 1. the constraint of the largest integer computers can express and process.
-1. that we want "exact" formulas, i.e., coefficients in the formulas are exact, otherwise,
-   extra truncation errors occur already in the formulas.
+1. that we want "exact" formulas, i.e., coefficients in the formulas are integers
+   or rational numbers, otherwise, extra truncation errors occur already in the formulas.
 1. that, to explore the properties of coefficients in the formulas, we had better have
    "exact" formulas.
 1. that practical applications usually don't allow too many points to be used for
    computing derivatives of a function at a single point because of the constraints of
-   computing power, not to mention that more invloved operations cause possibly more
+   computing power, not to mention that more involved operations tend to cause more
    rounding errors.
 
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-## The package exports four functions
+## The package exports five functions
 
 - computecoefs
 - formula
-- activatefunction
+- activatejuliafunction
 - decimalplaces
 - taylor
 
@@ -87,18 +86,20 @@ The function lists
 
 1. Julia function for f^(n)(x[i]).
 
-### function activatefunction()
+### function activatejuliafunction()
 
 Call this function to make active the Julia function(s) based on the newly computed
 finite difference formula. E.g.,
 
 ```Julia
 f1stderiv2ptcentrale(f, x, i, h) = ( -f(x[i-1]) + f(x[i+1]) ) / (2 * h)
+f1stderiv2ptcentrale1(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
 f1stderiv2ptcentrald(f, x, i, h) = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
 ```
 The suffix 'e' and 'd' stand for 'exact' and 'decimal', respectively.
 
-After activating the function(s), you can evaluate, say,
+After activating the function(s), you can evaluate right away in the present Julia REPL
+session.
 
 ```Julia
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
@@ -132,11 +133,11 @@ fd.computecoefs(3, 0:122, true)          # find and print "123"-point forward fo
 
 fd.computecoefs(99,-61:61)               # find "123"-point central formula for f^(99)(x[i])
 
-fd.formula()                             # create and print the formula computed last time you called computecoefs(...)
+fd.formula()                             # print the formula computed last time you called computecoefs(...)
 
 fd.taylor(-2)                            # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
 
 fd.taylor(2, 7)                          # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
 
-fd.activatefunction()                    # define Julia function(s) of newly computed formula in present REPL session
+fd.activatejuliafunction()               # activate Julia function(s) of newly computed formula in present REPL session
 ```
