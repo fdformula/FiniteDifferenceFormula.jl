@@ -64,11 +64,11 @@ The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m) where k[:]
 are described below. With the information, you may generate formulas for any
 programming language of your choice.
 
-The algorithm uses the linear combination of f(x[i+j]), j in start : stop, to eliminate
-f(x[i]), f'(x[i]), ..., so that the first term of the Taylor series expansion of the
+The algorithm uses the linear combination of f(x[i+j]), j = start : stop, to eliminate
+f(x[i]), f'(x[i]), ..., so that the first nonzero term of the Taylor series of the
 linear combination is f^(n)(x[i]):
 
-```
+```Julia
     k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
         = m*f^(n)(x[i]) + ..., m > 0
 ```
