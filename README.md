@@ -26,12 +26,13 @@ of derivatives to be in a formula can't be too large, due to
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-## The package exports five functions
+## The package exports six functions
 
 - computecoefs
+- decimalplaces
 - formula
 - activatejuliafunction
-- decimalplaces
+- truncationerror
 - taylor
 
 ### function computecoefs(n, points, printformulaq = false)
@@ -51,6 +52,7 @@ printformulaq: print the computed formula or not
 |   -2:2       |   x[i-2], x[i-1], x[i], x[i+1], x[i+2]         |
 |   -3:2       |   x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2] |
 |   [1, 1, -1] |   x[i-1], x[i+1]                               |
+|   [1 0 1 -1] |   x[i-1], x[i], x[i+1]                         |
 
 A vector can be like [1, 0, 2] or [1 0 2]. It will be rearranged so
 that elements are ordered from lowest to highest with duplicate ones
@@ -74,9 +76,14 @@ linear combination is f^(n)(x[i]):
 It is this equation that gives the formula for computing f^(n)(x[i]) and the truncation
 error in the big-O notation as well.
 
+### function decimalplaces(n)
+
+The function sets the decimal places to be n for generating Julia function for a formula.
+Without/before calling the function, 15 decimal places are used by default.
+
 ### function formula()
 
-The function lists
+The function generates and lists
 
 1. k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
        = m*f^(n)(x[i]) + ..., m > 0
@@ -104,10 +111,10 @@ session.
 ```Julia
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 ```
-### function decimalplaces(n)
 
-The function sets the decimal places to be n for printing Julia function for a formula.
-Without/before calling the function, 15 decimal places are used by default.
+### function truncationerror()
+
+The function shows the truncation error of the newly computed finite difference formula.
 
 ### function taylor(j, n = 10)
 
@@ -119,25 +126,27 @@ It is simply for teaching/learning the finite difference method.
 ```Julia
 import FiniteDifferenceFormula as fd
 
-fd.decimalplaces(6)
+fd.decimalplaces(6)               # use 6 decimal places to generate Julia functions of computed formulas
 
-fd.computecoefs(1, 0:2, true)            # find and print "3"-point forward formula for f'(x[i])
+fd.computecoefs(1, 0:2, true)     # find, generate, and print "3"-point forward formula for f'(x[i])
 
-fd.computecoefs(2, -3:0, true)           # find and print "4"-point backward formula for f''(x[i])
+fd.computecoefs(2, -3:0, true)    # find, generate, and print "4"-point backward formula for f''(x[i])
 
-fd.computecoefs(3, -9:9, true)           # find and print "19"-point central formula for f'''(x[i])
+fd.computecoefs(3, -9:9)          # find "19"-point central formula for f'''(x[i])
 
-fd.computecoefs(2, [-3 -2 1 2 7], true)  # find and print 5-point formula for f''(x[i])
+fd.computecoefs(2, [-3 -2 1 2 7]) # find 5-point formula for f''(x[i])
 
-fd.computecoefs(3, 0:122, true)          # find and print "123"-point forward formula for f'''(x[i])
+fd.computecoefs(3, 0:122, true)   # find, generate, and print "123"-point forward formula for f'''(x[i])
 
-fd.computecoefs(4,-100:122)              # find "223"-point formula for f''''(x[i])
+fd.computecoefs(99,-61:61)        # find "123"-point central formula for f^(99)(x[i])
 
-fd.formula()                             # print the formula computed last time you called computecoefs(...)
+fd.formula()                      # generate and print the formula computed last time you called computecoefs(...)
 
-fd.taylor(-2)                            # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
+fd.truncationerror()              # print the truncation error of the newly computed formula
 
-fd.taylor(2, 7)                          # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
+fd.taylor(-2)                     # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
 
-fd.activatejuliafunction()               # activate Julia function(s) of newly computed formula in present REPL session
+fd.taylor(2, 7)                   # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
+
+fd.activatejuliafunction()        # activate Julia function(s) of the newly computed formula in present REPL session
 ```
