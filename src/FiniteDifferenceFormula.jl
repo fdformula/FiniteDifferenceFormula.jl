@@ -38,7 +38,7 @@ _formula_status              = 0          # a formula may not be available
                                           # values? see function _test_formula_validity()
 
 # a vector of the coefficients of Taylor series expansion of the linear combination:
-# k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+# k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
 _lcombination_coefs          = Array{Any}(undef, _max_num_of_taylor_terms)
 
 _range_inputq                = false
@@ -79,11 +79,13 @@ function _taylor_coefs(h)
     return result
 end  # _taylor_coefs
 
+# show current decimal places
 function decimalplaces()
     global _decimal_places
     return _decimal_places
 end  # decimalplaces
 
+# set decimal places to n
 function decimalplaces(n)
     global _decimal_places, _computedq
     if isinteger(n) && n > 0
@@ -101,7 +103,7 @@ function decimalplaces(n)
 end  # decimalplaces
 
 # convert a coefficient to a readable string
-function _c2s(c, first_termq = false, floatingq = false)
+function _c2s(c, first_termq = false, decimalq = false)
     s = ""
     if c < 0
         s = first_termq ? "-" : s = " - "
@@ -114,7 +116,7 @@ function _c2s(c, first_termq = false, floatingq = false)
         if c != 1
             s *= string(round(BigInt, c), " ")
         end
-    elseif floatingq
+    elseif decimalq
         global _decimal_places
         fmt = Printf.Format("%.$(_decimal_places)f ")
         s *= Printf.format(fmt, convert(Float64, c))
@@ -228,18 +230,18 @@ end
 # Algorithm
 # ---------
 # General generator of finite difference formulas for the n-th order derivatives
-# of f(x) at x[i] using points = start:stop.
+# of f(x) at x[i] using points in a soredt list, e.g., [-2 -1 0 1 3 5 6 7].
 #
-# It uses the linear combination of f(x[i+j]), j in start:stop, to eliminate f(x[i]), f'(x[i]), ...,
+# It uses the linear combination of f(x[i+j]), j in points, to eliminate f(x[i]), f'(x[i]), ...,
 # so that the first term of the Taylor series expansion of the linear combination is f^(n)(x[i]):
 #
-#    k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
-#        = m*f^(n)(x[i]) + ..., m > 0, n > 0
+#    k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
+#        = m*f^(n)(x[i]) + ..., m > 0, len = length(points)
 #
 # It is this equation that gives the formula for computing f^(n)(x[i]).
 #
 # Values of the cofficients k[:] and m will be determined, and the first few terms of the remainder
-# (...) will be listed for estimating the truncation error of a formula.
+# (...) will be listed for calculating the truncation error of a formula.
 #
 # Julia's Rational type and related arithmetic operations, especially a // b, together with the
 # RowEchelon package, are a perfect fit for obtaining an "exact" formula (in the sense of exact
@@ -259,7 +261,7 @@ end
 #
 # Output
 # ------
-# The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m).
+# The function returns a tuple, ([k[1], k[2], ..., k[len]], m).
 #
 function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     global _computedq = false
@@ -285,9 +287,9 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
         coefs[i] = _taylor_coefs(points[i])
     end
 
-    # We find a linear combination of f(x[i+start]), f(x[i+start+1]) ... f(x[i+stop]),
+    # We find a linear combination of f(x[i+points[1]]), f(x[i+points[2]]) ... f(x[i+points[len]]),
     #
-    # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + k[3]*f(x[i+start+2]) + k[stop-start+1]*f(x[i+stop])i
+    # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     #  = 0*f(x[i]) + 0*f'(x[i]) + ... + 0*f^(n-1)(x[i]) + m*f^(n)(x[i]) + ..., m != 0
     #
     # so that it must eliminate f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]); given more points are provided,
@@ -326,15 +328,15 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # nontrivial solution, where α is any nonzero real constant, i.e., all nontrivial solutions (a
     # subspace spanned by this k[:]) are parallel to each other. Therefore, in the case that there
     # are infinitely many nontrivial solutions, if we know one entry k[which] is nonzero and let it
-    # be a nonzero constant (say, 1), then, a nontrivial solution k[:] is unique/found.
+    # be a nonzero constant (say, 1), then, a nontrivial solution k[:] is uniquely determined.
     #
     # Beware, there may be multiple nontrivial solutions,
     #    k[:] = [k1, k2, ...], k[:] = [K1, K2, ...], ..., or k[:] = [κ1, κ2, ...]
     # of which no two are parallel to each other. However, each of these solutions must satisfy the
     # condition that both k[1] and k[end] can't be zero. Why? If, say, k[1] = 0, in other words, a
-    # formula only uses/depends on (at most) x[i+start+1], x[i+start+2], ..., x[i+stop], why should
-    # we say it is a formula that uses/depends on x[i+start] (and x[i+start+1], ..., x[i+stop])?
-    # Therefore, we can assume that k[1] != 0.
+    # formula only uses/depends on (at most) x[i+points[2]], x[i+points[3]], ..., x[i+points[len]],
+    # why should we say it is a formula that uses/depends on x[i+points[1]] (and x[i+points[2]], ...,
+    # x[i+points[len]])? Therefore, we can assume that k[1] != 0.
     #
     A[len, 2 : len] .= 0                  # setup an equation so that k[1] = 1
     A[len, 1]        = 1
@@ -347,7 +349,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     k = k // gcd(k)
 
     # Taylor series expansion of the linear combination
-    # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+    # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     _lcombination_coefs = k[1] * coefs[1] # let Julia determine the type
     for i in 2 : len
         if k[i] == 0; continue; end
@@ -381,7 +383,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 end   # _computecoefs
 
 # return a string of the linear combination
-# k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+# k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
 #
 # To test in Julia if a formula is valid, we must convert the data to BigInt or BigBloat
 # becasue, say, for computecoefs(2, -12:12), without the conversion, the formula will
@@ -423,7 +425,7 @@ end  # _lcombination_expr
 function _test_formula_validity()
     # to find f^(n)(x[i]) by obtaining
     #
-    #    k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+    #    k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     #        = m*f^(n)(x[i]) + ..., m > 0
     #
     # the most important step is to know if f(x[i]), f'(x[i]), ..., f^(n-1)(x[i]) are all eliminated, i.e.,
@@ -584,7 +586,7 @@ function formula()
     end
 
     # print Taylor series expansion of the linear combination:
-    # k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+    # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     println("The computing result:\n")
     print(_lcombination_expr(_data), " =\n")
     _print_taylor(_lcombination_coefs, 5);       # print at most 5 nonzero terms
