@@ -63,21 +63,21 @@ The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m) where k[:]
 are described below. With the information, you may generate formulas for any
 programming language of your choice.
 
-The algorithm uses the linear combination of f(x[i+j]), j = start : stop (or a specifid
-list), to eliminate f(x[i]), f'(x[i]), ..., so that the first nonzero term of the Taylor
+The algorithm uses the linear combination of f(x[i+j]), j ∈ points, a given list of points,
+to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero term of the Taylor
 series of the linear combination is f^(n)(x[i]):
 
 ```Julia
-    k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+    k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
         = m*f^(n)(x[i]) + ..., m > 0
 ```
 
-It is this equation that gives the formula for computing f^(n)(x[i]) and the truncation
-error in the big-O notation as well.
+where len = length(points). It is this equation that gives the formula for computing f^(n)(x[i])
+and the truncation error in the big-O notation as well.
 
 ### function decimalplaces( ) or decimalplaces(n)
 
-Without argument, the function returns current decimal places. With arugment n, it sets the
+Without argument, the function returns current decimal places. With argument n, it sets the
 decimal places to be n for generating Julia function for a formula. Without/before calling
 the function, 16 decimal places are used by default.
 
@@ -85,7 +85,7 @@ the function, 16 decimal places are used by default.
 
 The function generates and lists
 
-1. k[1]*f(x[i+start]) + k[2]*f(x[i+start+1]) + ... + k[stop-start+1]*f(x[i+stop])
+1. k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
        = m*f^(n)(x[i]) + ..., m > 0
 
 1. The formula for finding f^(n)(x[i]), including estimation of accuracy in the big-O
