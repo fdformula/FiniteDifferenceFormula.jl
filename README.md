@@ -8,20 +8,16 @@ verification of known ones. See documentation in the source code for the algorit
 
 You may play with this package when teaching/learning numerical computing, especially
 the finite difference method, and explore the distribution, symmetry, and beauty in
-the coefficients of the formulas.
+the coefficients of the formulas. By changing decimal places, we can see how rounding
+errors affect a result.
 
-Beware, there is a natural constraint, i.e., the number of points and the order
-of derivatives to be in a formula can't be too large, due to
-
-1. the constraint of the largest integer computers can express and process.
-1. that we want "exact" formulas, i.e., coefficients in the formulas are integers
-   or rational numbers, otherwise, extra truncation errors occur already in the formulas.
-1. that, to explore the properties of coefficients in the formulas, we had better have
-   "exact" formulas.
-1. that practical applications usually don't allow too many points to be used for
-   computing derivatives of a function at a single point because of the constraints of
-   computing power, not to mention that more involved operations tend to cause more
-   rounding errors.
+Beware, though formulas are mathematically correct, they may not be numerically useful.
+This is true especially when we derive formulas for a derivative of higher order. For
+example, run computecoefs(9,-5:5), provided by this package, to generate a 10-point
+central formula for the 9-th derivative. The formula is mathematically correct, but it
+can't be used at all for numerical computing without, if possible, rewriting the formula
+in a special way. Similarly, the more points are used, the more precise a formula
+is mathematically. However, due to rounding errors, this may not be true numerically.
 
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
