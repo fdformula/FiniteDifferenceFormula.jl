@@ -486,20 +486,20 @@ function _test_formula_validity()
             has_solutionq = false
         elseif start > 1 || stop < len
             s = _range_inputq ? (points[start] : points[stop]) : points[start : stop]
-            println("Error:: $n, $input_points :: A formula can't be found.\n")
-            println("Warning:: $n, $s might be your input for which a formula ",
-                    "is found.\n")
+            println("***** Error:: $n, $input_points :: A formula can't be found.\n")
+            println("***** Warning:: $n, $s might be your input for which a ",
+                    " formula is found.\n")
         end
     end
 
     if !has_solutionq
         if len <= n
             th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
-            println("Error:: $n, $input_points :: Invalid input because at ",
-                    "least $(n + 1) points are needed for the $n$th ",
+            println("***** Error:: $n, $input_points :: Invalid input because",
+                    " at least $(n + 1) points are needed for the $n$th ",
                     "derivative.\n")
         else
-            println("Error:: $n, $input_points :: A formula can't be found.")
+            println("***** Error:: $n, $input_points :: A formula can't be found.")
         end
         return
     end
@@ -667,13 +667,17 @@ function truncationerror()
     return
 end
 
-function _printexampleresult(suffix, exact, apprx)
+function _printexampleresult(suffix, exact)
     global _julia_func_basename
-    fmt = Printf.Format("%.8f") # format of relative error
-    s = Printf.format(fmt, abs((apprx - exact) / exact) * 100)
-    println("  fd.$(_julia_func_basename)$(suffix)(f, x, i, h)  ",
-            suffix == "e1" ? "" : " ", "# output: ",
-            apprx, ", relative error = $s%")
+
+    apprx = eval(Meta.parse("$(_julia_func_basename)$(suffix)(f, x, i, h)"))
+    relerr = abs((apprx - exact) / exact) * 100
+    print("  fd.$(_julia_func_basename)$(suffix)(f, x, i, h)  ",
+          suffix == "e1" ? "" : " ", "# output: ")
+    @printf("%.16f", apprx)
+    print(", relative error = ")
+    @printf("%.8f", relerr)
+    println("%")
 end
 
 # activate function(s) for the newly computed finite difference formula,
@@ -686,7 +690,7 @@ function activatejuliafunction()
         return
     end
 
-    global _julia_exact_func_expr  = ""
+    global _julia_exact_func_expr   = ""
     global _julia_exact_func_expr1  = ""
     global _julia_decimal_func_expr = ""
 
@@ -715,24 +719,22 @@ function activatejuliafunction()
             "FiniteDifferenceFormula module. Usage:\n")
     println("  import FiniteDifferenceFormula as fd\n")
     println("  f, x, i, h = sin, 0:0.01:10, 501, 0.01")
-    eval(Meta.parse("f, x, i, h = sin, 0:0.01:10, 501, 0.01"))
 
     fmt = Printf.Format("%.8f")      # format of relative error
 
     # sine is taken as the example b/c sin^(n)(x) = sin(n π/2 + x), simply
     exact = sin(_data.n * pi /2 + 5) # x[501] = 5
+    eval(Meta.parse("f, x, i, h = sin, 0:0.01:10, 501, 0.01"))
 
-    apprx = eval(Meta.parse("$(_julia_func_basename)e(f, x, i, h)"))
-    _printexampleresult("e", exact, apprx)
+    _printexampleresult("e", exact)
     if _julia_decimal_func_expr != ""
-        apprx = eval(Meta.parse("$(_julia_func_basename)e1(f, x, i, h)"))
-        _printexampleresult("e1", exact, apprx)
-        approx = eval(Meta.parse("$(_julia_func_basename)d(f, x, i, h)"))
-        _printexampleresult("d", exact, apprx)
+        _printexampleresult("e1", exact)
+        _printexampleresult("d", exact)
     end
     len = length("fd.$(_julia_func_basename)")
-    println(" "^(len + 18) * "# cp:     ", exact)
-    println("\nCall fd.formula() to view the very definition.")
+    print(" "^(len + 18) * "# cp:     ")
+    @printf("%.16f", exact)
+    println("\n\nCall fd.formula() to view the very definition.")
 
     return  # stop Julia from returning something users never expect
 end  # activatejuliafunction
