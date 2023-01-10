@@ -478,6 +478,7 @@ function _test_formula_validity()
     end
 
     # there could be a solution that doesn't use the whole range of input (points)
+    formula_for_inputq = true
     if has_solutionq
         start, stop = 1, len    # actual left and right endpoints
         while start <= len && k[start] == 0; start += 1; end
@@ -489,6 +490,7 @@ function _test_formula_validity()
             println("***** Error:: $n, $input_points :: A formula can't be found.\n")
             println("***** Warning:: $n, $s might be your input for which a ",
                     " formula is found.\n")
+            formula_for_inputq = false
         end
     end
 
@@ -505,16 +507,16 @@ function _test_formula_validity()
     end
 
     if sum(k) != 0   # sum of coefficients must be 0
-        println("\n***** Warning:: $n, $input_points :: sum(k[:]) != 0")
+        println("***** Warning:: $n, $input_points :: sum(k[:]) != 0")
         _formula_status += 1
     end
 
-    # must coefficients of central formulas be symmetrical?
-    if _range_inputq && abs(_range_input.start) == _range_input.stop
+    # are coefficients of central formulas symmetrical about x[i]?
+    if formula_for_inputq && _range_inputq && abs(_range_input.start) == _range_input.stop
         j = length(k)
         for i in 1 : round(Int64, length(k)/2)
             if abs(k[i]) != abs(k[j])
-                println("\n***** Warning:: $n, $input_points :: k[$i] != k[$j]")
+                println("***** Warning:: $n, $input_points :: k[$i] != k[$j]")
                 _formula_status += 1
                 break
             end
@@ -674,10 +676,8 @@ function _printexampleresult(suffix, exact)
     relerr = abs((apprx - exact) / exact) * 100
     print("  fd.$(_julia_func_basename)$(suffix)(f, x, i, h)  ",
           suffix == "e1" ? "" : " ", "# output: ")
-    @printf("%.16f", apprx)
-    print(", relative error = ")
-    @printf("%.8f", relerr)
-    println("%")
+    @printf("%.16f, ", apprx)
+    print("relative error = "); @printf("%.8f", relerr); println("%")
 end
 
 # activate function(s) for the newly computed finite difference formula,
