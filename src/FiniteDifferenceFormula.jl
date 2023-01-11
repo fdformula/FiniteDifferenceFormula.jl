@@ -22,7 +22,6 @@ _decimal_places = 16          # use it to print Julia function for a formula
 ###############################################################################
 
 using Printf
-using RowEchelon              # provide rref
 
 mutable struct _FDData
     n
@@ -226,6 +225,35 @@ function computecoefs(n::Int, points::Array{Int}, printformulaq::Bool = false)
     return computecoefs(n, hcat(points), printformulaq)
 end
 
+# before v1.0.7, we thankfully used the function 'rref' provided by the package
+# RowEchelon v0.2.1. since it has been removed from the base, it is safer for
+# this package to have its own implementaion of the function. anyway, it is
+# just a few lines of code.
+function _rref(A::Matrix{Rational{BigInt}})  # change A to reduced row echelon form
+    row, col = size(A)
+    for i in 1 : min(row, col)
+        # choose the largest entry in A[i:end, i] as the pivot
+        lv, li = abs(A[i ,i]), i  # the largest value and its index
+        for j = i + 1 : row
+            absv = abs(A[j, i])
+            if absv > lv; lv, li = absv, j; end
+        end
+        if lv == 0; continue; end
+        if li != i                # interchange two rows
+            A[i, i : end], A[li, i : end] = A[li, i : end], A[i, i : end]
+        end
+
+        A[i, i : end] /= A[i, i]  # on the main diagonal are 0's and 1's
+
+        # now, use the pivot A[i, i] to eliminate entries above and below it
+        for j = 1 : row
+            if j == i || A[j, i] == 0; continue; end
+            A[j, i : end] -= A[j, i] * A[i, i : end]
+        end
+    end
+    return A
+end
+
 #
 # Algorithm
 # ---------
@@ -246,8 +274,7 @@ end
 # a formula.
 #
 # Julia's Rational type and related arithmetic operations, especially a // b,
-# together with the RowEchelon package, are a perfect fit for obtaining an
-# "exact" formula (in the sense of exact solutions).
+# are a perfect fit for obtaining an "exact" formula.
 #
 # Input
 # -----
@@ -349,19 +376,19 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # x[i+points[2]], ..., x[i+points[len]])? Therefore, we can assume that
     # k[1] != 0.
     #
-    A[len, 2 : len] .= 0                  # setup an equation so that k[1] = 1
+    A[len, 2 : len] .= 0                   # setup an equation so that k[1] = 1
     A[len, 1]        = 1
 
     B = zeros(Rational{BigInt}, len, 1)
-    B[len] = 1                            # so that k[1] = 1
+    B[len] = 1                             # so that k[1] = 1
 
     # solve Ax = B for x, i.e., k[:]
-    k = rref([A B])[:, len + 1]           # package RowEchelon provides rref
+    k = _rref([A B])[:, len + 1]
     k = k // gcd(k)
 
     # Taylor series expansion of the linear combination
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-    _lcombination_coefs = k[1] * coefs[1] # let Julia determine the type
+    _lcombination_coefs = k[1] * coefs[1]  # let Julia determine the type
     for i in 2 : len
         if k[i] == 0; continue; end
         _lcombination_coefs += k[i] * coefs[i]
@@ -489,7 +516,7 @@ function _test_formula_validity()
             s = _range_inputq ? (points[start] : points[stop]) : points[start : stop]
             println("***** Error:: $n, $input_points :: A formula can't be found.\n")
             println("***** Warning:: $n, $s might be your input for which a ",
-                    " formula is found.\n")
+                    "formula is found.\n")
             formula_for_inputq = false
         end
     end
@@ -675,7 +702,7 @@ function _printexampleresult(suffix, exact)
     apprx = eval(Meta.parse("$(_julia_func_basename)$(suffix)(f, x, i, h)"))
     relerr = abs((apprx - exact) / exact) * 100
     print("  fd.$(_julia_func_basename)$(suffix)(f, x, i, h)  ",
-          suffix == "e1" ? "" : " ", "# output: ")
+          suffix == "e1" ? "" : " ", "# result: ")
     @printf("%.16f, ", apprx)
     print("relative error = "); @printf("%.8f", relerr); println("%")
 end
