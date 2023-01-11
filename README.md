@@ -133,11 +133,11 @@ Usage and examples:
 ```Julia
 import FiniteDifferenceFormula as fd
  
-fd.printtaylor(fd.taylor(-1) + fd.taylor(1)) # add Taylor series of f(x[i-1]) and that of f(x[i+1])
-fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8)
+fd.printtaylor(fd.taylor(-1) + fd.taylor(1))  # print the 1st 10 terms of Taylor series of f(x[i-1]) + f(x[i+1])
+fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8) # print the 1st 8 terms of ...
 
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs)
+fd.printtaylor(coefs)  # print the 1st 10 terms of Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f([xi+2]) - f(x[i+3])
 
 ```
 
@@ -163,8 +163,6 @@ fd.formula()                      # generate and print the formula computed last
 fd.truncationerror()              # print the truncation error of the newly computed formula
 
 fd.printtaylor(-2)                # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
-
-fd.printtaylor(2)                 # print the first 10 terms of the Taylor series of f(x[i+2]) about x[i]
 
 fd.printtaylor(3*fd.taylor(5))    # print the first 10 terms of the Taylor series of f(x[i+5]) multiplied by 3
 
