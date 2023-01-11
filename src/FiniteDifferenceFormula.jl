@@ -139,10 +139,11 @@ end  # _f2s
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
 # for teaching/learning!
 function taylor(j::Int, num_of_terms = 30)
-    global _max_num_of_taylor_terms
-	if _max_num_of_taylor_terms > 30  # other part may have reset the default value
-		_max_num_of_taylor_terms = 30
-	end
+    global _max_num_of_taylor_terms, _computedq
+    if _max_num_of_taylor_terms > 30  # computecoefs may have changed the default value
+        _computedq = false            # invalidate resulted data of last 'computecoefs'
+        _max_num_of_taylor_terms = 30 # change it back to the default value
+    end
     if _max_num_of_taylor_terms < num_of_terms
         _max_num_of_taylor_terms = num_of_terms
     end
@@ -153,10 +154,10 @@ end  # taylor
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
 function printtaylor(j::Int, num_of_nonzero_terms = 10)
-	if num_of_nonzero_terms > _max_num_of_taylor_terms
-		println("can't print $num_of_nonzero_terms terms of the Taylor series.")
-		num_of_nonzero_terms = _max_num_of_taylor_terms
-	end
+    if num_of_nonzero_terms > _max_num_of_taylor_terms
+        println("can't print $num_of_nonzero_terms terms of the Taylor series.")
+        num_of_nonzero_terms = _max_num_of_taylor_terms
+    end
     coefs = taylor(j, num_of_nonzero_terms)
     println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
     _print_taylor(coefs, num_of_nonzero_terms)
@@ -168,10 +169,10 @@ end  # printtaylor
 # fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8)
 # fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3))
 function printtaylor(coefs, num_of_nonzero_terms = 10)
-	if num_of_nonzero_terms > _max_num_of_taylor_terms
-		println("can't print $num_of_nonzero_terms terms of the Taylor series.")
-		num_of_nonzero_terms = _max_num_of_taylor_terms
-	end
+    if num_of_nonzero_terms > _max_num_of_taylor_terms
+        println("can't print $num_of_nonzero_terms terms of the Taylor series.")
+        num_of_nonzero_terms = _max_num_of_taylor_terms
+    end
     _print_taylor(coefs, num_of_nonzero_terms)
     return
 end  # printtaylor
@@ -336,7 +337,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # setup a linear system Ax = B first
     len = length(points)
-    global _max_num_of_taylor_terms = max(len, n) + 8
+    _max_num_of_taylor_terms = max(30, max(len, n) + 8) # 30, the default value
     global _lcombination_coefs = Array{Any}(undef, _max_num_of_taylor_terms)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
