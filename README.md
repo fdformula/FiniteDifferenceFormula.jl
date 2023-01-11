@@ -134,10 +134,9 @@ Usage and examples:
 import FiniteDifferenceFormula as fd
  
 fd.printtaylor(fd.taylor(-1) + fd.taylor(1))  # print the 1st 10 terms of Taylor series of f(x[i-1]) + f(x[i+1])
-fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8) # print the 1st 8 terms of ...
 
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs)  # print the 1st 10 terms of Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f([xi+2]) - f(x[i+3])
+fd.printtaylor(coefs, 7)  # print the 1st 7 terms of Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
 
 ```
 
