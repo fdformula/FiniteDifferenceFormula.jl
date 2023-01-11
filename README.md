@@ -128,7 +128,7 @@ It is simply for teaching/learning the finite difference method.
 The function prints the first n terms of Taylor series expansion of some "function" about x[i].
 It is simply for teaching/learning the finite difference method.
 
-Usage:
+Usage and examples:
 
 ```Julia
 import FiniteDifferenceFormula as fd
@@ -162,9 +162,9 @@ fd.formula()                      # generate and print the formula computed last
 
 fd.truncationerror()              # print the truncation error of the newly computed formula
 
-fd.taylor(-2)                     # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
+fd.printtaylor(-2)                # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
 
-fd.taylor(2, 7)                   # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
+fd.printtaylor(2, 7)              # print the first 7 terms of the Taylor series of f(x[i+2]) about x[i]
 
 fd.activatejuliafunction()        # activate Julia function(s) of the newly computed formula in present REPL session
 ```
