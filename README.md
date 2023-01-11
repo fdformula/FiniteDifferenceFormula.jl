@@ -16,7 +16,7 @@ Beware, though formulas are mathematically correct, they may not be numerically 
 This is true especially when we derive formulas for a derivative of higher order. For
 example, run computecoefs(9,-5:5), provided by this package, to generate a 10-point
 central formula for the 9-th derivative. The formula is mathematically correct, but it
-can't be used at all for numerical computing without, if possible, rewriting the formula
+can hardly be put into use for numerical computing without, if possible, rewriting it
 in a special way. Similarly, the more points are used, the more precise a formula
 is mathematically. However, due to rounding errors, this may not be true numerically.
 
