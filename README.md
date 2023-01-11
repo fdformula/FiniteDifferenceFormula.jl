@@ -1,15 +1,16 @@
 # FiniteDifferenceFormula
 
-This Julia package provides a general finite difference formula generator. It generates
-finite difference formulas for n-th order derivatives by using Taylor series expansions
-of a function at evenly spaced points. It also gives the truncation error of a formula
+This Julia package provides a general finite difference formula generator and a tool
+for teaching/learning the finite difference method. It generates finite difference
+formulas for derivatives of various orders by using Taylor series expansions of a
+function at evenly spaced points. It also gives the truncation error of a formula
 in the big-O notation. You can use it to generate new formulas in addition to
 verification of known ones. See documentation in the source code for the algorithm.
 
 You may play with this package when teaching/learning numerical computing, especially
 the finite difference method, and explore the distribution, symmetry, and beauty in
-the coefficients of the formulas. By changing decimal places, we can see how rounding
-errors affect a result.
+the coefficients of the formulas. By changing decimal places, we can also see how
+rounding errors affect a result.
 
 Beware, though formulas are mathematically correct, they may not be numerically useful.
 This is true especially when we derive formulas for a derivative of higher order. For
