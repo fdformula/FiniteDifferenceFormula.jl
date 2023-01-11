@@ -22,7 +22,7 @@ is mathematically. However, due to rounding errors, this may not be true numeric
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-## The package exports six functions
+## The package exports seven functions
 
 - computecoefs
 - decimalplaces
@@ -30,6 +30,7 @@ wonderful and amazing computing platform.
 - activatejuliafunction
 - truncationerror
 - taylor
+- printtaylor
 
 ### function computecoefs(n, points, printformulaq = false)
 
@@ -114,8 +115,31 @@ The function shows the truncation error of the newly computed finite difference 
 
 ### function taylor(j, n = 10)
 
+The function returns the first n terms of Taylor series expansion of f(x[i+j]) about x[i].
+It is simply for teaching/learning the finite difference method.
+
+### function printtaylor(j, n = 10)
+
 The function prints the first n terms of Taylor series expansion of f(x[i+j]) about x[i].
 It is simply for teaching/learning the finite difference method.
+
+### function printtaylor(coefficients-of-taylor-series, n = 10)
+
+The function prints the first n terms of Taylor series expansion of some "function" about x[i].
+It is simply for teaching/learning the finite difference method.
+
+Usage:
+
+```Julia
+import FiniteDifferenceFormula as fd
+ 
+fd.printtaylor(fd.taylor(-1) + fd.taylor(1)) # add Taylor series of f(x[i-1]) and that of f(x[i+1])
+fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8)
+
+coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
+fd.printtaylor(coefs)
+
+```
 
 ## Examples
 
