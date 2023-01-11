@@ -133,10 +133,10 @@ Usage and examples:
 ```Julia
 import FiniteDifferenceFormula as fd
  
-fd.printtaylor(fd.taylor(-1) + fd.taylor(1))  # print the 1st 10 terms of Taylor series of f(x[i-1]) + f(x[i+1])
+fd.printtaylor(fd.taylor(-1) + fd.taylor(1))  # print the 1st 10 nonzero terms of Taylor series of f(x[i-1]) + f(x[i+1])
 
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs, 7)  # print the 1st 7 terms of Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
+fd.printtaylor(coefs, 7)  # print the 1st 7 nonzero terms of Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
 
 ```
 
@@ -166,7 +166,7 @@ fd.printtaylor(-2)                # print the first 10 terms of the Taylor serie
 fd.printtaylor(3*fd.taylor(5))    # print the first 10 terms of the Taylor series of f(x[i+5]) multiplied by 3
 
 c = fd.taylor(1) - 3fd.taylor(2)  # calculate coefficients of Taylor series of f(x[i+1]) - 3 f(x[i+2])
-fd.printtaylor(c, 7)              # print the first 7 terms of the resuled Taylor series
+fd.printtaylor(c, 7)              # print the first 6 nonzero terms of the resuled Taylor series
 
 fd.activatejuliafunction()        # activate Julia function(s) of the newly computed formula in present REPL session
 ```
