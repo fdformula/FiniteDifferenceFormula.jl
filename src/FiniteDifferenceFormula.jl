@@ -150,6 +150,10 @@ end  # taylor
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
 function printtaylor(j::Int, num_of_nonzero_terms = 10)
+	if num_of_nonzero_terms > _max_num_of_taylor_terms
+		println("can't print $num_of_nonzero_terms terms of the Taylor series.")
+		num_of_nonzero_terms = _max_num_of_taylor_terms
+	end
     coefs = taylor(j, num_of_nonzero_terms)
     println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
     _print_taylor(coefs, num_of_nonzero_terms)
@@ -161,6 +165,10 @@ end  # printtaylor
 # fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8)
 # fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3))
 function printtaylor(coefs, num_of_nonzero_terms = 10)
+	if num_of_nonzero_terms > _max_num_of_taylor_terms
+		println("can't print $num_of_nonzero_terms terms of the Taylor series.")
+		num_of_nonzero_terms = _max_num_of_taylor_terms
+	end
     _print_taylor(coefs, num_of_nonzero_terms)
     return
 end  # printtaylor
