@@ -138,10 +138,13 @@ end  # _f2s
 
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
 # for teaching/learning!
-function taylor(j::Int, num_of_nonzero_terms = 10)
+function taylor(j::Int, num_of_terms = 30)
     global _max_num_of_taylor_terms
-    if _max_num_of_taylor_terms < num_of_nonzero_terms
-        _max_num_of_taylor_terms = num_of_nonzero_terms
+	if _max_num_of_taylor_terms > 30  # other part may have reset the default value
+		_max_num_of_taylor_terms = 30
+	end
+    if _max_num_of_taylor_terms < num_of_terms
+        _max_num_of_taylor_terms = num_of_terms
     end
     coefs = _taylor_coefs(j)
     return coefs
