@@ -11,7 +11,9 @@ module FiniteDifferenceFormula
 #
 
 export computecoefs, formula, truncationerror
-export decimalplaces, activatejuliafunction, taylor
+
+# for teaching/learning
+export decimalplaces, activatejuliafunction, taylor, printtaylor
 
 const _default_max_num_of_taylor_terms = 30
 
@@ -32,6 +34,7 @@ mutable struct _FDData
     k
     m
     coefs
+	max_num_of_taylor_terms
 end
 
 _data                        = _FDData    # share results between functions
@@ -78,32 +81,6 @@ function _taylor_coefs(h)
     return result
 end  # _taylor_coefs
 
-# show current decimal places
-function decimalplaces()
-    global _decimal_places
-    return _decimal_places
-end  # decimalplaces
-
-# set decimal places to n
-function decimalplaces(n)
-    global _decimal_places, _computedq
-    if isinteger(n) && n > 0
-        _decimal_places = n
-        if _computedq
-            println("Please call 'formula' to generate (or ",
-                    "'activatejuliafunction' to generate and activate) a ",
-                    "Julia function for the newly computed formula, using ",
-                    "the new decimal places.")
-        else
-            println("You may start your work by calling 'computecoefs'.")
-        end
-    else
-        println("decimalplaces(n): n must be a positive integer.")
-    end
-
-    return
-end  # decimalplaces
-
 # convert a coefficient to a readable string
 function _c2s(c, first_termq = false, decimalq = false)
     s = ""
@@ -139,55 +116,17 @@ function _f2s(k)
     return "$s])"
 end  # _f2s
 
-# calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
-# for teaching/learning!
-function taylor(j::Int)
-    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms, _computedq
-    # computecoefs changed the default value
-    if _max_num_of_taylor_terms != _default_max_num_of_taylor_terms
-        _computedq = false            # invalidate results of last computecoefs
-        _data = nothing               # free the used space
-         # change it back to the default value
-        _max_num_of_taylor_terms = _default_max_num_of_taylor_terms
-    end
-    return _taylor_coefs(j)
-end  # taylor
-
-# print readable Taylor series expansion of f(x[i + j]) about x[i]
-# for teaching/learning!
-function printtaylor(j::Int, num_of_nonzero_terms::Int = 10)
-    global _max_num_of_taylor_terms, _computedq
-    if num_of_nonzero_terms > _max_num_of_taylor_terms
-        println("can't print $num_of_nonzero_terms terms of the Taylor series.\n")
-        num_of_nonzero_terms = _max_num_of_taylor_terms
-    end
-    coefs = taylor(j)
-    println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
-    _print_taylor(coefs, num_of_nonzero_terms)
-    return
-end  # printtaylor
-
-# print readable Taylor series of some "function" about x[i]
-# for teaching! e.g.,
-# fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8)
-# fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3))
-function printtaylor(coefs::Matrix{Rational{BigInt}}, num_of_nonzero_terms::Int = 10)
-    global _max_num_of_taylor_terms
-    if num_of_nonzero_terms > _max_num_of_taylor_terms
-        println("can't print $num_of_nonzero_terms terms of the Taylor series.\n")
-        num_of_nonzero_terms = _max_num_of_taylor_terms
-    end
-    _print_taylor(coefs, num_of_nonzero_terms)
-    return
-end  # printtaylor
-
 # print readable Taylor series
 #
 # Input: An array that contains the coefficients of the first
 #        "_max_num_of_taylor_terms" of Taylor series expansion of a function
-function _print_taylor(coefs, num_of_nonzero_terms = _max_num_of_taylor_terms)
+function _print_taylor(coefs, num_of_nonzero_terms = 0) # 0? see the 1st statement
+	if num_of_nonzero_terms == 0 # for translating to other programming language
+		num_of_nonzero_terms = _max_num_of_taylor_terms
+	end
+
     first_termq = true
-    for n in 0 : _max_num_of_taylor_terms - 1
+    for n in 0 : length(coefs) - 1
         N = n + 1
         if coefs[N] == 0; continue; end
 
@@ -447,7 +386,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if x == m; m = x; end  # so that m = 5 rather than 5//1
 
     # save the results in a global variable for other functions
-    global _data = _FDData(n, points, k, m, coefs)
+    global _data = _FDData(n, points, k, m, coefs, _max_num_of_taylor_terms)
     _computedq = true
 
     _test_formula_validity()
@@ -656,6 +595,9 @@ function formula()
         return
     end
 
+	# it can be changed by talor and/or printtaylor; change it back
+	_max_num_of_taylor_terms = _data.max_num_of_taylor_terms
+
     if _formula_status > 0
         println("-" ^ 80)
         print("The following formula ")
@@ -680,7 +622,7 @@ function formula()
     if _formula_status > 0
         println("The exact formula:\n")
         # find x in the big-O notation O(h^x)
-        x = _max_num_of_taylor_terms
+        x = _data.max_num_of_taylor_terms
         for i in _data.n + 2 : length(_lcombination_coefs)
             if _lcombination_coefs[i] != 0; x = i; break; end
         end
@@ -693,7 +635,7 @@ function formula()
         data1 = _FDData
         if _data.m > 1           # print in another format
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
-                            _data.coefs)
+                            _data.coefs, _data.max_num_of_taylor_terms)
             print("Or\n\n")
             _print_bigo_formula(data1, _bigO)
         end
@@ -733,6 +675,34 @@ function truncationerror()
     return
 end
 
+############################ for teaching/learning ############################
+
+# show current decimal places
+function decimalplaces()
+    global _decimal_places
+    return _decimal_places
+end  # decimalplaces
+
+# set decimal places to n
+function decimalplaces(n)
+    global _decimal_places, _computedq
+    if isinteger(n) && n > 0
+        _decimal_places = n
+        if _computedq
+            println("Please call 'formula' to generate (or ",
+                    "'activatejuliafunction' to generate and activate) a ",
+                    "Julia function for the newly computed formula, using ",
+                    "the new decimal places.")
+        else
+            println("You may start your work by calling 'computecoefs'.")
+        end
+    else
+        println("decimalplaces(n): n must be a positive integer.")
+    end
+
+    return
+end  # decimalplaces
+
 function _printexampleresult(suffix, exact)
     global _julia_func_basename
 
@@ -754,6 +724,9 @@ function activatejuliafunction()
         return
     end
 
+	# it can be changed by talor and/or printtaylor; change it back
+	_max_num_of_taylor_terms = _data.max_num_of_taylor_terms
+
     global _julia_exact_func_expr   = ""
     global _julia_exact_func_expr1  = ""
     global _julia_decimal_func_expr = ""
@@ -763,7 +736,7 @@ function activatejuliafunction()
         global _julia_exact_func_expr = _julia_func_expr(_data, false, true)
         if _data.m > 1           # print in other formats
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
-                            _data.coefs)
+                            _data.coefs, _data.max_num_of_taylor_terms)
             global _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
             global _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
         end  # m = 1? No decimal formula
@@ -802,5 +775,46 @@ function activatejuliafunction()
 
     return  # stop Julia from returning something users never expect
 end  # activatejuliafunction
+
+# calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
+# for teaching/learning!
+function taylor(j::Int)
+    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms
+	# computecoefs could have changed the default value; change it back
+    _max_num_of_taylor_terms = _default_max_num_of_taylor_terms
+    return _taylor_coefs(j)
+end  # taylor
+
+# print readable Taylor series expansion of f(x[i + j]) about x[i]
+# for teaching/learning!
+function printtaylor(j::Int, num_of_nonzero_terms::Int = 10)
+    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms
+	# computecoefs could have changed the default value; change it back
+    _max_num_of_taylor_terms = _default_max_num_of_taylor_terms
+    if num_of_nonzero_terms > _max_num_of_taylor_terms
+        println("can't print $num_of_nonzero_terms terms of the Taylor series.\n")
+        num_of_nonzero_terms = _max_num_of_taylor_terms
+    end
+    coefs = taylor(j)
+    println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
+    _print_taylor(coefs, num_of_nonzero_terms)
+    return
+end  # printtaylor
+
+# print readable Taylor series of some "function" about x[i]
+# for teaching! e.g.,
+# fd.printtaylor(fd.taylor(-2) - 8fd.taylor(-1) + 8fd.taylor(1) - fd.taylor(2), 8)
+# fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3))
+function printtaylor(coefs::Matrix{Rational{BigInt}}, num_of_nonzero_terms::Int = 10)
+    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms
+	# computecoefs could have changed the default value; change it back
+    _max_num_of_taylor_terms = _default_max_num_of_taylor_terms
+    if num_of_nonzero_terms > _max_num_of_taylor_terms
+        println("can't print $num_of_nonzero_terms terms of the Taylor series.\n")
+        num_of_nonzero_terms = _max_num_of_taylor_terms
+    end
+    _print_taylor(coefs, num_of_nonzero_terms)
+    return
+end  # printtaylor
 
 end # module
