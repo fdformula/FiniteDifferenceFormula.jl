@@ -114,20 +114,23 @@ FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 
 The function shows the truncation error of the newly computed finite difference formula.
 
+-----
+
+The following functions are provided for teaching/learning the finite difference method.
+
 ### function taylor(j)
 
 The function returns the coefficients of the first 30 terms of Taylor series of f(x[i+j])
-about x[i]. It is simply for teaching/learning the finite difference method.
+about x[i].
 
 ### function printtaylor(j, n = 10)
 
-The function prints the first n terms of Taylor series expansion of f(x[i+j]) about x[i].
-It is simply for teaching/learning the finite difference method.
+The function prints the first n nonzero terms of Taylor series expansion of f(x[i+j]) about x[i].
 
 ### function printtaylor(coefficients-of-taylor-series, n = 10)
 
-The function prints the first n terms of a Taylor series, of which the coefficents are known, about x[i].
-It is simply for teaching/learning the finite difference method.
+The function prints the first n nonzero terms of a Taylor series of which the coefficents are
+provided.
 
 Usage and examples:
 
@@ -137,7 +140,7 @@ import FiniteDifferenceFormula as fd
 fd.printtaylor(fd.taylor(-1) + fd.taylor(1))  # print the 1st 10 nonzero terms of Taylor series of f(x[i-1]) + f(x[i+1])
 
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs, 7)  # print the 1st 7 nonzero terms of Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
+fd.printtaylor(coefs, 7)  # print the 1st 7 nonzero terms of the Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
 ```
 
 ## Examples
