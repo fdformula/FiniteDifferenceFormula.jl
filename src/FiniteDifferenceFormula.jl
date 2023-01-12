@@ -73,6 +73,7 @@ _bigO                        = ""         # truncation error of a formula
 #   f(x[i-k]) - call _taylor_coefs(-k)
 #   where k = 0, 1, 2, 3, ...
 function _taylor_coefs(h)
+    global _max_num_of_taylor_terms
     result = Matrix{Rational{BigInt}}(undef, 1, _max_num_of_taylor_terms)
     factorial::BigInt = 1
     for n in 1 : _max_num_of_taylor_terms
@@ -123,6 +124,7 @@ end  # _f2s
 # Input: An array that contains the coefficients of the first
 #        "_max_num_of_taylor_terms" of Taylor series expansion of a function
 function _print_taylor(coefs, num_of_nonzero_terms = 0) # 0? see the 1st statement
+    global _max_num_of_taylor_terms
     if num_of_nonzero_terms == 0 # for translating to other programming language
         num_of_nonzero_terms = _max_num_of_taylor_terms
     end
@@ -590,7 +592,7 @@ end  # _print_bigo_formula
 # No valid formula can be found? Still dump the computing result for teaching.
 function formula()
     global _data, _computedq, _formula_status
-    global _range_inputq, _range_input, _bigO
+    global _range_inputq, _range_input, _bigO, _julia_func_basename
 
     if !_computedq
         println("Please call computecoefs(n, points) first!")
@@ -598,7 +600,7 @@ function formula()
     end
 
     # it can be changed by talor and/or printtaylor; change it back
-    _max_num_of_taylor_terms = _data.max_num_of_taylor_terms
+    global _max_num_of_taylor_terms = _data.max_num_of_taylor_terms
 
     if _formula_status > 0
         println("-" ^ 80)
@@ -719,7 +721,7 @@ end
 # activate function(s) for the newly computed finite difference formula,
 # allowing immediate evaluation of the formula in Julia REPL
 function activatejuliafunction()
-    global _computedq, _formula_status, _data
+    global _computedq, _formula_status, _data, _julia_func_basename
 
     if !_computedq
         println("Please run 'computecoefs' first.")
@@ -727,7 +729,7 @@ function activatejuliafunction()
     end
 
     # it can be changed by talor and/or printtaylor; change it back
-    _max_num_of_taylor_terms = _data.max_num_of_taylor_terms
+    global _max_num_of_taylor_terms = _data.max_num_of_taylor_terms
 
     global _julia_exact_func_expr   = ""
     global _julia_exact_func_expr1  = ""
@@ -739,8 +741,8 @@ function activatejuliafunction()
         if _data.m > 1           # print in other formats
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs, _data.max_num_of_taylor_terms)
-            global _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
-            global _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
+            _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
+            _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
         end  # m = 1? No decimal formula
     else
         print("No valid formula is for activation. Please run 'computecoefs' ",
