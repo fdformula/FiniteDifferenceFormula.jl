@@ -142,7 +142,7 @@ fd.printtaylor(coefs, 7)  # print the 1st 7 nonzero terms of Taylor series of 2f
 # trick: given that you want to print more than 30, say, 50, terms of Taylor series
 fd.taylor(0, 50)          # fd.taylor(j, 50) will work for any given integer j
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs, 40)
+fd.printtaylor(coefs, 50)
 ```
 
 ## Examples
