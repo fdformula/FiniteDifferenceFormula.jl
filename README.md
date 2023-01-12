@@ -145,8 +145,8 @@ provided.
 
 ### function _set_default_max_num_of_taylor_terms(n)
 
-The function sets the default maximum number of terms of Taylor series. It is for explorers/researchers.
-Usually, users never need to call it.
+The function sets to n the default maximum number of terms of Taylor series. It is for
+explorers/researchers. Users never need to call it.
 
 Trick: If 0 ≤ n < 10, it shows the present default value.
  
