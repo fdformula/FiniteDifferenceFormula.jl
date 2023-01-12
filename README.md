@@ -120,12 +120,12 @@ The following functions are provided for teaching/learning the finite difference
 
 ### function taylor(j)
 
-The function returns the coefficients of the first 30 terms of Taylor series of f(x[i+j])
+The function returns the coefficients of the first 30 terms of the Taylor series of f(x[i+j])
 about x[i].
 
 ### function printtaylor(j, n = 10)
 
-The function prints the first n nonzero terms of Taylor series expansion of f(x[i+j]) about x[i].
+The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
 
 ### function printtaylor(coefficients_of_taylor_series, n = 10)
 
