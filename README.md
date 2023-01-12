@@ -148,7 +148,7 @@ provided.
 The function sets to n the default maximum number of terms of Taylor series. It is for
 explorers/researchers. Users never need to know its existence.
 
-Trick: If 0 ≤ n < 10, it shows the present default value.
+Trick: If 0 ≤ n < 10, no change is made, and it shows the present default value.
  
 ## Examples
 
