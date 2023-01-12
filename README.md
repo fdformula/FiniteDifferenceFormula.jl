@@ -166,7 +166,7 @@ fd.formula()                      # generate and print the formula computed last
 
 fd.truncationerror()              # print the truncation error of the newly computed formula
 
-fd.printtaylor(-2)                # print the first 10 terms of the Taylor series of f(x[i-2]) about x[i]
+fd.printtaylor(-2, 5)             # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
 
 fd.printtaylor(3*fd.taylor(5))    # print the first 10 terms of the Taylor series of f(x[i+5]) multiplied by 3
 
