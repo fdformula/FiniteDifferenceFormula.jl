@@ -35,8 +35,8 @@ In Julia REPL, execute the following two commands in order.
 - computecoefs
 - decimalplaces
 - formula
-- activatejuliafunction
 - truncationerror
+- activatejuliafunction
 - taylor
 - printtaylor
 
@@ -98,6 +98,16 @@ The function generates and lists
 
 1. Julia function for f^(n)(x[i]).
 
+### function truncationerror( )
+
+The function shows the truncation error of the newly computed finite difference formula.
+
+-----
+
+The following functions are provided for teaching/learning the finite difference method.
+
+-----
+
 ### function activatejuliafunction( )
 
 Call this function to activate the Julia function(s) for the newly computed finite
@@ -117,14 +127,6 @@ session. E.g.,
 ```Julia
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 ```
-
-### function truncationerror( )
-
-The function shows the truncation error of the newly computed finite difference formula.
-
------
-
-The following functions are provided for teaching/learning the finite difference method.
 
 ### function taylor(j)
 
