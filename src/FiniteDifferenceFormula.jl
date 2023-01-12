@@ -16,27 +16,15 @@ export computecoefs, formula, truncationerror
 export decimalplaces, activatejuliafunction, taylor, printtaylor
 export _set_default_max_num_of_taylor_terms
 
-_default_max_num_of_taylor_terms = 30
-# it should be a constant. usually, users never need to change it.
-
 _decimal_places = 16          # use it to print Julia function for a formula
                               # call decimalplaces(n) to reset it
 
 ###############################################################################
 
-# of the 1st terms of a Taylor series expansion
-_max_num_of_taylor_terms =  _default_max_num_of_taylor_terms
-                              # variable, depending on input to computecoefs
-
 using Printf
 
 mutable struct _FDData
-    n
-    points
-    k
-    m
-    coefs
-    max_num_of_taylor_terms
+    n; points; k; m; coefs                # interesting. must be separated by ;
 end
 
 _data                        = _FDData    # share results between functions
@@ -58,25 +46,22 @@ _julia_func_basename         = ""
 
 _bigO                        = ""         # truncation error of a formula
 
-# This function returns the first '_max_num_of_taylor_terms' of Taylor series
-# of f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ...,
-# removed. The purpose is to obtain Taylor series expansions for f(x[i±k]) =
-# f(x[i]±kh]) which are used to derive the m-point finite difference formulas
-# for the first, second, ..., order derivatives at x[i].
+# This function returns the first 'count' terms of Taylor series of f(x[i+1]) 
+# centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed. The
+# purpose is to obtain Taylor series expansions for f(x[i±k]) = f(x[i]±kh])
+# which are used to derive the m-point finite difference formulas for the first,
+# second, ..., order derivatives at x[i].
 #
 #       f(x[i+1]) = f(x[i]) + 1/1! f'(x[i]) h + 1/2! f''(x[i]) h^2 + ...
 #
 # where h = x[i+1] - x[i].
 #
 # Usage:
-#   f(x[i+k]) - call _taylor_coefs(k)
-#   f(x[i-k]) - call _taylor_coefs(-k)
-#   where k = 0, 1, 2, 3, ...
-function _taylor_coefs(h)
-    global _max_num_of_taylor_terms
-    result = Matrix{Rational{BigInt}}(undef, 1, _max_num_of_taylor_terms)
+#   for f(x[i+k]), call _taylor_coefs(k), k = ±0, ±1, ±2, ...
+function _taylor_coefs(h, count)
+    result = Matrix{Rational{BigInt}}(undef, 1, count)
     factorial::BigInt = 1
-    for n in 1 : _max_num_of_taylor_terms
+    for n in 1 : count
         N = n - 1          # order of derivatives in Taylor series
         if N > 0; factorial *= N; end
         result[n] = 1 // factorial * h^N
@@ -121,14 +106,9 @@ end  # _f2s
 
 # print readable Taylor series
 #
-# Input: An array that contains the coefficients of the first
-#        "_max_num_of_taylor_terms" of Taylor series expansion of a function
-function _print_taylor(coefs, num_of_nonzero_terms = 0) # 0? see the 1st statement
-    global _max_num_of_taylor_terms
-    if num_of_nonzero_terms == 0 # for translating to other programming language
-        num_of_nonzero_terms = _max_num_of_taylor_terms
-    end
-
+# Input: An array that contains the coefficients of the first terms of Taylor
+#        series expansion of a function
+function _print_taylor(coefs, num_of_nonzero_terms = 10)
     first_termq = true
     for n in 0 : length(coefs) - 1
         N = n + 1
@@ -269,7 +249,6 @@ end
 # The function returns a tuple, ([k[1], k[2], ..., k[len]], m).
 #
 function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
-    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms
     global _lcombination_coefs
 
     global _computedq = false
@@ -287,15 +266,14 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # setup a linear system Ax = B first
     len = length(points)
-    _max_num_of_taylor_terms =
-        max(_default_max_num_of_taylor_terms, max(len, n) + 8)
-    _lcombination_coefs = Array{Any}(undef, _max_num_of_taylor_terms)
+    num_of_terms = max(len, n) + 8
+    _lcombination_coefs = Array{Any}(undef, num_of_terms)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
     # involved points
     coefs = Array{Any}(undef, len)
     for i in 1 : len
-        coefs[i] = _taylor_coefs(points[i])
+        coefs[i] = _taylor_coefs(points[i], num_of_terms)
     end
 
     # We find a linear combination of
@@ -390,7 +368,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if x == m; m = x; end  # so that m = 5 rather than 5//1
 
     # save the results in a global variable for other functions
-    global _data = _FDData(n, points, k, m, coefs, _max_num_of_taylor_terms)
+    global _data = _FDData(n, points, k, m, coefs)
     _computedq = true
 
     _test_formula_validity()
@@ -599,9 +577,6 @@ function formula()
         return
     end
 
-    # it can be changed by talor and/or printtaylor; change it back
-    global _max_num_of_taylor_terms = _data.max_num_of_taylor_terms
-
     if _formula_status > 0
         println("-" ^ 80)
         print("The following formula ")
@@ -626,8 +601,8 @@ function formula()
     if _formula_status > 0
         println("The exact formula:\n")
         # find x in the big-O notation O(h^x)
-        x = _data.max_num_of_taylor_terms
-        for i in _data.n + 2 : length(_lcombination_coefs)
+        x = length(_lcombination_coefs)  # XXXXX
+        for i in _data.n + 2 : x
             if _lcombination_coefs[i] != 0; x = i; break; end
         end
         x -= _data.n + 1
@@ -639,7 +614,7 @@ function formula()
         data1 = _FDData
         if _data.m > 1           # print in another format
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
-                            _data.coefs, _data.max_num_of_taylor_terms)
+                            _data.coefs)
             print("Or\n\n")
             _print_bigo_formula(data1, _bigO)
         end
@@ -679,7 +654,10 @@ function truncationerror()
     return
 end
 
-############################ for teaching/learning ############################
+######################## for teaching/learning/exploring #######################
+
+_max_num_of_taylor_terms = 30
+# it should be a constant. usually, users never need to change it.
 
 # show current decimal places
 function decimalplaces()
@@ -728,9 +706,6 @@ function activatejuliafunction()
         return
     end
 
-    # it can be changed by talor and/or printtaylor; change it back
-    global _max_num_of_taylor_terms = _data.max_num_of_taylor_terms
-
     global _julia_exact_func_expr   = ""
     global _julia_exact_func_expr1  = ""
     global _julia_decimal_func_expr = ""
@@ -740,7 +715,7 @@ function activatejuliafunction()
         global _julia_exact_func_expr = _julia_func_expr(_data, false, true)
         if _data.m > 1           # print in other formats
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
-                            _data.coefs, _data.max_num_of_taylor_terms)
+                            _data.coefs)
             _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
             _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
         end  # m = 1? No decimal formula
@@ -783,22 +758,16 @@ end  # activatejuliafunction
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
 # for teaching/learning!
 function taylor(j::Int)
-    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms
-    # computecoefs could have changed the default value; change it back
-    _max_num_of_taylor_terms = _default_max_num_of_taylor_terms
-    return _taylor_coefs(j)
+    global _max_num_of_taylor_terms
+    return _taylor_coefs(j, _max_num_of_taylor_terms)
 end  # taylor
 
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
 function printtaylor(j::Int, num_of_nonzero_terms::Int = 10)
-    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms
-    # computecoefs could have changed the default value; change it back
-    _max_num_of_taylor_terms = _default_max_num_of_taylor_terms
-    if num_of_nonzero_terms > _max_num_of_taylor_terms
-        println("can't print $num_of_nonzero_terms terms of the ",
-                "Taylor series.\n")
-        num_of_nonzero_terms = _max_num_of_taylor_terms
+    if num_of_nonzero_terms < 0
+        println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
+		return;
     end
     coefs = taylor(j)
     println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
@@ -810,12 +779,9 @@ end  # printtaylor
 # fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2))
 function printtaylor(coefs::Matrix{Rational{BigInt}},
                      num_of_nonzero_terms::Int = 10)
-    global _max_num_of_taylor_terms, _default_max_num_of_taylor_terms
-    # computecoefs could have changed the default value; change it back
-    _max_num_of_taylor_terms = _default_max_num_of_taylor_terms
-    if num_of_nonzero_terms > _max_num_of_taylor_terms
-        println("can't print $num_of_nonzero_terms terms of the Taylor series.\n")
-        num_of_nonzero_terms = _max_num_of_taylor_terms
+    if num_of_nonzero_terms < 0
+        println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
+		return;
     end
     _print_taylor(coefs, num_of_nonzero_terms)
     return
@@ -823,14 +789,14 @@ end  # printtaylor
 
 # for explorers/researchers. users never need to know its existence
 function _set_default_max_num_of_taylor_terms(n::Int)
-    global _default_max_num_of_taylor_terms
+    global _max_num_of_taylor_terms
     if n < 0
         println("Wrong input, $n. A positive integer is expected.")
     elseif n < 10
         println("$n? It doesn't have to be so small. The default value ",
-                "is still $_default_max_num_of_taylor_terms.")
+                "is still $_max_num_of_taylor_terms.")
     else
-        _default_max_num_of_taylor_terms = n
+        _max_num_of_taylor_terms = n
     end
     return
 end
