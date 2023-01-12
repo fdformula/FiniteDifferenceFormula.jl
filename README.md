@@ -127,7 +127,7 @@ about x[i].
 
 The function prints the first n nonzero terms of Taylor series expansion of f(x[i+j]) about x[i].
 
-### function printtaylor(coefficients-of-taylor-series, n = 10)
+### function printtaylor(coefficients_of_taylor_series, n = 10)
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficents are
 provided.
