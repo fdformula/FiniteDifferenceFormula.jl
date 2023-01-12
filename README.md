@@ -30,7 +30,7 @@ In Julia REPL, execute the following two commands in order.
 1. import Pkg
 1. Pkg.add("FiniteDifferenceFormula")
 
-## The package exports seven functions
+## The package exports eight functions
 
 - computecoefs
 - formula
