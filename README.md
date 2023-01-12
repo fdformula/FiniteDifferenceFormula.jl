@@ -7,7 +7,7 @@ function at evenly spaced points. It also gives the truncation error of a formul
 in the big-O notation. You can use it to generate new formulas in addition to
 verification of known ones. See documentation in the source code for the algorithm.
 
-You may play with this package when teaching/learning numerical computing, especially
+We may play with this package when teaching/learning numerical computing, especially
 the finite difference method, and explore the distribution, symmetry, and beauty in
 the coefficients of the formulas. By changing decimal places, we can also see how
 rounding errors affect a result.
@@ -39,6 +39,7 @@ In Julia REPL, execute the following two commands in order.
 - activatejuliafunction
 - taylor
 - printtaylor
+- _set_default_max_num_of_taylor_terms
 
 ### function computecoefs(n, points, printformulaq = false)
 
@@ -142,6 +143,13 @@ The function prints the first n terms of the Taylor series of f(x[i+j]) about x[
 The function prints the first n nonzero terms of a Taylor series of which the coefficents are
 provided.
 
+### function _set_default_max_num_of_taylor_terms(n)
+
+The function sets the default maximum number of terms of Taylor series. It is for explorers/researchers.
+Usually, users never need to call it.
+
+Trick: If 0 ≤ n < 10, it shows the present default value.
+ 
 ## Examples
 
 ```Julia
