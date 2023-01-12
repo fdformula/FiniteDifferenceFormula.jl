@@ -30,7 +30,6 @@ wonderful and amazing computing platform.
 - formula
 - activatejuliafunction
 - truncationerror
-- ----
 - taylor
 - printtaylor
 
