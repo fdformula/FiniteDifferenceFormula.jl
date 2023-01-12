@@ -114,10 +114,10 @@ FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 
 The function shows the truncation error of the newly computed finite difference formula.
 
-### function taylor(j, n = 30)
+### function taylor(j)
 
-The function returns the coefficients of the first 30 (or more, specified by n) Taylor series
-of f(x[i+j]) about x[i]. It is simply for teaching/learning the finite difference method.
+The function returns the coefficients of the first 30 terms of Taylor series of f(x[i+j])
+about x[i]. It is simply for teaching/learning the finite difference method.
 
 ### function printtaylor(j, n = 10)
 
