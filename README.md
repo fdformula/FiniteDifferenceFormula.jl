@@ -4,7 +4,7 @@ This Julia package provides a general finite difference formula generator and a 
 for teaching/learning the finite difference method. It generates finite difference
 formulas for derivatives of various orders by using Taylor series expansions of a
 function at evenly spaced points. It also gives the truncation error of a formula
-in the big-O notation. You can use it to generate new formulas in addition to
+in the big-O notation. We can use it to generate new formulas in addition to
 verification of known ones. See documentation in the source code for the algorithm.
 
 We may play with this package when teaching/learning numerical computing, especially
