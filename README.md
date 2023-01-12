@@ -126,7 +126,7 @@ It is simply for teaching/learning the finite difference method.
 
 ### function printtaylor(coefficients-of-taylor-series, n = 10)
 
-The function prints the first n terms of Taylor series expansion of some "function" about x[i].
+The function prints the first n terms of a Taylor series, of which the coefficents are known, about x[i].
 It is simply for teaching/learning the finite difference method.
 
 Usage and examples:
