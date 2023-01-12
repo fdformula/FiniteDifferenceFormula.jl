@@ -147,7 +147,9 @@ provided.
 
 The function sets to n the default maximum number of terms of Taylor series. It is for
 explorers/researchers. Users never need to know its existence. (If no change is made,
-the default value is 30.)
+the default value is 30.) The value affects the behaviors of functions 'taylor' and
+'printtaylor' only. When you need more than 30 terms of a Taylor series, the value should
+be set. For m nonzero terms, n should be larger than m, say, n = m + 8.
 
 Trick: If 0 ≤ n < 10, no change is made, and it shows the present default value.
  
