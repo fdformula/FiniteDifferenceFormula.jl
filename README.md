@@ -27,7 +27,7 @@ wonderful and amazing computing platform.
 
 In Julia REPL,
 
-1. using Pkg
+1. import Pkg
 1. Pkg.add("FiniteDifferenceFormula")
 
 ## The package exports seven functions
