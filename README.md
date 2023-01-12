@@ -25,7 +25,7 @@ wonderful and amazing computing platform.
 
 ## How to install this package
 
-In Julia REPL,
+In Julia REPL, execute the following two commands in order.
 
 1. import Pkg
 1. Pkg.add("FiniteDifferenceFormula")
