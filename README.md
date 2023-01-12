@@ -23,7 +23,7 @@ is mathematically. However, due to rounding errors, this may not be true numeric
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-## How to install this package
+## How to install the package
 
 In Julia REPL, execute the following two commands in order.
 
