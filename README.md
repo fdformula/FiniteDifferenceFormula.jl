@@ -139,6 +139,10 @@ fd.printtaylor(fd.taylor(-1) + fd.taylor(1))  # print the 1st 10 nonzero terms o
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
 fd.printtaylor(coefs, 7)  # print the 1st 7 nonzero terms of Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
 
+# trick: given that you want to print more than 30, say, 50, terms of Taylor series
+fd.taylor(0, 50)          # fd.taylor(j, 50) will work for any given integer j
+coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
+fd.printtaylor(coefs, 40)
 ```
 
 ## Examples
