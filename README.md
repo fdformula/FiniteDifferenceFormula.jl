@@ -33,9 +33,9 @@ In Julia REPL, execute the following two commands in order.
 ## The package exports seven functions
 
 - computecoefs
-- decimalplaces
 - formula
 - truncationerror
+- decimalplaces
 - activatejuliafunction
 - taylor
 - printtaylor
@@ -80,12 +80,6 @@ series of the linear combination is f^(n)(x[i]):
 where len = length(points). It is this equation that gives the formula for computing f^(n)(x[i])
 and the truncation error in the big-O notation as well.
 
-### function decimalplaces( ) or decimalplaces(n)
-
-Without argument, the function returns current decimal places. With argument n, it sets the
-decimal places to be n for generating Julia function for a formula. Without/before calling
-the function, 16 decimal places are used by default.
-
 ### function formula( )
 
 The function generates and lists
@@ -107,6 +101,12 @@ The function shows the truncation error of the newly computed finite difference 
 The following functions are provided for teaching/learning the finite difference method.
 
 -----
+
+### function decimalplaces( ) or decimalplaces(n)
+
+Without argument, the function returns current decimal places. With argument n, it sets the
+decimal places to be n for generating Julia function for a formula. Without/before calling
+the function, 16 decimal places are used by default.
 
 ### function activatejuliafunction( )
 
