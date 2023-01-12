@@ -132,17 +132,6 @@ The function prints the first n nonzero terms of Taylor series expansion of f(x[
 The function prints the first n nonzero terms of a Taylor series of which the coefficents are
 provided.
 
-Usage and examples:
-
-```Julia
-import FiniteDifferenceFormula as fd
- 
-fd.printtaylor(fd.taylor(-1) + fd.taylor(1))  # print the 1st 10 nonzero terms of Taylor series of f(x[i-1]) + f(x[i+1])
-
-coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs, 7)  # print the 1st 7 nonzero terms of the Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
-```
-
 ## Examples
 
 ```Julia
@@ -168,8 +157,8 @@ fd.printtaylor(-2, 5)             # print the first 5 terms of the Taylor series
 
 fd.printtaylor(3*fd.taylor(5))    # print the first 10 terms of the Taylor series of f(x[i+5]) multiplied by 3
 
-c = fd.taylor(1) - 3fd.taylor(2)  # calculate coefficients of Taylor series of f(x[i+1]) - 3 f(x[i+2])
-fd.printtaylor(c, 6)              # print the first 6 nonzero terms of the resulted Taylor series
+coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
+fd.printtaylor(coefs, 7)          # print the 1st 7 nonzero terms of the Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
 
 fd.activatejuliafunction()        # activate Julia function(s) of the newly computed formula in present REPL session
 ```
