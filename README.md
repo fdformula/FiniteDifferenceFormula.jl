@@ -100,8 +100,9 @@ The function generates and lists
 
 ### function activatejuliafunction( )
 
-Call this function to activate the Julia function(s) based on the newly computed
-finite difference formula. E.g.,
+Call this function to activate the Julia function(s) for the newly computed finite
+difference formula. For example, after computecoefs(1, -1:1), it activates the
+following Julia functions.
 
 ```Julia
 f1stderiv2ptcentrale(f, x, i, h)  = ( -f(x[i-1]) + f(x[i+1]) ) / (2 * h)
