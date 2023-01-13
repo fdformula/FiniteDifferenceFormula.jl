@@ -165,13 +165,14 @@ function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
          return
     end
 
-    println("You input: $points")
     # is the input 'points' actually a range?
     if length(points[1]:points[end]) == length(points)
+        println("You input: $(points[1]:points[end])")
         return computecoefs(n, points[1]:points[end], printformulaq)
     else
         global _range_inputq = false
         global _range_input  = 0:0
+        println("You input: $points")
         return _computecoefs(n, points, printformulaq)
     end
 end  # computecoefs
@@ -343,7 +344,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # solve Ax = B for x, i.e., k[:]
     k = _rref([A B])[:, len + 1]
-    k = k // gcd(k)
+    k = k // gcd(k)                        # change each element to an integer
 
     # Taylor series expansion of the linear combination
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
@@ -376,7 +377,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     if printformulaq; formula(); end
 
-    return (coefs, m)
+    return (k, m)
 end   # _computecoefs
 
 # return a string of the linear combination
