@@ -10,7 +10,7 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
-export computecoefs, formula, truncationerror
+export compute, formula, truncationerror
 
 # for teaching/learning/exploring
 export decimalplaces, activatejuliafunction, taylor, printtaylor
@@ -28,7 +28,7 @@ mutable struct _FDData
 end
 
 _data                        = _FDData    # share results between functions
-_computedq::Bool             = false      # make sure computecoefs is called first
+_computedq::Bool             = false      # make sure compute is called first
 _formula_status              = 0          # a formula may not be available
                                           # values? see _test_formula_validity()
 
@@ -37,7 +37,7 @@ _formula_status              = 0          # a formula may not be available
 _lcombination_coefs          = Array{Any}
 
 _range_inputq                = false
-_range_input::UnitRange{Int} = 0:0        # computecoefs receives a range? save it
+_range_input::UnitRange{Int} = 0:0        # compute receives a range? save it
 
 _julia_exact_func_expr       = ""         # 1st exact Julia function for f^(n)(x[i])
 _julia_exact_func_expr1      = ""         # 2nd exact Julia function for f^(n)(x[i])
@@ -134,7 +134,7 @@ function _print_taylor(coefs, num_of_nonzero_terms = 10)
     return
 end  # _print_taylor
 
-function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
+function compute(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
     if n < 1
         println("Wrong order of derivatives :: $n. It must be a positive integer.")
         return
@@ -142,11 +142,11 @@ function computecoefs(n::Int, points::UnitRange{Int}, printformulaq::Bool = fals
 
     global _range_inputq = true
     global _range_input  = points
-    return _computecoefs(n, collect(points), printformulaq)
+    return _compute(n, collect(points), printformulaq)
 end
 
-# computecoefs(2, [1 2 3 -1])
-function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
+# compute(2, [1 2 3 -1])
+function compute(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
     if n < 1
         println("Wrong order of derivatives :: $n. It must be a positive integer.")
         return
@@ -168,18 +168,18 @@ function computecoefs(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
     # is the input 'points' actually a range?
     if length(points[1]:points[end]) == length(points)
         println("You input: $(points[1]:points[end])")
-        return computecoefs(n, points[1]:points[end], printformulaq)
+        return compute(n, points[1]:points[end], printformulaq)
     else
         global _range_inputq = false
         global _range_input  = 0:0
         println("You input: $points")
-        return _computecoefs(n, points, printformulaq)
+        return _compute(n, points, printformulaq)
     end
-end  # computecoefs
+end  # compute
 
-# computecoefs(2, [1, 2, 3, -1])
-function computecoefs(n::Int, points::Array{Int}, printformulaq::Bool = false)
-    return computecoefs(n, hcat(points), printformulaq)
+# compute(2, [1, 2, 3, -1])
+function compute(n::Int, points::Array{Int}, printformulaq::Bool = false)
+    return compute(n, hcat(points), printformulaq)
 end
 
 # before v1.0.7, we thankfully used the function 'rref' provided by the package
@@ -249,7 +249,7 @@ end
 # ------
 # The function returns a tuple, ([k[1], k[2], ..., k[len]], m).
 #
-function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
+function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     global _lcombination_coefs
 
     global _computedq = false
@@ -371,8 +371,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # "normalize" k[:] and m so that m is a positive integer
     if m < 0; k *= -1; _lcombination_coefs *= -1; end
     m = _lcombination_coefs[n + 1]
-    x = round(BigInt, m)
-    if x == m; m = x; end  # so that m = 5 rather than 5//1
+    m = BigInt(m)                        # already integer; don't show like 5//1
 
     # save the results in a global variable for other functions
     global _data = _FDData(n, points, k, m, coefs)
@@ -383,13 +382,13 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if printformulaq; formula(); end
 
     return (round.(BigInt, k), m)
-end   # _computecoefs
+end   # _compute
 
 # return a string of the linear combination
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
 #
 # To test in Julia if a formula is valid, we must convert the data to BigInt or
-# BigBloat becasue, say, for computecoefs(2, -12:12), without the conversion,
+# BigBloat becasue, say, for compute(2, -12:12), without the conversion,
 # the formula will give obviously wrong answers because of overflow and
 # rounding errors. julia_REPL_funcq is here for testing in Julia REPL only.
 # For ordinary definition of a function, call formula().
@@ -580,7 +579,7 @@ function formula()
     global _range_inputq, _range_input, _bigO, _julia_func_basename
 
     if !_computedq
-        println("Please call computecoefs(n, points) first!")
+        println("Please call compute(n, points) first!")
         return
     end
 
@@ -651,12 +650,12 @@ function truncationerror()
 
         if _formula_status == -100
             println("No valid formula is available. Please call ",
-                    "'computecoefs' again.")
+                    "'compute' again.")
         else
             println(_bigO)
         end
     else
-        println("Please call 'computecoefs' first.")
+        println("Please call 'compute' first.")
     end
     return
 end
@@ -683,7 +682,7 @@ function decimalplaces(n)
                     "Julia function for the newly computed formula, using ",
                     "the new decimal places.")
         else
-            println("You may start your work by calling 'computecoefs'.")
+            println("You may start your work by calling 'compute'.")
         end
     else
         println("decimalplaces(n): n must be a positive integer.")
@@ -709,7 +708,7 @@ function activatejuliafunction()
     global _computedq, _formula_status, _data, _julia_func_basename
 
     if !_computedq
-        println("Please run 'computecoefs' first.")
+        println("Please run 'compute' first.")
         return
     end
 
@@ -727,7 +726,7 @@ function activatejuliafunction()
             _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
         end  # m = 1? No decimal formula
     else
-        print("No valid formula is for activation. Please run 'computecoefs' ",
+        print("No valid formula is for activation. Please run 'compute' ",
               "with different input again.")
         return
     end
