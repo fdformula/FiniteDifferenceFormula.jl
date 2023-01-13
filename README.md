@@ -14,7 +14,7 @@ rounding errors affect a result.
 
 Beware, though formulas are mathematically correct, they may not be numerically useful.
 This is true especially when we derive formulas for a derivative of higher order. For
-example, run computecoefs(9,-5:5), provided by this package, to generate a 10-point
+example, run compute(9,-5:5), provided by this package, to generate a 10-point
 central formula for the 9-th derivative. The formula is mathematically correct, but it
 can hardly be put into use for numerical computing without, if possible, rewriting it
 in a special way. Similarly, the more points are used, the more precise a formula
@@ -32,7 +32,7 @@ In Julia REPL, execute the following two commands in order.
 
 ## The package exports eight functions
 
-- computecoefs
+- compute
 - formula
 - truncationerror
 - decimalplaces
@@ -41,7 +41,7 @@ In Julia REPL, execute the following two commands in order.
 - printtaylor
 - _set_default_max_num_of_taylor_terms
 
-### function computecoefs(n, points, printformulaq = false)
+### function compute(n, points, printformulaq = false)
 
 #### Input
 
@@ -112,7 +112,7 @@ the function, 16 decimal places are used by default.
 ### function activatejuliafunction( )
 
 Call this function to activate the Julia function(s) for the newly computed finite
-difference formula. For example, after computecoefs(1, -1:1), it activates the
+difference formula. For example, after compute(1, -1:1), it activates the
 following Julia functions.
 
 ```Julia
@@ -152,33 +152,33 @@ affects the behaviors of functions 'taylor' and 'printtaylor' only. When you nee
 certainly be larger than m, say, n = m + 8.
 
 Trick: If 0 ≤ n < 10, no change is made, and it shows the present default value.
- 
+
 ## Examples
 
 ```Julia
 import FiniteDifferenceFormula as fd
 
-fd.decimalplaces(6)               # use 6 decimal places to generate Julia functions of computed formulas
+fd.decimalplaces(6)          # use 6 decimal places to generate Julia functions of computed formulas
 
-fd.computecoefs(1, 0:2, true)     # find, generate, and print "3"-point forward formula for f'(x[i])
+fd.compute(1, 0:2, true)     # find, generate, and print "3"-point forward formula for f'(x[i])
 
-fd.computecoefs(2, -3:0, true)    # find, generate, and print "4"-point backward formula for f''(x[i])
+fd.compute(2, -3:0, true)    # find, generate, and print "4"-point backward formula for f''(x[i])
 
-fd.computecoefs(3, -9:9)          # find "19"-point central formula for f'''(x[i])
+fd.compute(3, -9:9)          # find "19"-point central formula for f'''(x[i])
 
-fd.computecoefs(2, [-3 -2 1 2 7]) # find formula for f''(x[i]) using points x[i+j], j = -3, -2, 1, 2, and 7
+fd.compute(2, [-3 -2 1 2 7]) # find formula for f''(x[i]) using points x[i+j], j = -3, -2, 1, 2, and 7
 
-fd.computecoefs(1,-230:230)       # find "461"-point central formula for f'(x[i]). does it exist? run the code!
+fd.compute(1,-230:230)       # find "461"-point central formula for f'(x[i]). does it exist? run the code!
 
-fd.formula()                      # generate and print the formula computed last time you called computecoefs(...)
+fd.formula()                 # generate and print the formula computed last time you called compute(...)
 
-fd.truncationerror()              # print the truncation error of the newly computed formula
+fd.truncationerror()         # print the truncation error of the newly computed formula
 
-fd.printtaylor(-2, 5)             # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
+fd.printtaylor(-2, 5)        # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
 
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs, 7)          # print the 1st 7 nonzero terms of the Taylor series of
-                                  # 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
+fd.printtaylor(coefs, 7)     # print the 1st 7 nonzero terms of the Taylor series of
+                             # 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
 
-fd.activatejuliafunction()        # activate Julia function(s) of the newly computed formula in present REPL session
+fd.activatejuliafunction()   # activate Julia function(s) of the newly computed formula in present REPL session
 ```
