@@ -344,7 +344,12 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # solve Ax = B for x, i.e., k[:]
     k = _rref([A B])[:, len + 1]
+
     k = k // gcd(k)                        # change each element to an integer
+    # the following code does the same     # for translating to other languages
+    ## for i in 1 : len
+    ##    if k[i] != round(BigInt, k[i]); k *= denominator(k[i]); end
+    ## end
 
     # Taylor series expansion of the linear combination
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
@@ -377,7 +382,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     if printformulaq; formula(); end
 
-    return (k, m)
+    return (round.(BigInt, k), m)
 end   # _computecoefs
 
 # return a string of the linear combination
