@@ -269,7 +269,6 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # setup a linear system Ax = B first
     len = length(points)
     max_num_of_terms = max(len, n) + 8
-    _lcombination_coefs = Array{Any}(undef, max_num_of_terms)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
     # involved points
