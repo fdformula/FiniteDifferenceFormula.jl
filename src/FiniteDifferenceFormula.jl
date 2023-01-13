@@ -46,9 +46,9 @@ _julia_func_basename         = ""
 
 _bigO                        = ""         # truncation error of a formula
 
-# This function returns the first 'count' terms of Taylor series of f(x[i+1]) 
-# centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed. The
-# purpose is to obtain Taylor series expansions for f(x[i±k]) = f(x[i]±kh])
+# This function returns the first 'max_num_of_terms' terms of Taylor series of
+# f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed.
+# The purpose is to obtain Taylor series expansions for f(x[i±k]) = f(x[i]±kh])
 # which are used to derive the m-point finite difference formulas for the first,
 # second, ..., order derivatives at x[i].
 #
@@ -57,11 +57,11 @@ _bigO                        = ""         # truncation error of a formula
 # where h = x[i+1] - x[i].
 #
 # Usage:
-#   for f(x[i+k]), call _taylor_coefs(k), k = ±0, ±1, ±2, ...
-function _taylor_coefs(h, count)
-    result = Matrix{Rational{BigInt}}(undef, 1, count)
+#   for f(x[i+k]), call _taylor_coefs(k, ...), k = ±0, ±1, ±2, ...
+function _taylor_coefs(h, max_num_of_terms)
+    result = Matrix{Rational{BigInt}}(undef, 1, max_num_of_terms)
     factorial::BigInt = 1
-    for n in 1 : count
+    for n in 1 : max_num_of_terms
         N = n - 1          # order of derivatives in Taylor series
         if N > 0; factorial *= N; end
         result[n] = 1 // factorial * h^N
@@ -185,21 +185,21 @@ end
 # RowEchelon v0.2.1. since it has been removed from the base, it is safer for
 # this package to have its own implementaion of the function. anyway, it is
 # just a few lines of code.
-function _rref(A::Matrix{Rational{BigInt}})  # change A to reduced row echelon form
+function _rref(A::Matrix{Rational{BigInt}}) # change A to reduced row echelon form
     row, col = size(A)
     for i in 1 : min(row, col)
         # choose the largest entry in A[i:end, i] as the pivot
-        lv, li = abs(A[i ,i]), i  # the largest value and its index
+        lv, li = abs(A[i ,i]), i            # the largest value and its index
         for j = i + 1 : row
             absv = abs(A[j, i])
             if absv > lv; lv, li = absv, j; end
         end
         if lv == 0; continue; end
-        if li != i                # interchange two rows
+        if li != i                          # interchange two rows
             A[i, i : end], A[li, i : end] = A[li, i : end], A[i, i : end]
         end
 
-        A[i, i : end] /= A[i, i]  # on the main diagonal are 0's and 1's
+        A[i, i : end] /= A[i, i]            # on the main diagonal are 0 or 1
 
         # now, use the pivot A[i, i] to eliminate entries above and below it
         for j = 1 : row
@@ -256,6 +256,7 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     global _bigO = ""
 
     # for teaching's purpose, we don't do so
+    # global _range_inputq, _range_input
     # if length(points) <= n
     #     pts = _range_inputq ? "$(_range_input)" : "$(points')"
     #     th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
@@ -266,14 +267,14 @@ function _computecoefs(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # setup a linear system Ax = B first
     len = length(points)
-    num_of_terms = max(len, n) + 8
-    _lcombination_coefs = Array{Any}(undef, num_of_terms)
+    max_num_of_terms = max(len, n) + 8
+    _lcombination_coefs = Array{Any}(undef, max_num_of_terms)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
     # involved points
     coefs = Array{Any}(undef, len)
     for i in 1 : len
-        coefs[i] = _taylor_coefs(points[i], num_of_terms)
+        coefs[i] = _taylor_coefs(points[i], max_num_of_terms)
     end
 
     # We find a linear combination of
@@ -429,7 +430,7 @@ function _test_formula_validity()
     # are all eliminated, i.e.,
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0
     # where j = 1:n
-    global _data, _range_inputq, _range_input
+    global _data, _lcombination_coefs, _range_inputq, _range_input
 
     n = _data.n
     k = _data.k
@@ -569,7 +570,7 @@ end  # _print_bigo_formula
 #
 # No valid formula can be found? Still dump the computing result for teaching.
 function formula()
-    global _data, _computedq, _formula_status
+    global _data, _computedq, _formula_status, _lcombination_coefs
     global _range_inputq, _range_input, _bigO, _julia_func_basename
 
     if !_computedq
@@ -596,13 +597,13 @@ function formula()
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     println("The computing result:\n")
     print(_lcombination_expr(_data), " =\n")
-    _print_taylor(_lcombination_coefs, 5);       # print at most 5 nonzero terms
+    _print_taylor(_lcombination_coefs, 5);   # print at most 5 nonzero terms
 
     if _formula_status > 0
         println("The exact formula:\n")
         # find x in the big-O notation O(h^x)
-        x = length(_lcombination_coefs)  # XXXXX
-        for i in _data.n + 2 : x
+        x = length(_lcombination_coefs)
+        for i in _data.n + 2 : x             # skip f^(n)(x[i])
             if _lcombination_coefs[i] != 0; x = i; break; end
         end
         x -= _data.n + 1
@@ -612,7 +613,7 @@ function formula()
 
         _print_bigo_formula(_data, _bigO)
         data1 = _FDData
-        if _data.m > 1           # print in another format
+        if _data.m > 1                       # print in another format
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs)
             print("Or\n\n")
@@ -622,7 +623,7 @@ function formula()
         println("Julia function:\n")
         global _julia_exact_func_expr = _julia_func_expr(_data)
         print(_julia_func_basename, "e", _julia_exact_func_expr, "\n\n")
-        if _data.m > 1           # other formats
+        if _data.m > 1                       # other formats
             global _julia_exact_func_expr1  = _julia_func_expr(data1)
             print("Or\n\n", _julia_func_basename, "e1",
                   _julia_exact_func_expr1, "\n\nOr\n\n")
@@ -630,7 +631,7 @@ function formula()
             print(_julia_func_basename, "d", _julia_decimal_func_expr, "\n\n")
         end  # m = 1? No decimal formula
     else
-        _formula_status = -100 # no formula can't be generated
+        _formula_status = -100               # no formula can't be generated
     end
 
     return
@@ -712,7 +713,7 @@ function activatejuliafunction()
 
     # generate Julia function for current REPL session
     if _formula_status > 0
-        global _julia_exact_func_expr = _julia_func_expr(_data, false, true)
+        _julia_exact_func_expr = _julia_func_expr(_data, false, true)
         if _data.m > 1           # print in other formats
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs)
@@ -767,7 +768,7 @@ end  # taylor
 function printtaylor(j::Int, num_of_nonzero_terms::Int = 10)
     if num_of_nonzero_terms < 0
         println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
-		return;
+        return;
     end
     coefs = taylor(j)
     println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
@@ -781,7 +782,7 @@ function printtaylor(coefs::Matrix{Rational{BigInt}},
                      num_of_nonzero_terms::Int = 10)
     if num_of_nonzero_terms < 0
         println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
-		return;
+        return;
     end
     _print_taylor(coefs, num_of_nonzero_terms)
     return
