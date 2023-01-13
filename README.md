@@ -151,7 +151,7 @@ affects the behaviors of functions 'taylor' and 'printtaylor' only. When you nee
 30 terms of a Taylor series, the value should be set. To have m nonzero terms, n should
 certainly be larger than m, say, n = m + 8.
 
-Trick: If 0 ≤ n < 10, no change is made, and it shows the present default value.
+Trick: If 0 ≤ n < 10, no change is made, but it shows the present default value.
 
 ## Examples
 
