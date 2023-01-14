@@ -149,10 +149,10 @@ is valid, its truncation error in the big-O notation can be determined. Further 
 if the input data is not for a valid formula, it trys also to find one, if possible, using
 n and points.
 
-Here, n is the order of a derivative, points are a list, k is a list of the coefficeints
-of a formula, and m is the coefficeint of the term f^(n)(x[i]) in the linear combination
-of f(x[i+j]), where j ∈ points. In general, m is the coefficeint of h^n in the denominator
-of a formula. For example,
+Here, n is the order of a derivative, points are a list, k is a list of the corresponding
+coefficeints of a formula, and m is the coefficeint of the term f^(n)(x[i]) in the linear
+combination of f(x[i+j]), where j ∈ points. In general, m is the coefficeint of h^n in the
+denominator of a formula. For example,
 
 ```
 import FiniteDifferenceFormula as fd
