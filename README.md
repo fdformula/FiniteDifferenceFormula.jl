@@ -145,8 +145,8 @@ of the computed or tested formula.
 ### function activatejuliafunction(n::Int, points, k, m::Int)
 
 It allows users to load a formula from some source to test and see if it is correct. If it
-is valid, its truncation error in the big-O notation can be determined. Further more,
-if the input data is not for a valid formula, it trys also to find one, if possible, using
+is valid, its truncation error in the big-O notation can be determined. Furthermore,
+if the input data is not for a valid formula, it tries also to find one, if possible, using
 n and points.
 
 Here, n is the order of a derivative, points are a list, k is a list of the corresponding
