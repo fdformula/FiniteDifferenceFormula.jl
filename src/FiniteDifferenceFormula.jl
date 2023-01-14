@@ -10,6 +10,8 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
+# Warning: users should not call/access a function/variable starting with "_" !
+
 export compute, formula, truncationerror
 
 # for teaching/learning/exploring
@@ -46,6 +48,26 @@ _julia_func_basename         = ""
 
 _bigO                        = ""         # truncation error of a formula
 _bigO_exp                    = -1         # the value of n as in O(h^n)
+
+# for coders of this package:
+# to compute a new formula, this function must be called first.
+function _initialization()
+    global _data                    = nothing
+    global _computedq               = false
+    global _formula_status          = 0
+    global _lcombination_coefs      = nothing
+
+    global _range_inputq            = false
+    global _range_input             = 0:0
+
+    global _julia_exact_func_expr   = ""
+    global _julia_exact_func_expr1  = ""
+    global _julia_decimal_func_expr = ""
+    global _julia_func_basename     = ""
+
+    global _bigO                    = ""
+    global _bigO_exp                = -1
+end
 
 # This function returns the first 'max_num_of_terms' terms of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed.
@@ -141,6 +163,7 @@ function compute(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
         return
     end
 
+    _initialization()
     global _range_inputq = true
     global _range_input  = points
     return _compute(n, collect(points), printformulaq)
@@ -152,12 +175,12 @@ function compute(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
         println("Wrong order of derivatives :: $n. It must be a positive integer.")
         return
     end
-
     if length(points) <= 1
         println("Invalid input :: $points - more points are needed.")
         return
     end
 
+    _initialization()
     m, = size(points)
     if m > 1 points = points'; end      # a column vector
     points = sort(unique(points))
@@ -171,7 +194,6 @@ function compute(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
         println("You input: $(points[1]:points[end])")
         return compute(n, points[1]:points[end], printformulaq)
     else
-        global _range_inputq = false
         println("You input: $points")
         return _compute(n, points, printformulaq)
     end
@@ -179,6 +201,7 @@ end  # compute
 
 # compute(2, [1, 2, 3, -1])
 function compute(n::Int, points::Array{Int}, printformulaq::Bool = false)
+    _initialization()
     return compute(n, hcat(points), printformulaq)
 end
 
@@ -251,11 +274,7 @@ end
 # where, m, k? refer to eq (1); n, points? refer to _compute()
 #
 function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
-    global _lcombination_coefs
-
-    global _computedq = false
-    global _formula_status = 0
-    global _bigO = ""
+    global _lcombination_coefs, _formula_status
 
     # for teaching's purpose, we don't do so
     # global _range_inputq, _range_input
@@ -375,7 +394,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # save the results in a global variable for other functions
     global _data = _FDData(n, points, k, m, coefs)
-    _computedq = true
+    global _computedq = true
 
     _test_formula_validity()
 
@@ -726,15 +745,12 @@ end
 # to some function here to evaluate, which is why this function is here.
 #
 function activatejuliafunction(n::Int, points, k, m::Int)
-    global _data = nothing
-    global _formula_status = 0
-    global _range_inputq = false
-
     if n <= 0
         println("Invalid input: n = $n. An positive integer is expected.")
         return
     end
 
+    _initialization() # needed b/c it's like computing a new formula
     points = sort(unique(collect(points)))
     len = length(points)
     if len != length(k)
@@ -761,10 +777,11 @@ function activatejuliafunction(n::Int, points, k, m::Int)
     global _data        = _FDData(n, points, k, m, coefs)
     _test_formula_validity()
 
+    global _formula_status
     find_oneq = _formula_status == -100
     if find_oneq                   # the input can't be a formula, but still
-        # 250, a sepcial value for communication w/ another 'activatejuliafunction'
-        _formula_status = 250      # activate Julia function; any value in 10:99
+        _formula_status = 250      # force to activate Julia function
+        # 250, reserved for communication w/ another 'activatejuliafunction'
     end
     global _computedq   = true     # assume a formula has been computed
     activatejuliafunction(true)
@@ -784,18 +801,16 @@ end
 # activate function(s) for the newly computed finite difference formula,
 # allowing immediate evaluation of the formula in Julia REPL
 function activatejuliafunction(external_dataq = false)
-    global _computedq, _formula_status, _data, _julia_func_basename
+    global _computedq, _formula_status, _data
+    global _julia_func_basename, _julia_exact_func_expr
+    global _julia_exact_func_expr1, _julia_decimal_func_expr
 
     if !external_dataq && !_computedq
         println("Please run 'compute' first.")
         return
     end
 
-    global _julia_exact_func_expr   = ""
-    global _julia_exact_func_expr1  = ""
-    global _julia_decimal_func_expr = ""
-
-    # generate Julia function for current REPL session
+    # generate Julia function in/for current REPL session
     count = 1
     if _formula_status > 0
         _julia_exact_func_expr = _julia_func_expr(_data, false, true)
