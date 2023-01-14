@@ -95,8 +95,8 @@ The function generates and lists
 
 ### function truncationerror( )
 
-The function shows the truncation error of the newly computed finite difference formula.
-It returns the value of n as in O(h^n).
+The function shows the truncation error of the newly computed finite difference formula and
+returns the value of n as in O(h^n).
 
 -----
 
@@ -106,8 +106,8 @@ The following functions are provided for teaching/learning the finite difference
 
 ### function decimalplaces( ) or decimalplaces(n)
 
-Without argument, the function returns current decimal places. With argument n, it sets the
-decimal places to be n for generating Julia function for a formula. Without/before calling
+Without an argument, the function returns current decimal places. With argument n, it sets the
+decimal places to be n for generating Julia function(s) for a formula. Without/before calling
 the function, 16 decimal places are used by default.
 
 ### function activatejuliafunction( )
@@ -139,7 +139,8 @@ n and points.
 
 Here, n is the order of a derivative, points are a list, k is a list of the coefficeints
 of a formula, and m is the coefficeint of the term f^(n)(x[i]) in the linear combination
-of f(x[i+j]), where j ∈ points. For example,
+of f(x[i+j]), where j ∈ points. In general, m is the coefficeint of h^n in the denominator
+of a formula. For example,
 
 ```
 import FiniteDifferenceFormula as fd
