@@ -150,7 +150,7 @@ if the input data is not for a valid formula, it tries also to find one, if poss
 n and points.
 
 Here, n is the order of a derivative, points are a list, k is a list of the corresponding
-coefficeints of a formula, and m is the coefficeint of the term f^(n)(x[i]) in the linear
+coefficients of a formula, and m is the coefficient of the term f^(n)(x[i]) in the linear
 combination of f(x[i+j]), where j ∈ points. In general, m is the coefficeint of h^n in the
 denominator of a formula. For example,
 
@@ -171,7 +171,7 @@ The function prints the first n terms of the Taylor series of f(x[i+j]) about x[
 
 ### function printtaylor(coefficients_of_taylor_series, n = 10)
 
-The function prints the first n nonzero terms of a Taylor series of which the coefficents are
+The function prints the first n nonzero terms of a Taylor series of which the coefficients are
 provided.
 
 ### function _set_default_max_num_of_taylor_terms(n)
