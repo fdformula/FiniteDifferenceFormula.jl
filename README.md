@@ -96,6 +96,7 @@ The function generates and lists
 ### function truncationerror( )
 
 The function shows the truncation error of the newly computed finite difference formula.
+It returns the value of n as in O(h^n).
 
 -----
 
@@ -120,7 +121,7 @@ f1stderiv2ptcentrale(f, x, i, h)  = ( -f(x[i-1]) + f(x[i+1]) ) / (2 * h)
 f1stderiv2ptcentrale1(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
 f1stderiv2ptcentrald(f, x, i, h)  = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
 ```
-The suffixes 'e' and 'd' stand for 'exact' and 'decimal', respectively.
+The suffixes 'e' and 'd' stand for 'exact' and 'decimal', respectively. No suffix? It is "exact".
 
 After activating the function(s), you can evaluate right away in the present Julia REPL
 session. E.g.,
@@ -183,7 +184,7 @@ fd.compute(1,-230:230)       # find "461"-point central formula for f'(x[i]). do
 
 fd.formula()                 # generate and print the formula computed last time you called compute(...)
 
-fd.truncationerror()         # print the truncation error of the newly computed formula
+fd.truncationerror()         # print and return the truncation error of the newly computed formula
 
 fd.printtaylor(-2, 5)        # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
 
