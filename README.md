@@ -132,7 +132,7 @@ FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 ### function activatejuliafunction(n::Int, points, k, m::Int)
 
 It allows users to load a formula from some source to test and see if it is correct. If it
-is a valid formula, its truncation error in the big-O notation can be determined. For example,
+is a valid, its truncation error in the big-O notation can be determined. For example,
 
 ```
 import FiniteDifferenceFormula as fd
