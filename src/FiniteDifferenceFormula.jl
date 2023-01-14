@@ -172,7 +172,6 @@ function compute(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
         return compute(n, points[1]:points[end], printformulaq)
     else
         global _range_inputq = false
-        global _range_input  = 0:0
         println("You input: $points")
         return _compute(n, points, printformulaq)
     end
@@ -422,7 +421,7 @@ end  # _lcombination_expr
 #  100 - Perfect, even satifiying some commonly seen "rules", such as the sum of
 #        coefficients = 0, symmetry of cofficients about x[i] in a central formula
 # -100 - No formula can't be found
-# -200 - Same as -100, and don't even try to find a formula for users' input
+#  250 - same as -100, but used for communication btw 2 'activatejuliafunction's
 # > 0  - Mathematically, the formula is still valid but may not satisfy some
 #        commonly seen "rules" such as the sum of coefficients = 0 and symmetry
 #        of coefficients about x[i]
@@ -474,7 +473,7 @@ function _test_formula_validity()
         start, stop = 1, len    # actual left and right endpoints
         while start <= len && k[start] == 0; start += 1; end
         while stop >= 1 && k[stop] == 0; stop -= 1; end
-        #if start >= stop  # can't be true bc m != 0
+        #if start >= stop  # can't be true b/c m != 0
         #    has_solutionq = false
         #    # what's the error?
         #else
@@ -493,7 +492,7 @@ function _test_formula_validity()
             println("***** Error:: $n, $input_points :: Invalid input because",
                     " at least $(n + 1) points are needed for the $n$th ",
                     "derivative.\n")
-            _formula_status = -200
+            _formula_status = -100
             return
         end
         println("\n***** Error:: $n, $input_points :: can't find a formula.\n")
@@ -727,7 +726,10 @@ end
 # to some function here to evaluate, which is why this function is here.
 #
 function activatejuliafunction(n::Int, points, k, m::Int)
-    global _formula_status
+    global _data = nothing
+    global _formula_status = 0
+    global _range_inputq = false
+
     if n <= 0
         println("Invalid input: n = $n. An positive integer is expected.")
         return
@@ -759,19 +761,19 @@ function activatejuliafunction(n::Int, points, k, m::Int)
     global _data        = _FDData(n, points, k, m, coefs)
     _test_formula_validity()
 
-    let_me_find_one = _formula_status == -100
-    if let_me_find_one               # the input can't be a formula, but still
+    find_oneq = _formula_status == -100
+    if find_oneq                   # the input can't be a formula, but still
         # 250, a sepcial value for communication w/ another 'activatejuliafunction'
-        _formula_status = 250        # activate Julia function; any value in 10:99
+        _formula_status = 250      # activate Julia function; any value in 10:99
     end
-    global _computedq   = true       # assume a formula has been computed
+    global _computedq   = true     # assume a formula has been computed
     activatejuliafunction(true)
 
-    if let_me_find_one               # use the basic input to generate a formula
+    if find_oneq                   # use the basic input to generate a formula
         println("\n\nFinding a formula using the points....")
         result = _compute(n, points)
         if _formula_status >= 0
-            println("Call formula() to view the results and activatejulia",
+            println("Call fd.formula() to view the results and fd.activatejulia",
                     "function() to activate the new Julia function(s).")
             return result
         end
@@ -805,8 +807,7 @@ function activatejuliafunction(external_dataq = false)
             count = 3
         end  # m = 1? no decimal formula
     else
-        print("No valid formula is for activation. Please run 'compute'",
-              " with different input again.")
+        print("No valid formula is for activation.")
         return
     end
 
@@ -829,7 +830,7 @@ function activatejuliafunction(external_dataq = false)
     eval(Meta.parse("f, x, i, h = sin, 0:0.01:10, 501, 0.01"))
 
     _printexampleresult(count == 1 ? "" : "e", exact)
-    if _julia_decimal_func_expr != ""
+    if count == 3
         _printexampleresult("e1", exact)
         _printexampleresult("d", exact)
     end
@@ -839,7 +840,7 @@ function activatejuliafunction(external_dataq = false)
 
     # 250, a sepcial value for communication w/ another 'activatejuliafunction'
     if !(external_dataq && _formula_status == 250)
-        println("\n\nCall formula() to view the very definition.")
+        println("\n\nCall fd.formula() to view the very definition.")
     end
     return
 end  # activatejuliafunction
