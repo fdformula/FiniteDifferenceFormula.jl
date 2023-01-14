@@ -222,7 +222,7 @@ end
 # of the linear combination is f^(n)(x[i]):
 #
 #  k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-#     = m*f^(n)(x[i]) + ..., m > 0, len = length(points)
+#     = m*f^(n)(x[i]) + ..., m > 0, len = length(points)     .............. (1)
 #
 # It is this equation that gives the formula for computing f^(n)(x[i]).
 #
@@ -247,7 +247,8 @@ end
 #
 # Output
 # ------
-# The function returns a tuple, ([k[1], k[2], ..., k[len]], m).
+# The function returns a tuple, (n, points, k[:], m]).
+# where, m, k? refer to eq (1); n, points? refer to _compute()
 #
 function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     global _lcombination_coefs
@@ -296,7 +297,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     #
     # Therefore, a linear system is detemined by the following equations
     #
-    #  k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0 ... (1)
+    #  k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0 ... (2)
     #
     # where j = 1, 2, ..., len but not n.
     #
@@ -314,7 +315,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
         row += 1
     end
 
-    # The homogeneous linear system (1) has no nontrivial solution or has
+    # The homogeneous linear system (2) has no nontrivial solution or has
     # inifinitely many nontrivial solutions. It is understandable that it may
     # not have a nontrivial solution. But why inifinitely many nontrivial
     # solutions? It is because, if k[:] is a nontrivial solution, α k[:] is
@@ -380,7 +381,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     if printformulaq; formula(); end
 
-    return (round.(BigInt, k), m)
+    return (n, points, round.(BigInt, k), m)
 end   # _compute
 
 # return a string of the linear combination
@@ -444,7 +445,7 @@ function _test_formula_validity()
 
     input_points = _range_inputq ? _range_input : points'
 
-    # Is there any equation in system (1) that is not satisfied?
+    # Is there any equation in system (2) that is not satisfied?
     has_solutionq = true
     global _formula_status = 0
     for i = 1 : n
@@ -493,6 +494,7 @@ function _test_formula_validity()
         else
             println("***** Error:: $n, $input_points :: can't find a formula.")
         end
+        _formula_status = -100
         return
     end
 
@@ -518,14 +520,24 @@ function _test_formula_validity()
         _formula_status = 100    # perfect
     end
 
+    # now, determine the big-O notation - what is x in O(h^x)?
+    x = length(_lcombination_coefs)
+    for i in n + 2 : x            # skip f^(n)(x[i])
+        if _lcombination_coefs[i] != 0; x = i; break; end
+    end
+    x -= n + 1
+    global _bigO = "O(h"
+    if x > 1; _bigO *= "^$x"; end
+    _bigO *= ")"
+
     return
 end  # _test_formula_validity
 
 function _denominator_expr(data::_FDData)
-    s  = data.m > 1 ? "($(data.m) * " : ""
+    s  = data.m != 1 ? "($(data.m) * " : ""
     s *= "h"
-    if data.n > 1; s *= "^$(data.n)"; end
-    if data.m > 1; s *= ")"; end
+    if data.n != 1; s *= "^$(data.n)"; end
+    if data.m != 1; s *= ")"; end
     return s
 end
 
@@ -599,22 +611,12 @@ function formula()
 
     # print Taylor series expansion of the linear combination:
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-    println("The computing result:\n")
+    println("Computing result:\n")
     print(_lcombination_expr(_data), " =\n")
     _print_taylor(_lcombination_coefs, 5);   # print at most 5 nonzero terms
 
     if _formula_status > 0
         println("The exact formula:\n")
-        # find x in the big-O notation O(h^x)
-        x = length(_lcombination_coefs)
-        for i in _data.n + 2 : x             # skip f^(n)(x[i])
-            if _lcombination_coefs[i] != 0; x = i; break; end
-        end
-        x -= _data.n + 1
-        _bigO = "O(h"
-        if x > 1; _bigO *= "^$x"; end
-        _bigO *= ")"
-
         _print_bigo_formula(_data, _bigO)
         data1 = _FDData
         if _data.m > 1                       # print in another format
@@ -646,13 +648,7 @@ function truncationerror()
     global _bigO, _computedq, _formula_status
     if _computedq
         if _bigO == ""; formula(); end
-
-        if _formula_status == -100
-            println("No valid formula is available. Please call ",
-                    "'compute' again.")
-        else
-            println(_bigO)
-        end
+        println(_formula_status == -100 ? "No valid formula is available." : _bigO)
     else
         println("Please call 'compute' first.")
     end
@@ -701,12 +697,69 @@ function _printexampleresult(suffix, exact)
     print("relative error = "); @printf("%.8f", relerr); println("%")
 end
 
+# if you have data from textbooks or other sources, you may use this function
+# to activate related Julia function(s).
+#
+# it seemed to be very useful when I tried to port this package to Python
+# (3.11.1, the newest version as of 1/13/2023). the effort failed in hours
+# becasue, I strongly believe, Python could not handle large number of points,
+# e.g.,
+#   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18,19]) .............. (3)
+# though it could handle
+#   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18])
+#
+# Julia's BigInt functionality is simply amazing.
+#
+# while Python's output for command (3) was so different, I wanted to load it
+# to some function here to evaluate, which is why this function is here.
+#
+function activatejuliafunction(n::Int, points, k, m::Int)
+    global _formula_status
+    if n <= 0
+        println("Invalid input: n = $n. An positive integer is expected.")
+        return
+    end
+
+    points = sort(unique(collect(points)))
+    len = length(points)
+    if len != length(k)
+        println("Error: The number of points ≠ the number of coefficients.");
+        return
+    end
+
+    # setup the coefficients of Taylor series expansions of f(x) at each of the
+    # involved points
+    max_num_of_terms = max(len, n) + 8
+    coefs = Array{Any}(undef, len)
+    for i in 1 : len
+        coefs[i] = _taylor_coefs(points[i], max_num_of_terms)
+    end
+
+    # Taylor series expansion of the linear combination
+    # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
+    global _lcombination_coefs = k[1] * coefs[1]  # let Julia determine the type
+    for i in 2 : len
+        if k[i] == 0; continue; end
+        _lcombination_coefs += k[i] * coefs[i]
+    end
+
+    global _data        = _FDData(n, points, k, m, coefs)
+    _test_formula_validity()
+    global _computedq   = true       # assume a formula has been computed
+
+    if _formula_status == 0          # even the data is incc=orrect, still do it
+        _formula_status = 20         # any value in (0, 100)
+    end
+
+    activatejuliafunction(true)
+end
+
 # activate function(s) for the newly computed finite difference formula,
 # allowing immediate evaluation of the formula in Julia REPL
-function activatejuliafunction()
+function activatejuliafunction(external_dataq = false)
     global _computedq, _formula_status, _data, _julia_func_basename
 
-    if !_computedq
+    if !external_dataq && !_computedq
         println("Please run 'compute' first.")
         return
     end
@@ -718,15 +771,15 @@ function activatejuliafunction()
     # generate Julia function for current REPL session
     if _formula_status > 0
         _julia_exact_func_expr = _julia_func_expr(_data, false, true)
-        if _data.m > 1           # print in other formats
+        if abs(_data.m) != 1           # print in other formats
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs)
             _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
             _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
-        end  # m = 1? No decimal formula
+        end  # m = 1? no decimal formula
     else
-        print("No valid formula is for activation. Please run 'compute' ",
-              "with different input again.")
+        print("No valid formula is for activation. Please run 'compute'",
+              " with different input again.")
         return
     end
 
@@ -736,7 +789,7 @@ function activatejuliafunction()
         eval(Meta.parse(_julia_func_basename * "d" * _julia_decimal_func_expr))
     end
 
-    println("The following function(s) are available temporiarily in the ",
+    println("The following function(s) are available temporarily in the ",
             "FiniteDifferenceFormula module. Usage:\n")
     println("  import FiniteDifferenceFormula as fd\n")
     println("  f, x, i, h = sin, 0:0.01:10, 501, 0.01")
@@ -756,8 +809,7 @@ function activatejuliafunction()
     print(" "^(len + 18) * "# cp:     ")
     @printf("%.16f", exact)
     println("\n\nCall fd.formula() to view the very definition.")
-
-    return  # stop Julia from returning something users never expect
+    return
 end  # activatejuliafunction
 
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
