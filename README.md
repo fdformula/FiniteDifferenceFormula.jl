@@ -136,8 +136,6 @@ is a valid, its truncation error in the big-O notation can be determined. For ex
 
 ```
 import FiniteDifferenceFormula as fd
-fd.activatejuliafunction(1, [-1, 1], [1//2 -1//2], -1)
-fd.truncationerror()
 fd.activatejuliafunction(2, [-1 0 2 3 6], [12 21 2 -3 -9], -12)
 fd.truncationerror()
 ``` 
