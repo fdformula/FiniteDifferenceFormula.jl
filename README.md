@@ -47,7 +47,7 @@ In Julia REPL, execute the following two commands in order.
 
 ```
             n: to find a formula for the n-th order derivative
-       points: it can be in the format of a range, start : stop, or a vector
+       points: in the format of a range, start : stop, or a vector
 printformulaq: print the computed formula or not
 ```
 
