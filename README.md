@@ -115,6 +115,11 @@ Call this function to activate the Julia function(s) for the newly computed fini
 difference formula. For example, after compute(1, -1:1), it activates the
 following Julia functions.
 
+### function activatejuliafunction(n::Int, points, k, m::Int)
+
+It allows users to load a formula from some source to test and see if it is correct. If it
+is a valid formula, its truncation error in the big-O notation can be determined.
+
 ```Julia
 f1stderiv2ptcentrale(f, x, i, h)  = ( -f(x[i-1]) + f(x[i+1]) ) / (2 * h)
 f1stderiv2ptcentrale1(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
