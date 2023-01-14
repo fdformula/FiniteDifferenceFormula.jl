@@ -130,7 +130,7 @@ session. E.g.,
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 ```
 Below is the output of activatejuliafunction(). It gives us the first chance to examine the usability
-of the computed formula.
+of the computed or tested formula.
 
 ```Julia
   import FiniteDifferenceFormula as fd
