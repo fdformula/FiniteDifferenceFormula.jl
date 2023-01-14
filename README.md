@@ -151,7 +151,7 @@ n and points.
 
 Here, n is the order of a derivative, points are a list, k is a list of the corresponding
 coefficients of a formula, and m is the coefficient of the term f^(n)(x[i]) in the linear
-combination of f(x[i+j]), where j ∈ points. In general, m is the coefficeint of h^n in the
+combination of f(x[i+j]), where j ∈ points. In general, m is the coefficient of h^n in the
 denominator of a formula. For example,
 
 ```
