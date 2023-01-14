@@ -123,7 +123,7 @@ f1stderiv2ptcentrald(f, x, i, h)  = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) )
 ```
 The suffixes 'e' and 'd' stand for 'exact' and 'decimal', respectively. No suffix? It is "exact".
 
-After activating the function(s), you can evaluate right away in the present Julia REPL
+After activating the function(s), we can evaluate right away in the present Julia REPL
 session. E.g.,
 
 ```Julia
