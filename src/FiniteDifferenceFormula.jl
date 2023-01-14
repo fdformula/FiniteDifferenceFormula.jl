@@ -49,7 +49,7 @@ _julia_func_basename         = ""
 _bigO                        = ""         # truncation error of a formula
 _bigO_exp                    = -1         # the value of n as in O(h^n)
 
-# for coders of this package:
+# for future coders/maintainers of this package:
 # to compute a new formula, this function must be called first.
 function _initialization()
     global _data                    = nothing
