@@ -129,6 +129,18 @@ session. E.g.,
 ```Julia
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 ```
+Below is the output of activatejuliafunction(). It gives us the first chance to examine the usability
+of the coimputed formula.
+
+```Julia
+  import FiniteDifferenceFormula as fd
+
+  f, x, i, h = sin, 0:0.01:10, 501, 0.01
+  fd.f1stderiv2ptcentrale(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
+  fd.f1stderiv2ptcentrale1(f, x, i, h)  # result: 0.2836574577837647, relative error = 0.00166666%
+  fd.f1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
+                                        # cp:     0.2836621854632262
+```
 
 ### function activatejuliafunction(n::Int, points, k, m::Int)
 
