@@ -45,6 +45,7 @@ _julia_decimal_func_expr     = ""         # decimal Julia function for f^(n)(x[i
 _julia_func_basename         = ""
 
 _bigO                        = ""         # truncation error of a formula
+_bigO_exp                    = -1         # the value of n as in O(h^n)
 
 # This function returns the first 'max_num_of_terms' terms of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed.
@@ -381,7 +382,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     if printformulaq; formula(); end
 
-    return (n, points, round.(BigInt, k), m)
+    return _formula_status >= 0 ? (n, points, round.(BigInt, k), m) : nothing
 end   # _compute
 
 # return a string of the linear combination
@@ -421,6 +422,7 @@ end  # _lcombination_expr
 #  100 - Perfect, even satifiying some commonly seen "rules", such as the sum of
 #        coefficients = 0, symmetry of cofficients about x[i] in a central formula
 # -100 - No formula can't be found
+# -200 - Same as -100, and don't even try to find a formula for users' input
 # > 0  - Mathematically, the formula is still valid but may not satisfy some
 #        commonly seen "rules" such as the sum of coefficients = 0 and symmetry
 #        of coefficients about x[i]
@@ -462,8 +464,6 @@ function _test_formula_validity()
         m = _lcombination_coefs[n + 1]
         if m == 0
             println("-" ^ 81)
-            println("\n***** Error:: $n, $input_points :: m = 0, ",
-                    "formula can't be found.")
             has_solutionq = false
         end
     end
@@ -474,11 +474,13 @@ function _test_formula_validity()
         start, stop = 1, len    # actual left and right endpoints
         while start <= len && k[start] == 0; start += 1; end
         while stop >= 1 && k[stop] == 0; stop -= 1; end
-        if start >= stop
-            has_solutionq = false
-        elseif start > 1 || stop < len
-            s = _range_inputq ? (points[start] : points[stop]) : points[start : stop]
-            println("***** Error:: $n, $input_points :: can't find a formula.\n")
+        #if start >= stop  # can't be true bc m != 0
+        #    has_solutionq = false
+        #    # what's the error?
+        #else
+        if start > 1 || stop < len
+            s = _range_inputq ?
+                (points[start] : points[stop]) : points[start : stop]
             println("***** Warning:: $n, $s might be your input for which a ",
                     "formula is found.\n")
             formula_for_inputq = false
@@ -491,9 +493,10 @@ function _test_formula_validity()
             println("***** Error:: $n, $input_points :: Invalid input because",
                     " at least $(n + 1) points are needed for the $n$th ",
                     "derivative.\n")
-        else
-            println("***** Error:: $n, $input_points :: can't find a formula.")
+            _formula_status = -200
+            return
         end
+        println("\n***** Error:: $n, $input_points :: can't find a formula.\n")
         _formula_status = -100
         return
     end
@@ -529,6 +532,7 @@ function _test_formula_validity()
     global _bigO = "O(h"
     if x > 1; _bigO *= "^$x"; end
     _bigO *= ")"
+    global _bigO_exp = x
 
     return
 end  # _test_formula_validity
@@ -628,7 +632,8 @@ function formula()
 
         println("Julia function:\n")
         global _julia_exact_func_expr = _julia_func_expr(_data)
-        print(_julia_func_basename, "e", _julia_exact_func_expr, "\n\n")
+        print(_julia_func_basename, _data.m > 1 ? "e" : "",
+              _julia_exact_func_expr, "\n\n")
         if _data.m > 1                       # other formats
             global _julia_exact_func_expr1  = _julia_func_expr(data1)
             print("Or\n\n", _julia_func_basename, "e1",
@@ -636,23 +641,31 @@ function formula()
             global _julia_decimal_func_expr = _julia_func_expr(data1, true)
             print(_julia_func_basename, "d", _julia_decimal_func_expr, "\n\n")
         end  # m = 1? No decimal formula
-    else
-        _formula_status = -100               # no formula can't be generated
+    #else
+    #    _formula_status = -100              # no formula can't be generated
     end
 
     return
 end  # formula
 
 # print _bigO, the estimation of trucation error in the big-O notation
+#
+# output:
+#    -1 - There is no valid formula
+#     n - The value of n as in O(h^n)
 function truncationerror()
-    global _bigO, _computedq, _formula_status
+    global _bigO, _bigO_exp, _computedq, _formula_status
     if _computedq
-        if _bigO == ""; formula(); end
-        println(_formula_status == -100 ? "No valid formula is available." : _bigO)
-    else
-        println("Please call 'compute' first.")
+        if _formula_status <= -100
+            println("No valid formula is available.")
+            return -1
+        else
+            println(_bigO)
+            return _bigO_exp
+        end
     end
-    return
+    println("Please call 'compute' first.")
+    return -1
 end
 
 ######################## for teaching/learning/exploring #######################
@@ -745,13 +758,25 @@ function activatejuliafunction(n::Int, points, k, m::Int)
 
     global _data        = _FDData(n, points, k, m, coefs)
     _test_formula_validity()
-    global _computedq   = true       # assume a formula has been computed
 
-    if _formula_status == 0          # even the data is incc=orrect, still do it
-        _formula_status = 20         # any value in (0, 100)
+    let_me_find_one = _formula_status == -100
+    if let_me_find_one               # the input can't be a formula, but still
+        # 250, a sepcial value for communication w/ another 'activatejuliafunction'
+        _formula_status = 250        # activate Julia function; any value in 10:99
     end
-
+    global _computedq   = true       # assume a formula has been computed
     activatejuliafunction(true)
+
+    if let_me_find_one               # use the basic input to generate a formula
+        println("\n\nFinding a formula using the points....")
+        result = _compute(n, points)
+        if _formula_status >= 0
+            println("Call formula() to view the results and activatejulia",
+                    "function() to activate the new Julia function(s).")
+            return result
+        end
+    end
+    return
 end
 
 # activate function(s) for the newly computed finite difference formula,
@@ -769,6 +794,7 @@ function activatejuliafunction(external_dataq = false)
     global _julia_decimal_func_expr = ""
 
     # generate Julia function for current REPL session
+    count = 1
     if _formula_status > 0
         _julia_exact_func_expr = _julia_func_expr(_data, false, true)
         if abs(_data.m) != 1           # print in other formats
@@ -776,6 +802,7 @@ function activatejuliafunction(external_dataq = false)
                             _data.coefs)
             _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
             _julia_decimal_func_expr = _julia_func_expr(data1, true, true)
+            count = 3
         end  # m = 1? no decimal formula
     else
         print("No valid formula is for activation. Please run 'compute'",
@@ -783,14 +810,15 @@ function activatejuliafunction(external_dataq = false)
         return
     end
 
-    eval(Meta.parse(_julia_func_basename * "e" * _julia_exact_func_expr))
-    if _julia_decimal_func_expr != ""
+    eval(Meta.parse(_julia_func_basename * (count == 1 ? "" : "e")
+                    * _julia_exact_func_expr))
+    if count == 3
         eval(Meta.parse(_julia_func_basename * "e1" * _julia_exact_func_expr1))
         eval(Meta.parse(_julia_func_basename * "d" * _julia_decimal_func_expr))
     end
 
-    println("The following function(s) are available temporarily in the ",
-            "FiniteDifferenceFormula module. Usage:\n")
+    println("The following function$(count == 3 ? "s are" : " is") available ",
+            "temporarily in the FiniteDifferenceFormula module. Usage:\n")
     println("  import FiniteDifferenceFormula as fd\n")
     println("  f, x, i, h = sin, 0:0.01:10, 501, 0.01")
 
@@ -800,7 +828,7 @@ function activatejuliafunction(external_dataq = false)
     exact = sin(_data.n * pi /2 + 5) # x[501] = 5
     eval(Meta.parse("f, x, i, h = sin, 0:0.01:10, 501, 0.01"))
 
-    _printexampleresult("e", exact)
+    _printexampleresult(count == 1 ? "" : "e", exact)
     if _julia_decimal_func_expr != ""
         _printexampleresult("e1", exact)
         _printexampleresult("d", exact)
@@ -808,7 +836,11 @@ function activatejuliafunction(external_dataq = false)
     len = length("fd.$(_julia_func_basename)")
     print(" "^(len + 18) * "# cp:     ")
     @printf("%.16f", exact)
-    println("\n\nCall fd.formula() to view the very definition.")
+
+    # 250, a sepcial value for communication w/ another 'activatejuliafunction'
+    if !(external_dataq && _formula_status == 250)
+        println("\n\nCall formula() to view the very definition.")
+    end
     return
 end  # activatejuliafunction
 
