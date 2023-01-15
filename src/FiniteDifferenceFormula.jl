@@ -478,8 +478,7 @@ function _test_formula_validity()
     has_solutionq = true
     global _formula_status = 0
     for i = 1 : n
-        # usually 0; for activatejuliafunction to take users' input
-        if _lcombination_coefs[i] > eps()
+        if _lcombination_coefs[i] != 0
             println("***** Error: $n, $input_points : i = $i, k[1]*coefs[1][$i]",
                     " + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
             has_solutionq = false
@@ -827,14 +826,14 @@ function activatejuliafunction(n, points, k, m)
             k = round.(BigInt, k)
         end
     end
-
+    dashline = "-" ^ 105
     if rewrittenq
         # print k[:] nicely
         ks = "[$(k[1])"
         for i in 2 : len; ks *= ", $(k[i])"; end
         ks *= "]"
-        println("-"^105, "\nYour input is converted to ($n, $input_points, ",
-                "$ks, $m).\n", "-"^105)
+        println(dashline, "\nYour input is converted to ($n, $input_points, ",
+                "$ks, $m).\n", dashline)
     end
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
@@ -854,16 +853,9 @@ function activatejuliafunction(n, points, k, m)
     end
 
     global _data = _FDData(n, points, k, m, coefs)
-    M = _test_formula_validity()
-
     global _formula_status
+    M = _test_formula_validity()
     find_oneq = _formula_status == -100
-    if find_oneq                   # the input can't be a formula, but still
-        _formula_status = 250      # force to activate Julia function
-        # 250, reserved for communication w/ another 'activatejuliafunction'
-    end
-    global _computedq   = true     # assume a formula has been computed
-    activatejuliafunction(true)
 
     # the coefficients k[:] is correct, but k is not
     if _formula_status == 100 && M != m
@@ -874,13 +866,20 @@ function activatejuliafunction(n, points, k, m)
         elseif typeof(M) == Rational{Int} || typeof(M) == Rational{BigInt}
             ms = "$(M.num)/$(M.den)"
         end
-        println("\nWarning: The last argument m = $m is incorrect. ",
-                "It should be $ms.")
+        println("***** Error: The last argument m = $m is incorrect. ",
+                "It should be $ms.\n")
         find_oneq = true
     end
 
+    if find_oneq                   # the input can't be a formula, but still
+        _formula_status = 250      # force to activate Julia function
+        # 250, reserved for communication w/ another 'activatejuliafunction'
+    end
+    global _computedq   = true     # assume a formula has been computed
+    activatejuliafunction(true)
+
     if find_oneq                   # use the basic input to generate a formula
-        println("-"^105, "\nFinding a formula using the points....")
+        println(dashline, "\nFinding a formula using the points....")
         result = _compute(n, points)
         if _formula_status >= 0
             println("Call fd.formula() to view the results and fd.activatejulia",
