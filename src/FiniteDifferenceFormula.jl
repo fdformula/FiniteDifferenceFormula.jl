@@ -764,6 +764,7 @@ function activatejuliafunction(n, points, k, m)
                 "expected.")
         return
     end
+    n = round(Int, n)  # 4.0 --> 4
     for i in points
         if !(typeof(i)  in [Int, BigInt])
             println("Error: invalid input, $points. Integers are expected.")
@@ -776,9 +777,8 @@ function activatejuliafunction(n, points, k, m)
     oldlen = length(points)
     points = sort(unique(collect(points)))
     len = length(points)
-    if oldlen != len
-        println("Your input points are actually $points.")
-    end
+    rewrittenq = false
+    if oldlen != len; rewrittenq = true; end
     # don't do so for teaching
     #if n <= len
     #    println("Error: at least $(n+1) points are needed for the $(_nth(n))",
@@ -792,6 +792,7 @@ function activatejuliafunction(n, points, k, m)
 
     global _range_input, _range_inputq
     # for nice/readable output
+    input_points = points
     if len == length(points[1] : points[end])
         _range_input  = points[1] : points[end]
         _range_inputq = true
@@ -799,28 +800,30 @@ function activatejuliafunction(n, points, k, m)
     end
 
     # "normalize" input so that m > 0, and m is integer
-    rewrittenq = false
     global _factor_for_user_input = 1
     if m < 0; k *= -1; m *= -1; rewrittenq = true; end
-    if !isinteger(m) && !(typeof(m) in [Rational{Int}, Rational{BigInt}])
-        # 8.3 should be 83/10 while Rational(8.3) in Julia 1.8.x gives
-        # 2336242306698445//281474976710656, not so readable to users
-        #
-        # Julia 1.8.x: isinteger(83.0) is true. It's equivalent to, say,
-        # function isinteger(x); return round(BigInt, x) == x; end
-        denominator = 1
-        while !isinteger(m)
-            m           *= 10
-            denominator *= 10
+    if isinteger(m)
+        m = round(Int, m)  # 5.0 --> 5
+    else
+        if typeof(m) in [Rational{Int}, Rational{BigInt}]
+            k                      *= m.den
+            _factor_for_user_input *= m.den
+            m                       = m.num
+        else
+            # 8.3 should be 83/10 while Rational(8.3) in Julia 1.8.x gives
+            # 2336242306698445//281474976710656, not so readable to users
+            #
+            # Julia 1.8.x: isinteger(83.0) is true. It's equivalent to, say,
+            # function isinteger(x); return round(BigInt, x) == x; end
+            denominator = 1
+            while !isinteger(m)
+                m           *= 10
+                denominator *= 10
+            end
+            m                       = round(Int, m)
+            k                      *= denominator
+            _factor_for_user_input *= denominator
         end
-        m                       = round(Int, m)
-        k                      *= denominator
-        _factor_for_user_input *= denominator
-        rewrittenq              = true
-    end
-    if typeof(m) in [Rational{Int}, Rational{BigInt}]
-        k         *= m.den
-        m          = m.num
         rewrittenq = true
     end
     if m == 0
@@ -835,8 +838,9 @@ function activatejuliafunction(n, points, k, m)
     if !(typeof(k[1]) in [Int, BigInt])
         if typeof(k[1]) in [Rational{Int}, Rational{BigInt}]
             for i in 1 : len
-                factor *= k[i].den 
-                k      *= k[i].den 
+                if k[i].den == 1; continue; end
+                factor *= k[i].den
+                k      *= k[i].den
             end
             k = round.(BigInt, k)
         else
@@ -847,7 +851,7 @@ function activatejuliafunction(n, points, k, m)
                     kcopy[i : end] *= 10
                 end
             end
-            k = map(x -> round(BigInt, x * factor), k)
+            k = round.(BigInt, factor * k)
         end
         m *= factor
         _factor_for_user_input *= factor
@@ -859,7 +863,7 @@ function activatejuliafunction(n, points, k, m)
         ks = "[$(k[1])"
         for i in 2 : len; ks *= ", $(k[i])"; end
         ks *= "]"
-        println("Your input is actually ($n, $input_points, $ks, $m).\n")
+        println("Your input is converted to ($n, $input_points, $ks, $m).\n")
     end
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
