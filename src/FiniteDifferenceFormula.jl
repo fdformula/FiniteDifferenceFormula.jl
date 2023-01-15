@@ -555,7 +555,13 @@ function _test_formula_validity()
 end  # _test_formula_validity
 
 function _denominator_expr(data::_FDData)
-    s  = data.m != 1 ? "($(data.m) * " : ""
+    ms = ""
+    if typeof(data.m) == Rational{Int} || typeof(data.m) == Rational{BigInt}
+        ms = "$((data.m).num)/$((data.m).den)"
+    else
+        ms = "$(data.m)"
+    end
+    s  = data.m != 1 ? "($ms * " : ""
     s *= "h"
     if data.n != 1; s *= "^$(data.n)"; end
     if data.m != 1; s *= ")"; end
@@ -639,7 +645,7 @@ function formula()
         println("The exact formula:\n")
         _print_bigo_formula(_data, _bigO)
         data1 = _FDData
-        if _data.m > 1                       # print in another format
+        if abs(_data.m) != 1                 # print in another format
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs)
             print("Or\n\n")
@@ -648,15 +654,15 @@ function formula()
 
         println("Julia function:\n")
         global _julia_exact_func_expr = _julia_func_expr(_data)
-        print(_julia_func_basename, _data.m > 1 ? "e" : "",
+        print(_julia_func_basename, abs(_data.m) != 1 ? "e" : "",
               _julia_exact_func_expr, "\n\n")
-        if _data.m > 1                       # other formats
+        if abs(_data.m) != 1                 # other formats
             global _julia_exact_func_expr1  = _julia_func_expr(data1)
             print("Or\n\n", _julia_func_basename, "e1",
                   _julia_exact_func_expr1, "\n\nOr\n\n")
             global _julia_decimal_func_expr = _julia_func_expr(data1, true)
             print(_julia_func_basename, "d", _julia_decimal_func_expr, "\n\n")
-        end  # m = 1? No decimal formula
+        end
     #else
     #    _formula_status = -100              # no formula can't be generated
     end
@@ -742,7 +748,7 @@ end
 # while Python's output for command (3) was so different, I wanted to load it
 # to some function here to evaluate, which is why this function is here.
 #
-function activatejuliafunction(n::Int, points, k, m::Int)
+function activatejuliafunction(n::Int, points, k, m)
     if n <= 0
         println("Invalid input: n = $n. An positive integer is expected.")
         return
@@ -793,9 +799,14 @@ function activatejuliafunction(n::Int, points, k, m::Int)
     # the coefficients k[:] is correct, but k is not
     if _formula_status == 100 && M != m
         x = round(BigInt, M)
-        if M == x; M = x; end      # don't print 5//1
+        ms = "$M"
+        if M == x
+            ms = "$x"              # don't print 5//1
+        elseif typeof(M) == Rational{Int} || typeof(M) == Rational{BigInt}
+            ms = "$(M.num)/$(M.den)"
+        end
         println("\nWarning:: The last argument m = $m is incorrect. ",
-                "It should be $M).")
+                "It should be $ms).")
     end
 
     if find_oneq                   # use the basic input to generate a formula
