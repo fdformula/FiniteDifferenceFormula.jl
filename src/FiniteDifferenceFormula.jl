@@ -400,7 +400,11 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     if printformulaq; formula(); end
 
-    return _formula_status >= 0 ? (n, points, round.(BigInt, k), m) : nothing
+    if _formula_status >= 0
+        return (n, _range_inputq ? _range_input : points, round.(BigInt, k), m)
+    else
+        return nothing
+    end
 end   # _compute
 
 # return a string of the linear combination
@@ -445,6 +449,7 @@ end  # _lcombination_expr
 #        commonly seen "rules" such as the sum of coefficients = 0 and symmetry
 #        of coefficients about x[i]
 #
+# return m as in equation (1) for 'activatejuliafunction'
 function _test_formula_validity()
     # to find f^(n)(x[i]) by obtaining
     #
@@ -477,14 +482,8 @@ function _test_formula_validity()
         end
     end
 
-    # Is m = 0 ?
-    if has_solutionq
-        m = _lcombination_coefs[n + 1]
-        if m == 0
-            println("-" ^ 81)
-            has_solutionq = false
-        end
-    end
+    m = _lcombination_coefs[n + 1]
+    if m == 0; has_solutionq = false; end
 
     # there could be a solution that doesn't use the whole range of input (points)
     formula_for_inputq = true
@@ -512,11 +511,11 @@ function _test_formula_validity()
                     " at least $(n + 1) points are needed for the $n$th ",
                     "derivative.\n")
             _formula_status = -100
-            return
+            return m
         end
         println("\n***** Error:: $n, $input_points :: can't find a formula.\n")
         _formula_status = -100
-        return
+        return m
     end
 
     if sum(k) != 0   # sum of coefficients must be 0
@@ -552,7 +551,7 @@ function _test_formula_validity()
     _bigO *= ")"
     global _bigO_exp = x
 
-    return
+    return m
 end  # _test_formula_validity
 
 function _denominator_expr(data::_FDData)
@@ -617,7 +616,6 @@ function formula()
     end
 
     if _formula_status > 0
-        println("-" ^ 80)
         print("The following formula ")
         if _formula_status == 100
             print("passed all tests: sum of coefs being zero")
@@ -758,6 +756,12 @@ function activatejuliafunction(n::Int, points, k, m::Int)
         return
     end
 
+    global _range_input, _range_inputq
+    if length(points) == length(points[1] : points[end])
+        _range_inputq = true
+        _range_input  = points[1] : points[end]
+    end
+
     # setup the coefficients of Taylor series expansions of f(x) at each of the
     # involved points
     max_num_of_terms = max(len, n) + 8
@@ -775,7 +779,7 @@ function activatejuliafunction(n::Int, points, k, m::Int)
     end
 
     global _data        = _FDData(n, points, k, m, coefs)
-    _test_formula_validity()
+    M = _test_formula_validity()
 
     global _formula_status
     find_oneq = _formula_status == -100
@@ -785,6 +789,14 @@ function activatejuliafunction(n::Int, points, k, m::Int)
     end
     global _computedq   = true     # assume a formula has been computed
     activatejuliafunction(true)
+
+    # the coefficients k[:] is correct, but k is not
+    if _formula_status == 100 && M != m
+        x = round(BigInt, M)
+        if M == x; M = x; end      # don't print 5//1
+        println("\nWarning:: The last argument m = $m is incorrect. ",
+                "It should be $M).")
+    end
 
     if find_oneq                   # use the basic input to generate a formula
         println("\n\nFinding a formula using the points....")
@@ -796,7 +808,7 @@ function activatejuliafunction(n::Int, points, k, m::Int)
         end
     end
     return
-end
+end  # activatejuliafunction
 
 # activate function(s) for the newly computed finite difference formula,
 # allowing immediate evaluation of the formula in Julia REPL
