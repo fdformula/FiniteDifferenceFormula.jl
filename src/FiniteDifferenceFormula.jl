@@ -49,9 +49,6 @@ _julia_func_basename           = ""
 _bigO                          = ""       # truncation error of a formula
 _bigO_exp                      = -1       # the value of n as in O(h^n)
 
-_factor_for_user_input::BigInt = 1        # for "normalizing" users' input in
-                                          # activatejuliafunction(n, points, k, m)
-
 # for future coders/maintainers of this package:
 # to compute a new formula, this function must be called first.
 function _initialization()
@@ -70,8 +67,6 @@ function _initialization()
 
     global _bigO                    = ""
     global _bigO_exp                = -1
-
-    global _factor_for_user_input   = 1
 end
 
 # This function returns the first 'max_num_of_terms' terms of Taylor series of
@@ -470,7 +465,6 @@ function _test_formula_validity()
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0
     # where j = 1:n
     global _data, _lcombination_coefs, _range_inputq, _range_input
-    global _factor_for_user_input
 
     n = _data.n
     k = _data.k
@@ -484,9 +478,8 @@ function _test_formula_validity()
     has_solutionq = true
     global _formula_status = 0
     for i = 1 : n
-        if (_factor_for_user_input == 1 && _lcombination_coefs[i] != 0) ||
-            (_factor_for_user_input > 1 && abs(_lcombination_coefs[i] /
-                                               _factor_for_user_input) > eps())
+        # usually 0; for activatejuliafunction to take users' input
+        if _lcombination_coefs[i] > eps()
             println("***** Error: $n, $input_points : i = $i, k[1]*coefs[1][$i]",
                     " + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
             has_solutionq = false
@@ -577,7 +570,7 @@ function _denominator_expr(data::_FDData)
     if data.n != 1; s *= "^$(data.n)"; end
     if data.m != 1; s *= ")"; end
     return s
-end
+end  # _denominator_expr
 
 # print and return the function for the newly computed finite difference formula
 function _julia_func_expr(data::_FDData, decimalq = false, julia_REPL_funcq = false)
@@ -800,30 +793,15 @@ function activatejuliafunction(n, points, k, m)
     end
 
     # "normalize" input so that m > 0, and m is integer
-    global _factor_for_user_input = 1
     if m < 0; k *= -1; m *= -1; rewrittenq = true; end
     if isinteger(m)
         m = round(Int, m)  # 5.0 --> 5
     else
-        if typeof(m) in [Rational{Int}, Rational{BigInt}]
-            k                      *= m.den
-            _factor_for_user_input *= m.den
-            m                       = m.num
-        else
-            # 8.3 should be 83/10 while Rational(8.3) in Julia 1.8.x gives
-            # 2336242306698445//281474976710656, not so readable to users
-            #
-            # Julia 1.8.x: isinteger(83.0) is true. It's equivalent to, say,
-            # function isinteger(x); return round(BigInt, x) == x; end
-            denominator = 1
-            while !isinteger(m)
-                m           *= 10
-                denominator *= 10
-            end
-            m                       = round(Int, m)
-            k                      *= denominator
-            _factor_for_user_input *= denominator
+        if !(typeof(m) in [Rational{Int}, Rational{BigInt}])
+            m = rationalize(convert(Float64, m))
         end
+        k         *= m.den
+        m          = m.num
         rewrittenq = true
     end
     if m == 0
@@ -833,37 +811,30 @@ function activatejuliafunction(n, points, k, m)
         return
     end
 
+    if !(typeof(k[1]) in [Int, BigInt, Rational{Int}, Rational{BigInt}])
+        k = rationalize.(convert.(Float64, k))
+    end
+
     # "normalize" k[:] so that each element is integer
-    factor::BigInt = 1
     if !(typeof(k[1]) in [Int, BigInt])
         if typeof(k[1]) in [Rational{Int}, Rational{BigInt}]
             for i in 1 : len
                 if k[i].den == 1; continue; end
-                factor *= k[i].den
-                k      *= k[i].den
+                m         *= k[i].den
+                k         *= k[i].den
+                rewrittenq = true
             end
             k = round.(BigInt, k)
-        else
-            kcopy = copy(k)
-            for i in 1 : len
-                while !isinteger(kcopy[i])
-                    factor         *= 10
-                    kcopy[i : end] *= 10
-                end
-            end
-            k = round.(BigInt, factor * k)
         end
-        m *= factor
-        _factor_for_user_input *= factor
     end
-    rewrittenq = rewrittenq || factor != 1
 
     if rewrittenq
         # print k[:] nicely
         ks = "[$(k[1])"
         for i in 2 : len; ks *= ", $(k[i])"; end
         ks *= "]"
-        println("Your input is converted to ($n, $input_points, $ks, $m).\n")
+        println("-"^105, "\nYour input is converted to ($n, $input_points, ",
+                "$ks, $m).\n", "-"^105)
     end
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
@@ -909,7 +880,7 @@ function activatejuliafunction(n, points, k, m)
     end
 
     if find_oneq                   # use the basic input to generate a formula
-        println("\nFinding a formula using the points....")
+        println("-"^105, "\nFinding a formula using the points....")
         result = _compute(n, points)
         if _formula_status >= 0
             println("Call fd.formula() to view the results and fd.activatejulia",
@@ -973,11 +944,11 @@ function activatejuliafunction(external_dataq = false)
     len = length("fd.$(_julia_func_basename)")
     if count == 3; len += 1; end
     print(" "^(len + 17) * "# cp:     ")
-    @printf("%.16f", exact)
+    @printf("%.16f\n", exact)
 
     # 250, a sepcial value for communication w/ another 'activatejuliafunction'
     if !(external_dataq && _formula_status == 250)
-        println("\n\nCall fd.formula() to view the very definition.")
+        println("\nCall fd.formula() to view the very definition.")
     end
     return
 end  # activatejuliafunction
