@@ -12,7 +12,7 @@ module FiniteDifferenceFormula
 
 # Warning: users should not call/access a function/variable starting with "_" !
 
-export compute, formula, truncationerror
+export compute, formula, truncationerror, verifyformula
 
 # for teaching/learning/exploring
 export decimalplaces, activatejuliafunction, taylor, printtaylor
@@ -734,6 +734,12 @@ function _printexampleresult(suffix, exact)
     print("relative error = "); @printf("%.8f", relerr); println("%")
 end
 
+# the name is self-explanatory. it is exactly the same as the function
+# activatejuliafunction(n, points, k, m)
+function verifyformula(n, points, k, m)
+    return activatejuliafunction(n, points, k, m)
+end
+
 # if you have data from textbooks or other sources, you may use this function
 # to activate related Julia function(s).
 #
@@ -810,21 +816,18 @@ function activatejuliafunction(n, points, k, m)
         return
     end
 
+    # "normalize" k[:] so that each element is integer
     if !(typeof(k[1]) in [Int, BigInt, Rational{Int}, Rational{BigInt}])
         k = rationalize.(convert.(Float64, k))
     end
-
-    # "normalize" k[:] so that each element is integer
-    if !(typeof(k[1]) in [Int, BigInt])
-        if typeof(k[1]) in [Rational{Int}, Rational{BigInt}]
-            for i in 1 : len
-                if k[i].den == 1; continue; end
-                m         *= k[i].den
-                k         *= k[i].den
-                rewrittenq = true
-            end
-            k = round.(BigInt, k)
+    if typeof(k[1]) in [Rational{Int64}, Rational{BigInt}]
+        for i in 1 : len
+            if k[i].den == 1; continue; end
+            m         *= k[i].den
+            k         *= k[i].den
+            rewrittenq = true
         end
+        k = round.(BigInt, k)
     end
     dashline = "-" ^ 105
     if rewrittenq
