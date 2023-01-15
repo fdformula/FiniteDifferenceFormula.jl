@@ -29,25 +29,28 @@ mutable struct _FDData
     n; points; k; m; coefs                # interesting. must be separated by ;
 end
 
-_data                        = _FDData    # share results between functions
-_computedq::Bool             = false      # make sure compute is called first
-_formula_status              = 0          # a formula may not be available
+_data                          = _FDData  # share results between functions
+_computedq::Bool               = false    # make sure compute is called first
+_formula_status                = 0        # a formula may not be available
                                           # values? see _test_formula_validity()
 
 # a vector of the coefficients of Taylor series expansion of the linear combination:
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-_lcombination_coefs          = Array{Any}
+_lcombination_coefs            = Array{Any}
 
-_range_inputq                = false
-_range_input::UnitRange{Int} = 0:0        # compute receives a range? save it
+_range_inputq                  = false
+_range_input::UnitRange{Int}   = 0:0      # compute receives a range? save it
 
-_julia_exact_func_expr       = ""         # 1st exact Julia function for f^(n)(x[i])
-_julia_exact_func_expr1      = ""         # 2nd exact Julia function for f^(n)(x[i])
-_julia_decimal_func_expr     = ""         # decimal Julia function for f^(n)(x[i])
-_julia_func_basename         = ""
+_julia_exact_func_expr         = ""       # 1st exact Julia function for f^(n)(x[i])
+_julia_exact_func_expr1        = ""       # 2nd exact Julia function for f^(n)(x[i])
+_julia_decimal_func_expr       = ""       # decimal Julia function for f^(n)(x[i])
+_julia_func_basename           = ""
 
-_bigO                        = ""         # truncation error of a formula
-_bigO_exp                    = -1         # the value of n as in O(h^n)
+_bigO                          = ""       # truncation error of a formula
+_bigO_exp                      = -1       # the value of n as in O(h^n)
+
+_factor_for_user_input::BigInt = 1        # for "normalizing" users' input in
+                                          # activatejuliafunction(n, points, k, m)
 
 # for future coders/maintainers of this package:
 # to compute a new formula, this function must be called first.
@@ -67,6 +70,8 @@ function _initialization()
 
     global _bigO                    = ""
     global _bigO_exp                = -1
+
+    global _factor_for_user_input   = 1
 end
 
 # This function returns the first 'max_num_of_terms' terms of Taylor series of
@@ -159,7 +164,8 @@ end  # _print_taylor
 
 function compute(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
     if n < 1
-        println("Wrong order of derivatives :: $n. It must be a positive integer.")
+        println("Error: order of derivatives, $n. A positive integer ",
+                "is expected.")
         return
     end
 
@@ -172,11 +178,8 @@ end
 # compute(2, [1 2 3 -1])
 function compute(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
     if n < 1
-        println("Wrong order of derivatives :: $n. It must be a positive integer.")
-        return
-    end
-    if length(points) <= 1
-        println("Invalid input :: $points - more points are needed.")
+        println("Error: order of derivatives, $n. A positive integer ",
+                "is expected.")
         return
     end
 
@@ -184,9 +187,9 @@ function compute(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
     m, = size(points)
     if m > 1 points = points'; end      # a column vector
     points = sort(unique(points))
-    if length(points) == 1
-         println("Invalid input :: points = $(points')")
-         return
+    if length(points) <= 1
+        println("Error: Invalid input, $points - more points are needed.")
+        return
     end
 
     # is the input 'points' actually a range?
@@ -280,9 +283,8 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # global _range_inputq, _range_input
     # if length(points) <= n
     #     pts = _range_inputq ? "$(_range_input)" : "$(points')"
-    #     th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
     #     println("$pts is invalid because at least $(n + 1) points are ",
-    #             "needed for the $n$th derivative.")
+    #             "needed for the $(_nth(n)) derivative.")
     #     return
     # end
 
@@ -390,7 +392,8 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # "normalize" k[:] and m so that m is a positive integer
     if m < 0; k *= -1; _lcombination_coefs *= -1; end
     m = _lcombination_coefs[n + 1]
-    m = BigInt(m)                        # already integer; don't show like 5//1
+    x = round(BigInt, m)
+    if x == m; m = x; end                  # already integer; don't show like 5//1
 
     # save the results in a global variable for other functions
     global _data = _FDData(n, points, k, m, coefs)
@@ -439,6 +442,12 @@ function _lcombination_expr(data::_FDData, decimalq = false, julia_REPL_funcq = 
     return s
 end  # _lcombination_expr
 
+# return string of 1st, 2nd, 3rd, 4th ...
+function _nth(n)
+    th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
+    return "$n$th"
+end
+
 # check if the newly computed formula is valid. results are saved in the global
 # variable _formula_status:
 #  100 - Perfect, even satifiying some commonly seen "rules", such as the sum of
@@ -461,6 +470,7 @@ function _test_formula_validity()
     #    k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0
     # where j = 1:n
     global _data, _lcombination_coefs, _range_inputq, _range_input
+    global _factor_for_user_input
 
     n = _data.n
     k = _data.k
@@ -474,8 +484,10 @@ function _test_formula_validity()
     has_solutionq = true
     global _formula_status = 0
     for i = 1 : n
-        if _lcombination_coefs[i] != 0
-            println("***** Error:: $n, $input_points :: i = $i, k[1]*coefs[1][$i]",
+        if (_factor_for_user_input == 1 && _lcombination_coefs[i] != 0) ||
+            (_factor_for_user_input > 1 && abs(_lcombination_coefs[i] /
+                                               _factor_for_user_input) > eps())
+            println("***** Error: $n, $input_points : i = $i, k[1]*coefs[1][$i]",
                     " + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
             has_solutionq = false
             break
@@ -498,7 +510,7 @@ function _test_formula_validity()
         if start > 1 || stop < len
             s = _range_inputq ?
                 (points[start] : points[stop]) : points[start : stop]
-            println("***** Warning:: $n, $s might be your input for which a ",
+            println("***** Warning: $n, $s might be your input for which a ",
                     "formula is found.\n")
             formula_for_inputq = false
         end
@@ -506,20 +518,19 @@ function _test_formula_validity()
 
     if !has_solutionq
         if len <= n
-            th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
-            println("***** Error:: $n, $input_points :: Invalid input because",
-                    " at least $(n + 1) points are needed for the $n$th ",
+            println("***** Error: $n, $input_points : Invalid input because",
+                    " at least $(n + 1) points are needed for the $(_nth(n)) ",
                     "derivative.\n")
             _formula_status = -100
             return m
         end
-        println("\n***** Error:: $n, $input_points :: can't find a formula.\n")
+        println("\n***** Error: $n, $input_points : can't find a formula.\n")
         _formula_status = -100
         return m
     end
 
     if sum(k) != 0   # sum of coefficients must be 0
-        println("***** Warning:: $n, $input_points :: sum(k[:]) != 0")
+        println("***** Warning: $n, $input_points : sum(k[:]) != 0")
         _formula_status += 1
     end
 
@@ -528,7 +539,7 @@ function _test_formula_validity()
         j = length(k)
         for i in 1 : round(Int64, length(k)/2)
             if abs(k[i]) != abs(k[j])
-                println("***** Warning:: $n, $input_points :: k[$i] != k[$j]")
+                println("***** Warning: $n, $input_points : k[$i] != k[$j]")
                 _formula_status += 1
                 break
             end
@@ -589,8 +600,7 @@ function _julia_func_expr(data::_FDData, decimalq = false, julia_REPL_funcq = fa
         n += 1
     end
 
-    th = data.n == 1 ? "st" : (data.n == 2 ? "nd" : (data.n == 3 ? "rd" : "th"))
-    global _julia_func_basename = "f$(data.n)$(th)deriv$(n)pt$(s)"
+    global _julia_func_basename = "f$(_nth(data.n))deriv$(n)pt$(s)"
     fexpr  = "(f, x, i, h) = "
     if julia_REPL_funcq; fexpr *= "Float64("; end
     fexpr *= "( "
@@ -645,7 +655,7 @@ function formula()
         println("The exact formula:\n")
         _print_bigo_formula(_data, _bigO)
         data1 = _FDData
-        if abs(_data.m) != 1                 # print in another format
+        if _data.m != 1                 # print in another format
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs)
             print("Or\n\n")
@@ -654,9 +664,9 @@ function formula()
 
         println("Julia function:\n")
         global _julia_exact_func_expr = _julia_func_expr(_data)
-        print(_julia_func_basename, abs(_data.m) != 1 ? "e" : "",
+        print(_julia_func_basename, _data.m != 1 ? "e" : "",
               _julia_exact_func_expr, "\n\n")
-        if abs(_data.m) != 1                 # other formats
+        if _data.m != 1                 # other formats
             global _julia_exact_func_expr1  = _julia_func_expr(data1)
             print("Or\n\n", _julia_func_basename, "e1",
                   _julia_exact_func_expr1, "\n\nOr\n\n")
@@ -715,7 +725,7 @@ function decimalplaces(n)
             println("You may start your work by calling 'compute'.")
         end
     else
-        println("decimalplaces(n): n must be a positive integer.")
+        println("decimalplaces(n): a positive integer is expected.")
     end
 
     return
@@ -748,24 +758,108 @@ end
 # while Python's output for command (3) was so different, I wanted to load it
 # to some function here to evaluate, which is why this function is here.
 #
-function activatejuliafunction(n::Int, points, k, m)
-    if n <= 0
-        println("Invalid input: n = $n. An positive integer is expected.")
+function activatejuliafunction(n, points, k, m)
+    if !isinteger(n) || n <= 0
+        println("Error: invalid first argument, $n. A positive integer is ",
+                "expected.")
         return
+    end
+    for i in points
+        if !(typeof(i)  in [Int, BigInt])
+            println("Error: invalid input, $points. Integers are expected.")
+            return
+        end
     end
 
     _initialization() # needed b/c it's like computing a new formula
+
+    oldlen = length(points)
     points = sort(unique(collect(points)))
     len = length(points)
+    if oldlen != len
+        println("Your input points are actually $points.")
+    end
+    # don't do so for teaching
+    #if n <= len
+    #    println("Error: at least $(n+1) points are needed for the $(_nth(n))",
+    #            " derivative.")
+    #    return
+    #end
     if len != length(k)
-        println("Error: The number of points ≠ the number of coefficients.");
+        println("Error: The number of points != the number of coefficients.");
         return
     end
 
     global _range_input, _range_inputq
-    if length(points) == length(points[1] : points[end])
-        _range_inputq = true
+    # for nice/readable output
+    if len == length(points[1] : points[end])
         _range_input  = points[1] : points[end]
+        _range_inputq = true
+        input_points  = _range_input
+    end
+
+    # "normalize" input so that m > 0, and m is integer
+    rewrittenq = false
+    global _factor_for_user_input = 1
+    if m < 0; k *= -1; m *= -1; rewrittenq = true; end
+    if !isinteger(m) && !(typeof(m) in [Rational{Int}, Rational{BigInt}])
+        # 8.3 should be 83/10 while Rational(8.3) in Julia 1.8.x gives
+        # 2336242306698445//281474976710656, not so readable to users
+        #
+        # Julia 1.8.x: isinteger(83.0) is true. It's equivalent to, say,
+        # function isinteger(x); return round(BigInt, x) == x; end
+        denominator = 1
+        while !isinteger(m)
+            m           *= 10
+            denominator *= 10
+        end
+        m                       = round(Int, m)
+        k                      *= denominator
+        _factor_for_user_input *= denominator
+        rewrittenq              = true
+    end
+    if typeof(m) in [Rational{Int}, Rational{BigInt}]
+        k         *= m.den
+        m          = m.num
+        rewrittenq = true
+    end
+    if m == 0
+        if rewrittenq; println("You input: $n, $input_points, $k, $m."); end
+        println("Error: invalid input, the last argument m = 0. ",
+                "It can't be zero.")
+        return
+    end
+
+    # "normalize" k[:] so that each element is integer
+    factor::BigInt = 1
+    if !(typeof(k[1]) in [Int, BigInt])
+        if typeof(k[1]) in [Rational{Int}, Rational{BigInt}]
+            for i in 1 : len
+                factor *= k[i].den 
+                k      *= k[i].den 
+            end
+            k = round.(BigInt, k)
+        else
+            kcopy = copy(k)
+            for i in 1 : len
+                while !isinteger(kcopy[i])
+                    factor         *= 10
+                    kcopy[i : end] *= 10
+                end
+            end
+            k = map(x -> round(BigInt, x * factor), k)
+        end
+        m *= factor
+        _factor_for_user_input *= factor
+    end
+    rewrittenq = rewrittenq || factor != 1
+
+    if rewrittenq
+        # print k[:] nicely
+        ks = "[$(k[1])"
+        for i in 2 : len; ks *= ", $(k[i])"; end
+        ks *= "]"
+        println("Your input is actually ($n, $input_points, $ks, $m).\n")
     end
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
@@ -776,7 +870,7 @@ function activatejuliafunction(n::Int, points, k, m)
         coefs[i] = _taylor_coefs(points[i], max_num_of_terms)
     end
 
-    # Taylor series expansion of the linear combination
+    # Taylor series of the linear combination
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     global _lcombination_coefs = k[1] * coefs[1]  # let Julia determine the type
     for i in 2 : len
@@ -784,7 +878,7 @@ function activatejuliafunction(n::Int, points, k, m)
         _lcombination_coefs += k[i] * coefs[i]
     end
 
-    global _data        = _FDData(n, points, k, m, coefs)
+    global _data = _FDData(n, points, k, m, coefs)
     M = _test_formula_validity()
 
     global _formula_status
@@ -805,12 +899,13 @@ function activatejuliafunction(n::Int, points, k, m)
         elseif typeof(M) == Rational{Int} || typeof(M) == Rational{BigInt}
             ms = "$(M.num)/$(M.den)"
         end
-        println("\nWarning:: The last argument m = $m is incorrect. ",
-                "It should be $ms).")
+        println("\nWarning: The last argument m = $m is incorrect. ",
+                "It should be $ms.")
+        find_oneq = true
     end
 
     if find_oneq                   # use the basic input to generate a formula
-        println("\n\nFinding a formula using the points....")
+        println("\nFinding a formula using the points....")
         result = _compute(n, points)
         if _formula_status >= 0
             println("Call fd.formula() to view the results and fd.activatejulia",
@@ -837,7 +932,7 @@ function activatejuliafunction(external_dataq = false)
     count = 1
     if _formula_status > 0
         _julia_exact_func_expr = _julia_func_expr(_data, false, true)
-        if abs(_data.m) != 1           # print in other formats
+        if _data.m != 1           # print in other formats
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs)
             _julia_exact_func_expr1  = _julia_func_expr(data1, false, true)
@@ -849,8 +944,7 @@ function activatejuliafunction(external_dataq = false)
         return
     end
 
-    eval(Meta.parse(_julia_func_basename * (count == 1 ? "" : "e")
-                    * _julia_exact_func_expr))
+    eval(Meta.parse(_julia_func_basename * (count == 1 ? "" : "e") * _julia_exact_func_expr))
     if count == 3
         eval(Meta.parse(_julia_func_basename * "e1" * _julia_exact_func_expr1))
         eval(Meta.parse(_julia_func_basename * "d" * _julia_decimal_func_expr))
@@ -873,7 +967,8 @@ function activatejuliafunction(external_dataq = false)
         _printexampleresult("d", exact)
     end
     len = length("fd.$(_julia_func_basename)")
-    print(" "^(len + 18) * "# cp:     ")
+    if count == 3; len += 1; end
+    print(" "^(len + 17) * "# cp:     ")
     @printf("%.16f", exact)
 
     # 250, a sepcial value for communication w/ another 'activatejuliafunction'
