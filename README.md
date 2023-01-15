@@ -37,6 +37,7 @@ In Julia REPL, execute the following two commands in order.
 - truncationerror
 - decimalplaces
 - activatejuliafunction
+- verifyformula
 - taylor
 - printtaylor
 - _set_default_max_num_of_taylor_terms
@@ -161,6 +162,10 @@ fd.truncationerror()
 fd.activatejuliafunction(4, 0:4, [2//5 -8//5 12//5 -8//3 2//5], 5)  # better than 2/5 -8/5 ...
 fd.activatejuliafunction(2, [-1 2 0 2 3 6], [12//7 21 2 -3 -9], -12)
 ``` 
+### verifyformula(n::Int, points, k, m::Int)
+
+It is exactly the same as function activatejuliafunction(n::Int, points, k, m::Int). The name
+is self-explanatory.
 
 ### function taylor(j)
 
