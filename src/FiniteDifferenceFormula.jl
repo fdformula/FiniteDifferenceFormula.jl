@@ -18,7 +18,7 @@ export compute, formula, truncationerror, verifyformula
 export decimalplaces, activatejuliafunction, taylor, printtaylor
 export _set_default_max_num_of_taylor_terms
 
-_decimal_places = 16          # use it to print Julia function for a formula
+_decimal_places::Int = 16     # use it to print Julia function for a formula
                               # call decimalplaces(n) to reset it
 
 ###############################################################################
@@ -26,28 +26,28 @@ _decimal_places = 16          # use it to print Julia function for a formula
 using Printf
 
 mutable struct _FDData
-    n; points; k; m; coefs                # interesting. must be separated by ;
+    n; points; k; m; coefs                 # on one line? separated by ;
 end
 
-_data                          = _FDData  # share results between functions
-_computedq::Bool               = false    # make sure compute is called first
-_formula_status                = 0        # a formula may not be available
-                                          # values? see _test_formula_validity()
+_data                            = _FDData # share results between functions
+_computedq::Bool                 = false   # make sure compute is called first
+_formula_status::Int             = 0       # a formula may not be available
+                                           # values? see _test_formula_validity()
 
-# a vector of the coefficients of Taylor series expansion of the linear combination:
+# a vector of the coefficients of Taylor series of the linear combination:
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-_lcombination_coefs            = Array{Any}
+_lcombination_coefs              = Array{Any}
 
-_range_inputq                  = false
-_range_input::UnitRange{Int}   = 0:0      # compute receives a range? save it
+_range_inputq::Bool              = false
+_range_input::UnitRange{Int}     = 0:0     # compute receives a range? save it
 
-_julia_exact_func_expr         = ""       # 1st exact Julia function for f^(n)(x[i])
-_julia_exact_func_expr1        = ""       # 2nd exact Julia function for f^(n)(x[i])
-_julia_decimal_func_expr       = ""       # decimal Julia function for f^(n)(x[i])
-_julia_func_basename           = ""
+_julia_exact_func_expr::String   = ""      # 1st exact Julia function for f^(n)(x[i])
+_julia_exact_func_expr1::String  = ""      # 2nd exact Julia function for f^(n)(x[i])
+_julia_decimal_func_expr::String = ""      # decimal Julia function for f^(n)(x[i])
+_julia_func_basename::String     = ""
 
-_bigO                          = ""       # truncation error of a formula
-_bigO_exp                      = -1       # the value of n as in O(h^n)
+_bigO::String                    = ""      # truncation error of a formula
+_bigO_exp::Int                   = -1      # the value of n as in O(h^n)
 
 # for future coders/maintainers of this package:
 # to compute a new formula, this function must be called first.
@@ -427,7 +427,7 @@ function _lcombination_expr(data::_FDData, decimalq = false, julia_REPL_funcq = 
             elseif c2s == "-"
                 c2s = "-1"
             end
-            s *= "big(" * c2s * ")"     # convert one value to BigInt/BigFloat
+            s *= "BigFloat(" * c2s * ")"
         else
             s *= _c2s(data.k[i], firstq, decimalq)
         end
@@ -438,18 +438,20 @@ function _lcombination_expr(data::_FDData, decimalq = false, julia_REPL_funcq = 
 end  # _lcombination_expr
 
 # return string of 1st, 2nd, 3rd, 4th ...
-function _nth(n)
-    th = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
+function _nth(n::Int)
+    th::String = n == 1 ? "st" : (n == 2 ? "nd" : (n == 3 ? "rd" : "th"))
     return "$n$th"
 end
 
 # check if the newly computed formula is valid. results are saved in the global
 # variable _formula_status:
-#  100 - Perfect, even satifiying some commonly seen "rules", such as the sum of
+#  100 - perfect, even satifiying some commonly seen "rules", such as the sum of
 #        coefficients = 0, symmetry of cofficients about x[i] in a central formula
-# -100 - No formula can't be found
+# -100 - no formula can't be found
+# -200 - same as -100, but do not try to find a formula if
+#        activatejuliafunction(n, point, k, m) fails
 #  250 - same as -100, but used for communication btw 2 'activatejuliafunction's
-# > 0  - Mathematically, the formula is still valid but may not satisfy some
+# > 0  - mathematically, the formula is still valid but may not satisfy some
 #        commonly seen "rules" such as the sum of coefficients = 0 and symmetry
 #        of coefficients about x[i]
 #
@@ -513,7 +515,7 @@ function _test_formula_validity()
             println("***** Error: $n, $input_points : Invalid input because",
                     " at least $(n + 1) points are needed for the $(_nth(n)) ",
                     "derivative.\n")
-            _formula_status = -100
+            _formula_status = -200
             return m
         end
         println("\n***** Error: $n, $input_points : can't find a formula.\n")
@@ -557,7 +559,7 @@ function _test_formula_validity()
     return m
 end  # _test_formula_validity
 
-function _denominator_expr(data::_FDData)
+function _denominator_expr(data::_FDData, julia_REPL_funcq::Bool = false)
     ms = ""
     if typeof(data.m) == Rational{Int} || typeof(data.m) == Rational{BigInt}
         ms = "$((data.m).num)/$((data.m).den)"
@@ -565,7 +567,11 @@ function _denominator_expr(data::_FDData)
         ms = "$(data.m)"
     end
     s  = data.m != 1 ? "($ms * " : ""
-    s *= "h"
+	if julia_REPL_funcq  # v1.1.1
+		s *= "BigFloat(h)"    # v1.1.1, doesn't matter to Julia 1.8.x
+	else
+		s *= "h"
+	end
     if data.n != 1; s *= "^$(data.n)"; end
     if data.m != 1; s *= ")"; end
     return s
@@ -597,7 +603,7 @@ function _julia_func_expr(data::_FDData, decimalq = false, julia_REPL_funcq = fa
     if julia_REPL_funcq; fexpr *= "Float64("; end
     fexpr *= "( "
     fexpr *= _lcombination_expr(data, decimalq, julia_REPL_funcq)
-    fexpr *= " ) / " * _denominator_expr(data)
+    fexpr *= " ) / " * _denominator_expr(data, julia_REPL_funcq)
     if julia_REPL_funcq; fexpr *= ")"; end
 
     return fexpr
@@ -675,21 +681,20 @@ end  # formula
 # print _bigO, the estimation of trucation error in the big-O notation
 #
 # output:
-#    -1 - There is no valid formula
-#     n - The value of n as in O(h^n)
+#    (-1, "")      - There is no valid formula
+#    (n, "O(h^n)") - There is a valid formula
 function truncationerror()
     global _bigO, _bigO_exp, _computedq, _formula_status
     if _computedq
         if _formula_status <= -100
             println("No valid formula is available.")
-            return -1
+            return (-1, "")
         else
-            println(_bigO)
-            return _bigO_exp
+            return (_bigO_exp, _bigO)
         end
     end
     println("Please call 'compute' first.")
-    return -1
+    return (-1, "")
 end
 
 ######################## for teaching/learning/exploring #######################
@@ -706,8 +711,8 @@ end  # decimalplaces
 # set decimal places to n
 function decimalplaces(n)
     global _decimal_places, _computedq
-    if isinteger(n) && n > 0
-        _decimal_places = n
+    if isinteger(n) && n >= 0
+        _decimal_places = round(Int, n) # 10.0 --> 10
         if _computedq
             println("Please call 'formula' to generate (or ",
                     "'activatejuliafunction' to generate and activate) a ",
@@ -717,10 +722,10 @@ function decimalplaces(n)
             println("You may start your work by calling 'compute'.")
         end
     else
-        println("decimalplaces(n): a positive integer is expected.")
+        println("decimalplaces(n): a nonnegative integer is expected.")
     end
 
-    return
+    return _decimal_places
 end  # decimalplaces
 
 function _printexampleresult(suffix, exact)
@@ -858,9 +863,9 @@ function activatejuliafunction(n, points, k, m)
     global _data = _FDData(n, points, k, m, coefs)
     global _formula_status
     M = _test_formula_validity()
-    find_oneq = _formula_status == -100
+    find_oneq::Bool = _formula_status == -100
 
-    # the coefficients k[:] is correct, but k is not
+    # perhaps, the coefficients k[:] is correct, but m is not
     if _formula_status == 100 && M != m
         x = round(BigInt, M)
         ms = "$M"
@@ -879,9 +884,15 @@ function activatejuliafunction(n, points, k, m)
         # 250, reserved for communication w/ another 'activatejuliafunction'
     end
     global _computedq   = true     # assume a formula has been computed
+
+	# force to activate even for invalid input formula
+	b200::Bool = _formula_status == -200
+	if b200; _formula_status = 100; end;   # assume it is valid
     activatejuliafunction(true)
+	if b200; _formula_status = -200; end;  # change it back
 
     if find_oneq                   # use the basic input to generate a formula
+		_formula_status = -100
         println(dashline, "\nFinding a formula using the points....")
         result = _compute(n, points)
         if _formula_status >= 0
@@ -990,15 +1001,19 @@ end  # printtaylor
 # for explorers/researchers. users never need to know its existence
 function _set_default_max_num_of_taylor_terms(n::Int)
     global _max_num_of_taylor_terms
-    if n < 0
-        println("Wrong input, $n. A positive integer is expected.")
-    elseif n < 10
-        println("$n? It doesn't have to be so small. The default value ",
-                "is still $_max_num_of_taylor_terms.")
-    else
-        _max_num_of_taylor_terms = n
-    end
-    return
+	if n < 0
+		println("Wrong input, $n. A positive integer is expected.")
+	elseif n < 10
+		println("$n? It doesn't have to be so small. The default value ",
+				"is still $_max_num_of_taylor_terms.")
+	else
+		_max_num_of_taylor_terms = round(Int, n)
+	end
+    return _max_num_of_taylor_terms
+end
+
+function _set_default_max_num_of_taylor_terms()
+    return _max_num_of_taylor_terms
 end
 
 end # module
