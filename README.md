@@ -160,7 +160,7 @@ import FiniteDifferenceFormula as fd
 fd.activatejuliafunction(2, [-1 0 2 3 6], [12 21 2 -3 -9], -12)
 fd.truncationerror()
 fd.activatejuliafunction(4, 0:4, [2//5 -8//5 12//5 -8//3 2//5], 5)  # better than 2/5 -8/5 ...
-fd.activatejuliafunction(2, [-1 2 0 2 3 6], [12//7 21 2 -3 -9], -12)
+fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 ``` 
 ### verifyformula(n::Int, points, k, m::Int)
 
