@@ -185,15 +185,15 @@ The function prints the first n terms of the Taylor series of f(x[i+j]) about x[
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
 provided.
 
-### function _set_default_max_num_of_taylor_terms(n)
+### function _set_default_max_num_of_taylor_terms(n) or _set_default_max_num_of_taylor_terms()
 
 The function sets to n the default maximum number of terms of Taylor series. Usually, users
 never need to know its existence. (If no change is made, the default value is 30.) The value
 affects the behaviors of functions 'taylor' and 'printtaylor' only. When you need more than
 30 terms of a Taylor series, the value should be set. To have m nonzero terms, n should
-certainly be larger than m, say, n = m + 8.
+certainly be larger than or equal to m, say, n = m + 8.
 
-Trick: If 0 ≤ n < 10, no change is made, but it shows the present default value.
+With or without an argument, the function returns the present default value.
 
 ## Examples
 
