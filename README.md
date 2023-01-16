@@ -155,7 +155,7 @@ coefficients of a formula, and m is the coefficient of the term f^(n)(x[i]) in t
 combination of f(x[i+j]), where j ∈ points. In general, m is the coefficient of h^n in the
 denominator of a formula. For example,
 
-```
+```Julia
 import FiniteDifferenceFormula as fd
 fd.activatejuliafunction(2, [-1 0 2 3 6], [12 21 2 -3 -9], -12)
 fd.truncationerror()
