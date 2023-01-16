@@ -66,9 +66,9 @@ removed.
 
 #### Output
 
-The function returns a tuple, ([k[1], k[2], ..., k[stop-start+1]], m) where k[:] and m
-are described below. With the information, you may generate formulas for any
-programming language of your choice.
+The function returns a tuple, (n, points, [k[1], k[2], ..., k[stop-start+1]], m) where n,
+points, k[:] and m are described below. With the information, you may generate formulas for
+any programming language of your choice.
 
 The algorithm uses the linear combination of f(x[i+j]), j ∈ points, a given list of points,
 to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero term of the Taylor
