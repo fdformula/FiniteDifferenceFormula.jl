@@ -768,20 +768,20 @@ function activatejuliafunction(n, points, k, m)
         return
     end
     n = round(Int, n)  # 4.0 --> 4
-    for i in points
-        if !(typeof(i)  in [Int, BigInt])
-            println("Error: invalid input, $points. Integers are expected.")
-            return
-        end
-    end
-
-    _initialization() # needed b/c it's like computing a new formula
+	if length(points) == 1
+		println("Error: invalid input, points = $points. A list of two or ",
+				"more points is expected.")
+		return
+	end
+	if !(typeof(points[1]) <: Integer)
+		println("Error: invalid input, $points. Integers are expected.")
+		return
+	end
 
     oldlen = length(points)
     points = sort(unique(collect(points)))
     len = length(points)
-    rewrittenq = false
-    if oldlen != len; rewrittenq = true; end
+    rewrittenq = oldlen != len
     # don't do so for teaching
     #if n <= len
     #    println("Error: at least $(n+1) points are needed for the $(_nth(n))",
@@ -792,6 +792,8 @@ function activatejuliafunction(n, points, k, m)
         println("Error: The number of points != the number of coefficients.");
         return
     end
+
+    _initialization() # needed b/c it's like computing a new formula
 
     global _range_input, _range_inputq
     # for nice/readable output
@@ -807,7 +809,7 @@ function activatejuliafunction(n, points, k, m)
     if isinteger(m)
         m = round(Int, m)  # 5.0 --> 5
     else
-        if !(typeof(m) in [Rational{Int}, Rational{BigInt}])
+        if !(typeof(m) <: Rational)
             m = rationalize(convert(Float64, m))
         end
         k         *= m.den
@@ -822,10 +824,10 @@ function activatejuliafunction(n, points, k, m)
     end
 
     # "normalize" k[:] so that each element is integer
-    if !(typeof(k[1]) in [Int, BigInt, Rational{Int}, Rational{BigInt}])
+    if !(typeof(k[1]) <: Integer || typeof(k[1]) <: Rational)
         k = rationalize.(convert.(Float64, k))
     end
-    if typeof(k[1]) in [Rational{Int64}, Rational{BigInt}]
+    if typeof(k[1]) <: Rational
         for i in 1 : len
             if k[i].den == 1; continue; end
             m         *= k[i].den
