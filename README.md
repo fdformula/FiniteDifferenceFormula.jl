@@ -96,8 +96,8 @@ The function generates and lists
 
 ### function truncationerror( )
 
-The function shows the truncation error of the newly computed finite difference formula and
-returns the value of n as in O(h^n).
+The function returns a tuple, (n, "O(h^n)"), the truncation error of the newly computed finite
+difference formula in the big-O notation.
 
 -----
 
