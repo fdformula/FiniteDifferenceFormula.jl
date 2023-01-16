@@ -108,8 +108,12 @@ The following functions are provided for teaching/learning the finite difference
 ### function decimalplaces( ) or decimalplaces(n)
 
 Without an argument, the function returns current decimal places. With argument n, it sets the
-decimal places to be n for generating Julia function(s) for a formula. Without/before calling
-the function, 16 decimal places are used by default.
+decimal places to be n for generating Julia function(s) for formulas if n is a nonnegative
+integer. It returns the (new) default decimal places. Without/before calling the function, 16
+decimal places are used by default.
+
+This function can only affect Julia functions with the suffix "d" such as f1stderiv2ptcentrald.
+See function activatejuliafunction().
 
 ### function activatejuliafunction( )
 
