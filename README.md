@@ -220,5 +220,5 @@ fd.printtaylor(coefs, 7)             # print the 1st 7 nonzero terms of the Tayl
 
 fd.activatejuliafunction()           # activate Julia function(s) of the newly computed formula in present REPL session
 
-fd.verifyformula(1, 1:2, [-1, 1], 2) # verify if f'(x[i]) = (-f(x[i+1] + f(x[i+2)) / (2h) is a valid formula
+fd.verifyformula(1, 1:2, [-3, 4], 5) # verify if f'(x[i]) = (-3f(x[i+1] + 4f(x[i+2)) / (5h) is a valid formula
 ```
