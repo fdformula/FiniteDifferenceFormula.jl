@@ -196,27 +196,29 @@ Trick: If 0 ≤ n < 10, no change is made, but it shows the present default valu
 ```Julia
 import FiniteDifferenceFormula as fd
 
-fd.decimalplaces(6)          # use 6 decimal places to generate Julia functions of computed formulas
+fd.decimalplaces(6)                  # use 6 decimal places to generate Julia functions of computed formulas
 
-fd.compute(1, 0:2, true)     # find, generate, and print "3"-point forward formula for f'(x[i])
+fd.compute(1, 0:2, true)             # find, generate, and print "3"-point forward formula for f'(x[i])
 
-fd.compute(2, -3:0, true)    # find, generate, and print "4"-point backward formula for f''(x[i])
+fd.compute(2, -3:0, true)            # find, generate, and print "4"-point backward formula for f''(x[i])
 
-fd.compute(3, -9:9)          # find "19"-point central formula for f'''(x[i])
+fd.compute(3, -9:9)                  # find "19"-point central formula for f'''(x[i])
 
-fd.compute(2, [-3 -2 1 2 7]) # find formula for f''(x[i]) using points x[i+j], j = -3, -2, 1, 2, and 7
+fd.compute(2, [-3 -2 1 2 7])         # find formula for f''(x[i]) using points x[i+j], j = -3, -2, 1, 2, and 7
 
-fd.compute(1,-230:230)       # find "461"-point central formula for f'(x[i]). does it exist? run the code!
+fd.compute(1,-230:230)               # find "461"-point central formula for f'(x[i]). does it exist? run the code!
 
-fd.formula()                 # generate and print the formula computed last time you called compute(...)
+fd.formula()                         # generate and print the formula computed last time you called compute(...)
 
-fd.truncationerror()         # print and return the truncation error of the newly computed formula
+fd.truncationerror()                 # print and return the truncation error of the newly computed formula
 
-fd.printtaylor(-2, 5)        # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
+fd.printtaylor(-2, 5)                # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
 
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(3);
-fd.printtaylor(coefs, 7)     # print the 1st 7 nonzero terms of the Taylor series of
-                             # 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
+fd.printtaylor(coefs, 7)             # print the 1st 7 nonzero terms of the Taylor series of
+                                     # 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+3])
 
-fd.activatejuliafunction()   # activate Julia function(s) of the newly computed formula in present REPL session
+fd.activatejuliafunction()           # activate Julia function(s) of the newly computed formula in present REPL session
+
+fd.verifyformula(1, 1:2, [-1, 1], 2) # verify if f'(x[i]) = (-f(x[i+1] + f(x[i+2)) / (2h) is a valid formula
 ```
