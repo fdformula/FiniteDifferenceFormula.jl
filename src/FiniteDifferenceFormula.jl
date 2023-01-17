@@ -561,7 +561,7 @@ end  # _test_formula_validity
 
 function _denominator_expr(data::_FDData, julia_REPL_funcq::Bool = false)
     ms = ""
-    if typeof(data.m) == Rational{Int} || typeof(data.m) == Rational{BigInt}
+    if typeof(data.m) <: Rational
         ms = "$((data.m).num)/$((data.m).den)"
     else
         ms = "$(data.m)"
@@ -873,7 +873,7 @@ function activatejuliafunction(n, points, k, m)
         ms = "$M"
         if M == x
             ms = "$x"              # don't print 5//1
-        elseif typeof(M) == Rational{Int} || typeof(M) == Rational{BigInt}
+        elseif typeof(M) <: Rational
             ms = "$(M.num)/$(M.den)"
         end
         println("***** Error: The last argument m = $m is incorrect. ",
