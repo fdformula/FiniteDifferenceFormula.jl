@@ -272,10 +272,9 @@ end
 # where, m, k? refer to eq (1); n, points? refer to _compute()
 #
 function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
-    global _lcombination_coefs, _formula_status
+    global _lcombination_coefs, _formula_status, _range_inputq, _range_input
 
     # for teaching's purpose, we don't do so
-    # global _range_inputq, _range_input
     # if length(points) <= n
     #     pts = _range_inputq ? "$(_range_input)" : "$(points')"
     #     println("$pts is invalid because at least $(n + 1) points are ",
@@ -778,18 +777,21 @@ function activatejuliafunction(n, points, k, m)
         return
     end
 
+    # tuple input can cause trouble - Julia 1.8.5: x = (1, 2//3), y = collect(x)
+    # typeof(y[1]) != typeof(y[2]) !!!
     if typeof(points) <: Tuple
-        println("Error: invalid input $points. A list like [1, 2] is expected.")
+        println("Invalid input, $points. A list like [1, 2, ...] is expected")
         return
     end
     if typeof(k) <: Tuple
-        println("Error: invalid input $k. A list like [1, 2] is expected.")
+        println("Invalid input, $k. A list like [1, 2, ...] is expected")
         return
     end
 
     oldlen = length(points)
     points = sort(unique(collect(points)))
     len = length(points)
+
     rewrittenq = oldlen != len
     # don't do so for teaching
     #if n <= len
@@ -804,13 +806,11 @@ function activatejuliafunction(n, points, k, m)
 
     _initialization() # needed b/c it's like computing a new formula
 
-    global _range_input, _range_inputq
-    # for nice/readable output
     input_points = points
+    global _range_inputq, _range_input
     if len == length(points[1] : points[end])
-        _range_input  = points[1] : points[end]
         _range_inputq = true
-        input_points  = _range_input
+        input_points  = _range_input  = points[1] : points[end]
     end
 
     # "normalize" input so that m > 0, and m is integer
@@ -833,7 +833,7 @@ function activatejuliafunction(n, points, k, m)
     end
 
     # "normalize" k[:] so that each element is integer
-    if !(typeof(k[1]) <: Integer || typeof(k[1]) <: Rational)
+    if !((typeof(k[1]) <: Integer) || (typeof(k[1]) <: Rational))
         k = rationalize.(convert.(Float64, k))
     end
     if typeof(k[1]) <: Rational
@@ -845,6 +845,7 @@ function activatejuliafunction(n, points, k, m)
         end
         k = round.(BigInt, k)
     end
+
     dashline = "-" ^ 105
     if rewrittenq
         # print k[:] nicely
