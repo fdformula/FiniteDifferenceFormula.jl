@@ -778,6 +778,15 @@ function activatejuliafunction(n, points, k, m)
         return
     end
 
+    if typeof(points) <: Tuple
+        println("Error: invalid input $points. A list like [1, 2] is expected.")
+        return
+    end
+    if typeof(k) <: Tuple
+        println("Error: invalid input $k. A list like [1, 2] is expected.")
+        return
+    end
+
     oldlen = length(points)
     points = sort(unique(collect(points)))
     len = length(points)
