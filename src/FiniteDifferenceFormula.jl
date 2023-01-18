@@ -161,42 +161,42 @@ end  # _print_taylor
 function _dashline(); return "-" ^ 105; end
 
 function compute(n, points, printformulaq = false)
-	if !isinteger(n) || n < 1
+    if !isinteger(n) || n < 1
         println("Invalid order of derivatives, $n. A positive integer ",
                 "is expected.")
         return
     end
-	n = round(Int, n)  # 4.0 --> 4
+    n = round(Int, n)  # 4.0 --> 4
 
-	if (typeof(points) <: Tuple) || !(typeof(points[1]) <: Integer)
-		println("Invalid input, $points. A list of integers like [-2, 1, ...]",
-				" is expected.")
-		return
-	end
-	if typeof(printformulaq) != Bool
-		println("Invalid input, $printformulaq. A value, false or true, is ",
-				"expected.")
-		return
-	end
+    if (typeof(points) <: Tuple) || !(typeof(points[1]) <: Integer)
+        println("Invalid input, $points. A list of integers like [-2, 1, ...]",
+                " is expected.")
+        return
+    end
+    if typeof(printformulaq) != Bool
+        println("Invalid input, $printformulaq. A value, false or true, is ",
+                "expected.")
+        return
+    end
 
-	oldlen = length(points)
-	points = sort(unique(collect(points)))
-	len = length(points)
-	if len < 2
-		println("Invalid input, $points. A list of two or more different ",
-				"points is expected.")
-		return
-	end
+    oldlen = length(points)
+    points = sort(unique(collect(points)))
+    len = length(points)
+    if len < 2
+        println("Invalid input, $points. A list of two or more different ",
+                "points is expected.")
+        return
+    end
 
     _initialization()
-	if len != oldlen
+    if len != oldlen
         input_points = _format_of_points(points)
         print(_dashline(), "\nYour input is converted to ($n, $input_points")
-		if printformulaq; print(", true"); end
-		println(").\n", _dashline())
+        if printformulaq; print(", true"); end
+        println(").\n", _dashline())
     else
-		_format_of_points(points)
-	end
+        _format_of_points(points)
+    end
     return _compute(n, points, printformulaq)
 end  # compute
 
@@ -729,9 +729,9 @@ function _format_of_points(points)
     if length(points) == length(points[1] : points[end])
         global _range_inputq = true
         global _range_input  = points[1] : points[end]
-		return _range_input
+        return _range_input
     end
-	return points
+    return points
 end  # _format_of_points
 
 function _printexampleresult(suffix, exact)
