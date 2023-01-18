@@ -12,18 +12,18 @@ module FiniteDifferenceFormula
 
 # Warning: users should not call/access a function/variable starting with "_" !
 
+using Printf
+
+############################# EXPORTED FUNCTIONS ##############################
 export compute, formula, truncationerror, verifyformula
 
 # for teaching/learning/exploring
 export decimalplaces, activatejuliafunction, taylor, printtaylor
 export _set_default_max_num_of_taylor_terms
 
+######################### BEGIN OF GLOBAL VARIABLES ###########################
 _decimal_places::Int = 16     # use it to print Julia function for a formula
                               # call decimalplaces(n) to reset it
-
-###############################################################################
-
-using Printf
 
 mutable struct _FDData
     n; points; k; m; coefs                 # on one line? separated by ;
@@ -48,6 +48,7 @@ _julia_func_basename::String     = ""
 
 _bigO::String                    = ""      # truncation error of a formula
 _bigO_exp::Int                   = -1      # the value of n as in O(h^n)
+########################### END OF GLOBAL VARIABLES ###########################
 
 # for future coders/maintainers of this package:
 # to compute a new formula, this function must be called first.
@@ -67,7 +68,7 @@ function _initialization()
 
     global _bigO                    = ""
     global _bigO_exp                = -1
-end
+end  # _initialization
 
 # This function returns the first 'max_num_of_terms' terms of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed.
@@ -157,51 +158,47 @@ function _print_taylor(coefs, num_of_nonzero_terms = 10)
     return
 end  # _print_taylor
 
-function compute(n::Int, points::UnitRange{Int}, printformulaq::Bool = false)
-    if n < 1
-        println("Error: order of derivatives, $n. A positive integer ",
+function _dashline(); return "-" ^ 105; end
+
+function compute(n, points, printformulaq = false)
+	if !isinteger(n) || n < 1
+        println("Invalid order of derivatives, $n. A positive integer ",
                 "is expected.")
         return
     end
+	n = round(Int, n)  # 4.0 --> 4
+
+	if (typeof(points) <: Tuple) || !(typeof(points[1]) <: Integer)
+		println("Invalid input, $points. A list of integers like [-2, 1, ...]",
+				" is expected.")
+		return
+	end
+	if typeof(printformulaq) != Bool
+		println("Invalid input, $printformulaq. A value, false or true, is ",
+				"expected.")
+		return
+	end
+
+	oldlen = length(points)
+	points = sort(unique(collect(points)))
+	len = length(points)
+	if len < 2
+		println("Invalid input, $points. A list of two or more different ",
+				"points is expected.")
+		return
+	end
 
     _initialization()
-    global _range_inputq = true
-    global _range_input  = points
-    return _compute(n, collect(points), printformulaq)
-end
-
-# compute(2, [1 2 3 -1])
-function compute(n::Int, points::Matrix{Int}, printformulaq::Bool = false)
-    if n < 1
-        println("Error: order of derivatives, $n. A positive integer ",
-                "is expected.")
-        return
-    end
-
-    _initialization()
-    m, = size(points)
-    if m > 1 points = points'; end      # a column vector
-    points = sort(unique(points))
-    if length(points) <= 1
-        println("Error: Invalid input, $points - more points are needed.")
-        return
-    end
-
-    # is the input 'points' actually a range?
-    if length(points[1]:points[end]) == length(points)
-        println("You input: $(points[1]:points[end])")
-        return compute(n, points[1]:points[end], printformulaq)
+	if len != oldlen
+        input_points = _format_of_points(points)
+        print(_dashline(), "\nYour input is converted to ($n, $input_points")
+		if printformulaq; print(", true"); end
+		println(").\n", _dashline())
     else
-        println("You input: $points")
-        return _compute(n, points, printformulaq)
-    end
+		_format_of_points(points)
+	end
+    return _compute(n, points, printformulaq)
 end  # compute
-
-# compute(2, [1, 2, 3, -1])
-function compute(n::Int, points::Array{Int}, printformulaq::Bool = false)
-    _initialization()
-    return compute(n, hcat(points), printformulaq)
-end
 
 # before v1.0.7, we thankfully used the function 'rref' provided by the package
 # RowEchelon v0.2.1. since it has been removed from the base, it is safer for
@@ -230,7 +227,7 @@ function _rref(A::Matrix{Rational{BigInt}}) # change A to reduced row echelon fo
         end
     end
     return A
-end
+end  # _rref
 
 #
 # Algorithm
@@ -671,7 +668,7 @@ function formula()
             print(_julia_func_basename, "d", _julia_decimal_func_expr, "\n\n")
         end
     #else
-    #    _formula_status = -100              # no formula can't be generated
+    #    _formula_status = -100         # no formula can't be generated
     end
 
     return
@@ -694,7 +691,7 @@ function truncationerror()
     end
     println("Please call 'compute' first.")
     return (-1, "")
-end
+end  # truncationerror
 
 ######################## for teaching/learning/exploring #######################
 
@@ -727,6 +724,16 @@ function decimalplaces(n)
     return _decimal_places
 end  # decimalplaces
 
+function _format_of_points(points)
+    global _range_inputq, _range_input
+    if length(points) == length(points[1] : points[end])
+        global _range_inputq = true
+        global _range_input  = points[1] : points[end]
+		return _range_input
+    end
+	return points
+end  # _format_of_points
+
 function _printexampleresult(suffix, exact)
     global _julia_func_basename
 
@@ -736,7 +743,7 @@ function _printexampleresult(suffix, exact)
           suffix == "e1" ? "" : " ", "# result: ")
     @printf("%.16f, ", apprx)
     print("relative error = "); @printf("%.8f", relerr); println("%")
-end
+end  # _printexampleresult
 
 # the name is self-explanatory. it is exactly the same as the function
 # activatejuliafunction(n, points, k, m)
@@ -804,14 +811,8 @@ function activatejuliafunction(n, points, k, m)
         return
     end
 
-    _initialization() # needed b/c it's like computing a new formula
-
-    input_points = points
-    global _range_inputq, _range_input
-    if len == length(points[1] : points[end])
-        _range_inputq = true
-        input_points  = _range_input  = points[1] : points[end]
-    end
+    _initialization()      # needed b/c it's like computing a new formula
+    input_points = _format_of_points(points)
 
     # "normalize" input so that m > 0, and m is integer
     if m < 0; k *= -1; m *= -1; rewrittenq = true; end
@@ -846,14 +847,13 @@ function activatejuliafunction(n, points, k, m)
         k = round.(BigInt, k)
     end
 
-    dashline = "-" ^ 105
     if rewrittenq
         # print k[:] nicely
         ks = "[$(k[1])"
         for i in 2 : len; ks *= ", $(k[i])"; end
         ks *= "]"
-        println(dashline, "\nYour input is converted to ($n, $input_points, ",
-                "$ks, $m).\n", dashline)
+        println(_dashline(), "\nYour input is converted to ($n, $input_points, ",
+                "$ks, $m).\n", _dashline())
     end
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
@@ -905,7 +905,7 @@ function activatejuliafunction(n, points, k, m)
 
     if find_oneq                   # use the basic input to generate a formula
         _formula_status = -100
-        println(dashline, "\nFinding a formula using the points....")
+        println(_dashline(), "\nFinding a formula using the points....")
         result = _compute(n, points)
         if _formula_status >= 0
             println("Call fd.formula() to view the results and fd.activatejulia",
@@ -1022,7 +1022,7 @@ function _set_default_max_num_of_taylor_terms(n::Int)
         _max_num_of_taylor_terms = round(Int, n)
     end
     return _max_num_of_taylor_terms
-end
+end  # _set_default_max_num_of_taylor_terms
 
 function _set_default_max_num_of_taylor_terms()
     return _max_num_of_taylor_terms
