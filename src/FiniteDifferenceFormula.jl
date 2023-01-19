@@ -204,30 +204,27 @@ end  # compute
 # RowEchelon v0.2.1. since it has been removed from the base, it is safer for
 # this package to have its own implementaion of the function. anyway, it is
 # just a few lines of code.
-function _rref(A::Matrix{Rational{BigInt}}) # change A to reduced row echelon form
-    row, col = size(A)
-    for i in 1 : min(row, col)
-        # choose the largest entry in A[i:end, i] as the pivot
-        lv, li = abs(A[i ,i]), i            # the largest value and its index
-        for j = i + 1 : row
-            absv = abs(A[j, i])
-            if absv > lv; lv, li = absv, j; end
+#
+# customized code from RowEchelon v0.2.1, also vectorized, simplified 1/10/23
+function _rref(A::Matrix{Rational{BigInt}})
+    nr, nc = size(A)
+    i = j = 1                     # A[i, j], pivot entries
+    while i <= nr && j <= nc
+        (m, mi) = findmax(abs.(A[i : nr, j]))
+        if m != 0
+            mi += i - 1
+            A[i, j : nc], A[mi, j : nc] = A[mi, j : nc], A[i, j : nc]
+            A[i, j : nc] /= A[i, j]
+            for k = 1 : nr
+                if k == i; continue; end
+                A[k, j : nc] -= A[k, j] * A[i, j : nc]
+            end
+            i += 1
         end
-        if lv == 0; continue; end
-        if li != i                          # interchange two rows
-            A[i, i : end], A[li, i : end] = A[li, i : end], A[i, i : end]
-        end
-
-        A[i, i : end] /= A[i, i]            # on the main diagonal are 0 or 1
-
-        # now, use the pivot A[i, i] to eliminate entries above and below it
-        for j = 1 : row
-            if j == i || A[j, i] == 0; continue; end
-            A[j, i : end] -= A[j, i] * A[i, i : end]
-        end
+        j += 1
     end
     return A
-end  # _rref
+end
 
 #
 # Algorithm
