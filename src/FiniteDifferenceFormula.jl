@@ -216,10 +216,13 @@ function _rref(A::Matrix{Rational{BigInt}})
             if mi != i
                 A[i, j : nc], A[mi, j : nc] = A[mi, j : nc], A[i, j : nc]
             end
-            A[i, j : nc] /= A[i, j]
-            for k = 1 : nr
-                if k == i || A[k, j] == 0; continue; end
-                A[k, j : nc] -= A[k, j] * A[i, j : nc]
+            J = j + 1               #
+            A[i, J : nc] /= A[i, j] # A[i, j : nc] /= A[i, j] depends on how
+            A[i, j] = 1             # Julia implements inside; not a safe way
+            for r = 1 : nr
+                if r == i || A[r, j] == 0; continue; end
+                A[r, J : nc] -= A[r, j] * A[i, J : nc] # same as above
+                A[r, j] = 0                            #
             end
             i += 1
         end
@@ -751,7 +754,8 @@ function verifyformula(n, points, k, m)
 end
 
 # if you have data from textbooks or other sources, you may use this function
-# to activate related Julia function(s).
+# to verify if it is right, activate related Julia function(s), evaluate and
+# see the computiong results.
 #
 # it seemed to be very useful when I tried to port this package to Python
 # (3.11.1, the newest version as of 1/13/2023). the effort failed in hours
@@ -761,10 +765,14 @@ end
 # though it could handle
 #   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18])
 #
-# in this sense, Julia's BigInt functionality is simply amazing.
+# 1/19/23: removed SymPy, include 'from fractions import Fraction', treat a
+# "matrix" as a list of lists for which a special 'rref' was coded. a big
+# progress! however, still failed to do, say, compute(1, -30:30).
+#
+# thus, the functionality of Julia's BigInt and Rational is simply amazing.
 #
 # while Python's output for command (3) was so different, I wanted to load it
-# to some function here to evaluate, which is why this function is here.
+# to some function here to test and evaluate. here it is.
 #
 function activatejuliafunction(n, points, k, m)
     if !isinteger(n) || n <= 0
