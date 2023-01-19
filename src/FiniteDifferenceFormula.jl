@@ -771,9 +771,6 @@ end
 #
 # thus, the functionality of Julia's BigInt and Rational is simply amazing!!!
 #
-# while Python's output for command (3) was so different, I wanted to load it
-# to some function here to test and evaluate. so, it is here.
-#
 function activatejuliafunction(n, points, k, m)
     if !isinteger(n) || n <= 0
         println("Error: invalid first argument, $n. A positive integer is ",
