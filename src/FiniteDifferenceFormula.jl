@@ -765,11 +765,11 @@ end
 # though it could handle
 #   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18])
 #
-# 1/19/23: removed SymPy, include 'from fractions import Fraction', treat a
+# 1/19/23: removed SymPy, include 'from fractions import Fraction', treated a
 # "matrix" as a list of lists for which a special 'rref' was coded. a big
 # progress! however, still failed to do, say, compute(1, -30:30).
 #
-# thus, the functionality of Julia's BigInt and Rational is simply amazing.
+# thus, the functionality of Julia's BigInt and Rational is simply amazing!!!
 #
 # while Python's output for command (3) was so different, I wanted to load it
 # to some function here to test and evaluate. here it is.
