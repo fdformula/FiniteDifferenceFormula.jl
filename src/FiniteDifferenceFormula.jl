@@ -213,10 +213,12 @@ function _rref(A::Matrix{Rational{BigInt}})
         (m, mi) = findmax(abs.(A[i : nr, j]))
         if m != 0
             mi += i - 1
-            A[i, j : nc], A[mi, j : nc] = A[mi, j : nc], A[i, j : nc]
+            if mi != i
+                A[i, j : nc], A[mi, j : nc] = A[mi, j : nc], A[i, j : nc]
+            end
             A[i, j : nc] /= A[i, j]
             for k = 1 : nr
-                if k == i; continue; end
+                if k == i || A[k, j] == 0; continue; end
                 A[k, j : nc] -= A[k, j] * A[i, j : nc]
             end
             i += 1
@@ -753,13 +755,13 @@ end
 #
 # it seemed to be very useful when I tried to port this package to Python
 # (3.11.1, the newest version as of 1/13/2023). the effort failed in hours
-# becasue, I strongly believe, Python could not handle large number of points,
-# e.g.,
+# becasue Python's SymPy might not be able to handle very large integers.
+# for example,
 #   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18,19]) .............. (3)
 # though it could handle
 #   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18])
 #
-# Julia's BigInt functionality is simply amazing.
+# in this sense, Julia's BigInt functionality is simply amazing.
 #
 # while Python's output for command (3) was so different, I wanted to load it
 # to some function here to evaluate, which is why this function is here.
