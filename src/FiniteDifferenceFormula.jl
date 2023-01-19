@@ -760,19 +760,19 @@ end
 # it seemed to be very useful when I tried to port this package to Python
 # (3.11.1, the newest version as of 1/13/2023). the effort failed in hours
 # becasue Python's SymPy might not be able to handle very large integers.
-# for example,
+# for example, it failed to
 #   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18,19]) .............. (3)
-# though it could handle
+# but could successfully
 #   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18])
 #
-# 1/19/23: removed SymPy, include 'from fractions import Fraction', treated a
-# "matrix" as a list of lists for which a special 'rref' was coded. a big
-# progress! however, still failed to do, say, compute(1, -30:30).
+# 1/19/23: removed SymPy, included 'from fractions import Fraction', and treated
+# a "matrix" as a list of lists for which a special 'rref' was coded. a big
+# progress! however, still failed to, say, compute(1, -30:30).
 #
 # thus, the functionality of Julia's BigInt and Rational is simply amazing!!!
 #
 # while Python's output for command (3) was so different, I wanted to load it
-# to some function here to test and evaluate. here it is.
+# to some function here to test and evaluate. so, it is here.
 #
 function activatejuliafunction(n, points, k, m)
     if !isinteger(n) || n <= 0
