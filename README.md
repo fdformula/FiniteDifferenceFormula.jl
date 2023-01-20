@@ -32,11 +32,15 @@ In Julia REPL, execute the following two commands in order.
 
 ## The package exports nine functions
 
-- compute                               - verifyformula
-- formula                               - taylor
-- truncationerror                       - printtaylor
-- decimalplaces                         - _set_default_max_num_of_taylor_terms
-- activatejuliafunction
+1. compute                                      
+1. formula
+1. truncationerror
+1. decimalplaces
+1. activatejuliafunction
+1. verifyformula
+1. taylor
+1. printtaylor
+1. _set_default_max_num_of_taylor_terms
 
 ### function compute(n, points, printformulaq = false)
 
