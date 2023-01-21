@@ -66,8 +66,7 @@ to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero term o
 series of the linear combination is f^(n)(x[i]):
 
 ```Julia
-    k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-        = m*f^(n)(x[i]) + ..., m > 0
+    k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]]) = m*f^(n)(x[i]) + ..., m > 0
 ```
 
 where len = length(points). It is this equation that gives the formula for computing f^(n)(x[i])
@@ -182,7 +181,7 @@ certainly be larger than or equal to m, say, n = m + 8. The function returns the
 
 ```Julia
 import FiniteDifferenceFormula as fd
-d.compute(1, 0:2, true)             # find, generate, and print "3"-point forward formula for f'(x[i])
+fd.compute(1, 0:2, true)             # find, generate, and print "3"-point forward formula for f'(x[i])
 fd.compute(2, -3:0, true)            # find, generate, and print "4"-point backward formula for f''(x[i])
 fd.compute(3, -9:9)                  # find "19"-point central formula for f'''(x[i])
 fd.decimalplaces(6)                  # use 6 decimal places to generate Julia functions of computed formulas
