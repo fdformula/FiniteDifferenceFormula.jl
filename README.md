@@ -32,15 +32,9 @@ In Julia REPL, execute the following two commands in order.
 
 ## The package exports nine functions
 
-1. compute                                      
-1. formula
-1. truncationerror
-1. decimalplaces
-1. activatejuliafunction
-1. verifyformula
-1. taylor
-1. printtaylor
-1. _set_default_max_num_of_taylor_terms
+- compute, formula, truncationerror, decimalplaces
+- activatejuliafunction, verifyformula, taylor, printtaylor
+- _set_default_max_num_of_taylor_terms
 
 ### function compute(n, points, printformulaq = false)
 
@@ -55,14 +49,11 @@ printformulaq: print the computed formula or not
 |   points     |   The points/nodes to be used                  |
 |   ---------- | ---------------------------------------------- |
 |    0:2       |   x[i], x[i+1], x[i+2]                         |
-|   -2:2       |   x[i-2], x[i-1], x[i], x[i+1], x[i+2]         |
 |   -3:2       |   x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2] |
-|   [1, 1, -1] |   x[i-1], x[i+1]                               |
 |   [1 0 1 -1] |   x[i-1], x[i], x[i+1]                         |
 
-A vector can be like [1, 0, 2] or [1 0 2]. It will be rearranged so
-that elements are ordered from lowest to highest with duplicate ones
-removed.
+A vector can be like [1, 0, 2] or [1 0 2]. It will be rearranged so that elements are ordered
+from lowest to highest with duplicate ones removed.
 
 #### Output
 
@@ -89,8 +80,7 @@ The function generates and lists
 1. k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
        = m*f^(n)(x[i]) + ..., m > 0
 
-1. The formula for finding f^(n)(x[i]), including estimation of accuracy in the big-O
-   notation.
+1. The formula for finding f^(n)(x[i]), including estimation of accuracy in the big-O notation.
 
 1. Julia function for f^(n)(x[i]).
 
@@ -98,8 +88,6 @@ The function generates and lists
 
 The function returns a tuple, (n, "O(h^n)"), the truncation error of the newly computed finite
 difference formula in the big-O notation.
-
------
 
 The following functions are provided for teaching/learning the finite difference method.
 
@@ -127,9 +115,7 @@ f1stderiv2ptcentrale1(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
 f1stderiv2ptcentrald(f, x, i, h)  = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
 ```
 The suffixes 'e' and 'd' stand for 'exact' and 'decimal', respectively. No suffix? It is "exact".
-
-After activating the function(s), we can evaluate right away in the present Julia REPL
-session. E.g.,
+After activating the function(s), we can evaluate right away in the present Julia REPL session. E.g.,
 
 ```Julia
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
@@ -139,7 +125,6 @@ of the computed or tested formula.
 
 ```Julia
   import FiniteDifferenceFormula as fd
-
   f, x, i, h = sin, 0:0.01:10, 501, 0.01
   fd.f1stderiv2ptcentrale(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
   fd.f1stderiv2ptcentrale1(f, x, i, h)  # result: 0.2836574577837647, relative error = 0.00166666%
@@ -149,10 +134,9 @@ of the computed or tested formula.
 
 ### function activatejuliafunction(n::Int, points, k, m::Int)
 
-It allows users to load a formula from some source to test and see if it is correct. If it
-is valid, its truncation error in the big-O notation can be determined. Furthermore,
-if the input data is not for a valid formula, it tries also to find one, if possible, using
-n and points.
+It allows users to load a formula from some source to test and see if it is correct. If it is valid,
+its truncation error in the big-O notation can be determined. Furthermore, if the input data is not
+for a valid formula, it tries also to find one, if possible, using n and points.
 
 Here, n is the order of a derivative, points are a list, k is a list of the corresponding
 coefficients of a formula, and m is the coefficient of the term f^(n)(x[i]) in the linear
@@ -200,30 +184,18 @@ With or without an argument, the function returns the present default value.
 
 ```Julia
 import FiniteDifferenceFormula as fd
-
-fd.decimalplaces(6)                  # use 6 decimal places to generate Julia functions of computed formulas
-
-fd.compute(1, 0:2, true)             # find, generate, and print "3"-point forward formula for f'(x[i])
-
+d.compute(1, 0:2, true)             # find, generate, and print "3"-point forward formula for f'(x[i])
 fd.compute(2, -3:0, true)            # find, generate, and print "4"-point backward formula for f''(x[i])
-
 fd.compute(3, -9:9)                  # find "19"-point central formula for f'''(x[i])
-
+fd.decimalplaces(6)                  # use 6 decimal places to generate Julia functions of computed formulas
 fd.compute(2, [-3 -2 1 2 7])         # find formula for f''(x[i]) using points x[i+j], j = -3, -2, 1, 2, and 7
-
 fd.compute(1,-230:230)               # find "461"-point central formula for f'(x[i]). does it exist? run the code!
-
 fd.formula()                         # generate and print the formula computed last time you called compute(...)
-
 fd.truncationerror()                 # print and return the truncation error of the newly computed formula
-
 fd.printtaylor(-2, 5)                # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
-
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(5);
 fd.printtaylor(coefs, 7)             # print the 1st 7 nonzero terms of the Taylor series of
                                      # 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+5])
-
 fd.activatejuliafunction()           # activate Julia function(s) of the newly computed formula in present REPL session
-
 fd.verifyformula(1, 2:3, [-4, 5], 6) # verify if f'(x[i]) = (-4f(x[i+2] + 5f(x[i+3)) / (6h) is a valid formula
 ```
