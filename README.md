@@ -124,12 +124,12 @@ Below is the output of activatejuliafunction(). It gives us the first chance to 
 of the computed or tested formula.
 
 ```Julia
-  import FiniteDifferenceFormula as fd
-  f, x, i, h = sin, 0:0.01:10, 501, 0.01
-  fd.f1stderiv2ptcentrale(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
-  fd.f1stderiv2ptcentrale1(f, x, i, h)  # result: 0.2836574577837647, relative error = 0.00166666%
-  fd.f1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
-                                        # cp:     0.2836621854632262
+import FiniteDifferenceFormula as fd
+f, x, i, h = sin, 0:0.01:10, 501, 0.01
+fd.f1stderiv2ptcentrale(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
+fd.f1stderiv2ptcentrale1(f, x, i, h)  # result: 0.2836574577837647, relative error = 0.00166666%
+fd.f1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
+                                      # cp:     0.2836621854632262
 ```
 
 ### function activatejuliafunction(n::Int, points, k, m::Int)
@@ -176,9 +176,7 @@ The function sets to n the default maximum number of terms of Taylor series. Usu
 never need to know its existence. (If no change is made, the default value is 30.) The value
 affects the behaviors of functions 'taylor' and 'printtaylor' only. When you need more than
 30 terms of a Taylor series, the value should be set. To have m nonzero terms, n should
-certainly be larger than or equal to m, say, n = m + 8.
-
-With or without an argument, the function returns the present default value.
+certainly be larger than or equal to m, say, n = m + 8. The function returns the present default value.
 
 ## Examples
 
