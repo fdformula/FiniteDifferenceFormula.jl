@@ -160,6 +160,37 @@ end  # _print_taylor
 
 function _dashline(); return "-" ^ 105; end
 
+"""
+```compute(n, points, printformulaq = false)```
+
+Compute a formula for the nth order derivative using the given points.
+```
+            n: the n-th order derivative to be found
+       points: in the format of a range, start : stop, or a vector
+printformulaq: print the computed formula or not
+```
+|   points     |   The points/nodes to be used                  |
+|   ---------- | ---------------------------------------------- |
+|    0:2       |   x[i], x[i+1], x[i+2]                         |
+|   -2:2       |   x[i-2], x[i-1], x[i], x[i+1], x[i+2]         |
+|   -3:2       |   x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2] |
+|   [1, 1, -1] |   x[i-1], x[i+1]                               |
+|   [1 0 1 -1] |   x[i-1], x[i], x[i+1]                         |
+
+A vector can be like [1, 0, 2] or [1 0 2]. It will be rearranged so
+that elements are ordered from lowest to highest with duplicate ones
+removed.
+
+Examples
+====
+
+```julia-repl
+julia> import FiniteDifferenceFormula as fd
+julia> fd.compute(2, [0 1 2 3])
+julia> fd.compute(2, 0:3)
+julia> fd.compute(2, [-5, -2, 1, 2, 4], true)
+```
+"""
 function compute(n, points, printformulaq = false)
     if !isinteger(n) || n < 1
         println("Invalid order of derivatives, $n. A positive integer ",
@@ -618,6 +649,25 @@ end  # _print_bigo_formula
 # using data stored in global variable _data
 #
 # No valid formula can be found? Still dump the computing result for teaching.
+"""
+```formula()```
+
+Generate and list:
+
+1. ```k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
+       = m*f^(n)(x[i]) + ..., m > 0```
+
+1. The formula for f^(n)(x[i]), including estimation of accuracy in the
+   big-O notation.
+
+1. Julia function(s) for f^(n)(x[i]).
+
+Calling ```compute(n, points, true)``` is the same as calling
+```compute(n, points)``` and then ```formula()```.
+
+Even if no formula can be found, it still lists the computing results from which
+we can see why. For example, after ```compute(2,1:2)```, try ```formula()```.
+"""
 function formula()
     global _data, _computedq, _formula_status, _lcombination_coefs
     global _range_inputq, _range_input, _bigO, _julia_func_basename
@@ -652,6 +702,8 @@ function formula()
         _print_bigo_formula(_data, _bigO)
         data1 = _FDData
         if _data.m != 1                 # print in another format
+            # _data.k // _data.m ==> rationalize.(convert.(Float64, _data.k // _data.m))
+            # no differnce
             data1 = _FDData(_data.n, _data.points, _data.k // _data.m, 1,
                             _data.coefs)
             print("Or\n\n")
@@ -681,6 +733,11 @@ end  # formula
 # output:
 #    (-1, "")      - There is no valid formula
 #    (n, "O(h^n)") - There is a valid formula
+"""
+```truncationerror()```
+
+Show the truncation error of the last computed formula in the big_O notation.
+"""
 function truncationerror()
     global _bigO, _bigO_exp, _computedq, _formula_status
     if _computedq
@@ -701,6 +758,23 @@ _max_num_of_taylor_terms = 30
 # it should be a constant. usually, users never need to change it.
 
 # show current decimal places
+"""
+```decimalplaces()``` or ```decimalplaces(n)```
+
+Show present decimal places for generating Julia function(s) of computed
+formulas, if no argument is passed to ```decimalplaces```. Otherwise, set
+the decimal places to n.
+
+Examples
+====
+```
+import FiniteDifferenceFormula as fd
+fd.compute(2,-3:3)
+fd.formula()  # by default, use 16 decimal places to generate a Julia function
+fd.decimalplaces(4)
+fd.formula()  # now, use 4 decimal places to generate a Julia function
+```
+"""
 function decimalplaces()
     global _decimal_places
     return _decimal_places
@@ -749,7 +823,31 @@ end  # _printexampleresult
 
 # the name is self-explanatory. it is exactly the same as the function
 # activatejuliafunction(n, points, k, m)
-function verifyformula(n, points, k, m)
+"""
+```verifyformula(n, points, k, m = 1)``` or
+```activatejuliafunction(n, points, k, m = 1)```
+
+Verify if a formula is valid. If it is valid, generate and activate its Julia
+function(s). If not, try to find a formula for the derivative using the points.
+
+```
+     n: the n-th order derivative
+points: in the format of a range, start : stop, or a vector
+     k: a list of the coefficients in a formula
+     m: the coefficient in the denominator of a formula
+```
+
+Examples
+====
+```julia-repl
+import FiniteDifferenceFormula as fd
+fd.verifyformula(1,[-1,2],[-3,4],5)  # f'(x[i]) = (-3f(x[i-1])+4f(x[i+2]))/(5h)?
+fd.verifyformula(2, -3:3, [2,-27,270,-490,270,-27,2], 18)
+fd.activatejuliafunction(2, -3:3, [1/90,-3/20,3/2,-49/18,3/2,-3/20,1/90])
+fd.verifyformula(2, -3:3, [1//90,-3//20,3//2,-49//18,3//2,-3//20,1//90])
+```
+"""
+function verifyformula(n, points, k, m = 1)
     return activatejuliafunction(n, points, k, m)
 end
 
@@ -771,7 +869,31 @@ end
 #
 # thus, the functionality of Julia's BigInt and Rational is simply amazing!!!
 #
-function activatejuliafunction(n, points, k, m)
+"""
+```verifyformula(n, points, k, m = 1)``` or
+```activatejuliafunction(n, points, k, m = 1)```
+
+Verify if a formula is valid. If it is valid, generate and activate its Julia
+function(s). If not, try to find a formula for the derivative using the points.
+
+```
+     n: the n-th order derivative
+points: in the format of a range, start : stop, or a vector
+     k: a list of the coefficients in a formula
+     m: the coefficient in the denominator of a formula
+```
+
+Examples
+====
+```julia-repl
+import FiniteDifferenceFormula as fd
+fd.verifyformula(1,[-1,2],[-3,4],5)  # f'(x[i]) = (-3f(x[i-1])+4f(x[i+2]))/(5h)?
+fd.verifyformula(2, -3:3, [2,-27,270,-490,270,-27,2], 18)
+fd.activatejuliafunction(2, -3:3, [1/90,-3/20,3/2,-49/18,3/2,-3/20,1/90])
+fd.verifyformula(2, -3:3, [1//90,-3//20,3//2,-49//18,3//2,-3//20,1//90])
+```
+"""
+function activatejuliafunction(n, points, k, m = 1)
     if !isinteger(n) || n <= 0
         println("Error: invalid first argument, $n. A positive integer is ",
                 "expected.")
@@ -984,6 +1106,22 @@ end  # activatejuliafunction
 
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
 # for teaching/learning!
+"""
+```taylor(j)```
+
+Compute and return a number of the first coeficients of Taylor series of
+f(x[i + j]) = f(x[i] + jh) about x[i], where h is the increment in x.
+
+See also [```_set_default_max_num_of_taylor_terms```].
+
+Examples
+====
+```
+import FiniteDifferenceFormula as fd
+fd.taylor(-2)
+fd.taylor(5)
+```
+"""
 function taylor(j::Int)
     global _max_num_of_taylor_terms
     return _taylor_coefs(j, _max_num_of_taylor_terms)
@@ -991,6 +1129,29 @@ end  # taylor
 
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
+"""
+```printtaylor(j, num_of_nonzero_terms = 10)``` or
+```printtaylor(coefs, num_of_nonzero_terms = 10)```
+
+Display the first ```num_of_nonzero_terms``` of the Taylor series of f(x[i+j]) =
+f(x[i] + jh) or a Taylor series with the first coefficients in the list
+```coefs```. The latter provides another way to verify if a formula is valid
+or not.
+
+See also [```_set_default_max_num_of_taylor_terms```], [```verifyformula```],
+[```activatejuliafunction```].
+
+Examples
+====
+```
+import FiniteDifferenceFormula as fd
+coefs = [2,-27,270,-490,270,-27,2]
+fd.printtaylor(coefs, 6)
+coefs=2*fd.taylor(0) - 6*fd.taylor(1) + 4*fd.taylor(2)
+fd.printtaylor(coefs, 6)
+fd.printtaylor(-fd.taylor(0) + 3*fd.taylor(1) - 3*fd.taylor(2) + fd.taylor(3))
+```
+"""
 function printtaylor(j::Int, num_of_nonzero_terms::Int = 10)
     if num_of_nonzero_terms < 0
         println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
@@ -1004,17 +1165,40 @@ end  # printtaylor
 
 # print readable Taylor series of a function/expression about x[i]. e.g.,
 # fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2))
-function printtaylor(coefs::Matrix{Rational{BigInt}},
-                     num_of_nonzero_terms::Int = 10)
+function printtaylor(coefs, num_of_nonzero_terms::Int = 10)
     if num_of_nonzero_terms < 0
         println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
         return;
     end
+    coefs = collect(coefs)
     _print_taylor(coefs, num_of_nonzero_terms)
     return
 end  # printtaylor
 
 # for explorers/researchers. users never need to know its existence
+"""
+```_set_default_max_num_of_taylor_terms()``` or
+```_set_default_max_num_of_taylor_terms(n)```
+
+Show the maximum number of the first terms of a Taylor series to calculate and
+store, if no argument is passed to the function. Otherwise, reset that number
+to n. The latter affects the behavior of ```taylor``` and ```printtaylor```.
+
+Usually, users don't need to know the existence of this function. Only when
+you want to view more first terms of a Taylor series, reset the value. For
+example, if you want to see the first n nonzero terms, choose a number larger
+than n, say, n + 8, and call ```_set_default_max_num_of_taylor_terms(n + 8)```.
+
+See also [```taylor```] and [```printtaylor```].
+
+Examples
+====
+```
+import FiniteDifferenceFormula as fd
+_set_default_max_num_of_taylor_terms()    # by default, it is 30
+_set_default_max_num_of_taylor_terms(60)
+```
+"""
 function _set_default_max_num_of_taylor_terms(n::Int)
     global _max_num_of_taylor_terms
     if n < 0
