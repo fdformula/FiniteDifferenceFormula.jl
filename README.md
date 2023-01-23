@@ -41,7 +41,7 @@ In Julia REPL, execute the following two commands in order.
 #### Input
 
 ```
-            n: to find a formula for the n-th order derivative
+            n:  the n-th order derivative to be found
        points: in the format of a range, start : stop, or a vector
 printformulaq: print the computed formula or not
 ```
@@ -79,7 +79,7 @@ The function generates and lists
 1. k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
        = m*f^(n)(x[i]) + ..., m > 0
 
-1. The formula for finding f^(n)(x[i]), including estimation of accuracy in the big-O notation.
+1. The formula for f^(n)(x[i]), including estimation of accuracy in the big-O notation.
 
 1. Julia function for f^(n)(x[i]).
 
