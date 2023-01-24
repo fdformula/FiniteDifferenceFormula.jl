@@ -30,13 +30,13 @@ In Julia REPL, execute the following two commands in order.
 1. import Pkg
 1. Pkg.add("FiniteDifferenceFormula")
 
-## The package exports nine functions
+## The package exports twelve functions
 
-- compute, formula, truncationerror, decimalplaces
-- activatejuliafunction, verifyformula, taylor, printtaylor
+- compute, search, searchforward, searchbackward, formula, truncationerror
+- decimalplaces, activatejuliafunction, verifyformula, taylor, printtaylor
 - _set_default_max_num_of_taylor_terms
 
-### function compute(n, points, printformulaq = false)
+### functions compute, search, searchforward, and searchbackward take the same arguments (n, points, printformulaq = false)
 
 #### Input
 
@@ -57,9 +57,12 @@ from lowest to highest with duplicate ones removed.
 
 #### Output
 
-The function returns a tuple, (n, points, [k[1], k[2], ..., k[stop-start+1]], m) where n,
+Each function returns a tuple, (n, points, [k[1], k[2], ..., k[stop-start+1]], m) where n,
 points, k[:] and m are described below. With the information, you may generate formulas for
 any programming language of your choice.
+
+While 'compute' may fail to find a formula using the points, others try to find one, if possible,
+by using fewer points in different ways. (See the docstring of each function.)
 
 The algorithm uses the linear combination of f(x[i+j]), j ∈ points, a given list of points,
 to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero term of the Taylor
