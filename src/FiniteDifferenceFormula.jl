@@ -273,15 +273,15 @@ function search(n, points, printformulaq = false)
             result = _compute(n, points[1 : end - 1], printformulaq)
 
             if result == nothing
-                if _range_inputq; _range_input = points[2] : points[end - 1]; end
                 points = points[2 : end - 1]
+                if _range_inputq; _range_input = points[1] : points[end]; end
             end
         end
     end
     return result
 end
 
-function _searchforward(n, points, printformulaq = false, forwardq = true)
+function _searchforward(n, points, printformulaq = false, forwardq::Bool = true)
     global _range_input, _range_inputq
     points = _validate_input(n, points, printformulaq)
     if points == []; return; end
