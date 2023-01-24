@@ -342,10 +342,9 @@ function searchbackward(n, points, printformulaq = false)
     return _searchforward(n, points, printformulaq, false)
 end
 
-
 # before v1.0.7, we thankfully used the function 'rref' provided by the package
 # RowEchelon v0.2.1. since it has been removed from the base, it is safer for
-# this package to have its own implementaion of the function. anyway, it is
+# this package to have its own implementation of the function. anyway, it is
 # just a few lines of code.
 #
 # customized code from RowEchelon v0.2.1, also vectorized, simplified 1/10/23
@@ -384,7 +383,7 @@ end
 # Algorithm
 # ---------
 # General generator of finite difference formulas for the n-th order derivatives
-# of f(x) at x[i] using points in a soredt list, e.g., [-2 -1 0 1 3 5 6 7].
+# of f(x) at x[i] using points in a sorted list, e.g., [-2 -1 0 1 3 5 6 7].
 #
 # It uses the linear combination of f(x[i+j]), j in points, to eliminate
 # f(x[i]), f'(x[i]), ..., so that the first term of the Taylor series expansion
@@ -395,7 +394,7 @@ end
 #
 # It is this equation that gives the formula for computing f^(n)(x[i]).
 #
-# Values of the cofficients k[:] and m will be determined, and the first few
+# Values of the coefficients k[:] and m will be determined, and the first few
 # terms of the remainder will be listed for calculating the truncation error of
 # a formula.
 #
@@ -486,8 +485,8 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     end
 
     # The homogeneous linear system (2) has no nontrivial solution or has
-    # inifinitely many nontrivial solutions. It is understandable that it may
-    # not have a nontrivial solution. But why inifinitely many nontrivial
+    # infinitely many nontrivial solutions. It is understandable that it may
+    # not have a nontrivial solution. But why infinitely many nontrivial
     # solutions? It is because, if k[:] is a nontrivial solution, α k[:] is
     # also a nontrivial solution, where α is any nonzero real constant, i.e.,
     # all nontrivial solutions (a subspace spanned by this k[:]) are parallel
@@ -558,7 +557,7 @@ end   # _compute
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
 #
 # To test in Julia if a formula is valid, we must convert the data to BigInt or
-# BigBloat becasue, say, for compute(2, -12:12), without the conversion,
+# BigBloat because, say, for compute(2, -12:12), without the conversion,
 # the formula will give obviously wrong answers because of overflow and
 # rounding errors. julia_REPL_funcq is here for testing in Julia REPL only.
 # For ordinary definition of a function, call formula().
@@ -595,7 +594,7 @@ end
 # check if the newly computed formula is valid. results are saved in the global
 # variable _formula_status:
 #  100 - perfect, even satifiying some commonly seen "rules", such as the sum of
-#        coefficients = 0, symmetry of cofficients about x[i] in a central formula
+#        coefficients = 0, symmetry of coefficients about x[i] in a central formula
 # -100 - no formula can't be found
 # -200 - same as -100, but do not try to find a formula if
 #        activatejuliafunction(n, point, k, m) fails
@@ -848,7 +847,7 @@ function formula()
     return
 end  # formula
 
-# print _bigO, the estimation of trucation error in the big-O notation
+# print _bigO, the estimation of truncation error in the big-O notation
 #
 # output:
 #    (-1, "")      - There is no valid formula
@@ -977,7 +976,7 @@ end
 #
 # it seemed to be very useful when I tried to port this package to Python
 # (3.11.1, the newest version as of 1/13/2023). the effort failed in hours
-# becasue Python's SymPy might not be able to handle very large integers.
+# because Python's SymPy might not be able to handle very large integers.
 # for example, it failed to
 #   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18,19]) .............. (3)
 # but could successfully
@@ -1229,7 +1228,7 @@ end  # activatejuliafunction
 """
 ```taylor(j, n = 10))```
 
-Compute and return coeficients of the first n terms of the Taylor series of
+Compute and return coefficients of the first n terms of the Taylor series of
 f(x[i + j]) = f(x[i] + jh) about x[i], where h is the increment in x.
 
 ```n``` is a positive integer. If it's larger than a predetermined value
