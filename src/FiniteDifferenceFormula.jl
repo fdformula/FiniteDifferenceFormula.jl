@@ -1184,7 +1184,7 @@ Show the maximum number of the first terms of a Taylor series to calculate and
 store, if no argument is passed to the function. Otherwise, reset that number
 to n. The latter affects the behavior of ```taylor``` and ```printtaylor```.
 
-Usually, users don't need to know the existence of this function. Only when
+*Usually, users don't need to know the existence of this function*. Only when
 you want to view more first terms of a Taylor series, reset the value. For
 example, if you want to see the first n nonzero terms, choose a number larger
 than n, say, n + 8, and call ```_set_default_max_num_of_taylor_terms(n + 8)```.
