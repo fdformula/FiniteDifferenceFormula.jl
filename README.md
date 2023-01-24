@@ -91,10 +91,6 @@ The function generates and lists
 The function returns a tuple, (n, "O(h^n)"), the truncation error of the newly computed finite
 difference formula in the big-O notation.
 
-The following functions are provided for teaching/learning the finite difference method.
-
------
-
 ### function decimalplaces( ) or decimalplaces(n)
 
 Without an argument, the function returns current decimal places. With argument n, it sets the
