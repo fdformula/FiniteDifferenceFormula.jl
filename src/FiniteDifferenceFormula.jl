@@ -15,10 +15,11 @@ module FiniteDifferenceFormula
 using Printf
 
 ############################# EXPORTED FUNCTIONS ##############################
-export compute, formula, truncationerror, verifyformula
+export compute, search, searchforward, searchbackward, formula, truncationerror
+export verifyformula, activatejuliafunction
 
 # for teaching/learning/exploring
-export decimalplaces, activatejuliafunction, taylor, printtaylor
+export decimalplaces, taylor, printtaylor
 export _set_default_max_num_of_taylor_terms
 
 ######################### BEGIN OF GLOBAL VARIABLES ###########################
@@ -160,6 +161,47 @@ end  # _print_taylor
 
 function _dashline(); return "-" ^ 105; end
 
+function _validate_input(n, points, printformulaq = false)
+    if !isinteger(n) || n < 1
+        println("Invalid order of derivatives, $n. A positive integer ",
+                "is expected.")
+        return []
+    end
+    n = round(Int, n)  # 4.0 --> 4
+
+    if (typeof(points) <: Tuple) || !(typeof(points[1]) <: Integer)
+        println("Invalid input, $points. A list of integers like [-2, 1, ...]",
+                " is expected.")
+        return []
+    end
+    if typeof(printformulaq) != Bool
+        println("Invalid input, $printformulaq. A value, false or true, is ",
+                "expected.")
+        return []
+    end
+
+    oldlen = length(points)
+    points = sort(unique(collect(points)))
+    len = length(points)
+    if len < 2
+        println("Invalid input, $points. A list of two or more different ",
+                "points is expected.")
+        return []
+    end
+
+    _initialization()
+    if len != oldlen
+        input_points = _format_of_points(points)
+        print(_dashline(), "\nYour input is converted to ($n, $input_points")
+        if printformulaq; print(", true"); end
+        println(").\n", _dashline())
+    else
+        _format_of_points(points)   # no change; set _range_input & _range_inputq
+    end
+
+    return points
+end
+
 """
 ```compute(n, points, printformulaq = false)```
 
@@ -192,44 +234,114 @@ julia> fd.compute(2, [-5, -2, 1, 2, 4], true)
 ```
 """
 function compute(n, points, printformulaq = false)
-    if !isinteger(n) || n < 1
-        println("Invalid order of derivatives, $n. A positive integer ",
-                "is expected.")
-        return
-    end
-    n = round(Int, n)  # 4.0 --> 4
-
-    if (typeof(points) <: Tuple) || !(typeof(points[1]) <: Integer)
-        println("Invalid input, $points. A list of integers like [-2, 1, ...]",
-                " is expected.")
-        return
-    end
-    if typeof(printformulaq) != Bool
-        println("Invalid input, $printformulaq. A value, false or true, is ",
-                "expected.")
-        return
-    end
-
-    oldlen = length(points)
-    points = sort(unique(collect(points)))
-    len = length(points)
-    if len < 2
-        println("Invalid input, $points. A list of two or more different ",
-                "points is expected.")
-        return
-    end
-
-    _initialization()
-    if len != oldlen
-        input_points = _format_of_points(points)
-        print(_dashline(), "\nYour input is converted to ($n, $input_points")
-        if printformulaq; print(", true"); end
-        println(").\n", _dashline())
-    else
-        _format_of_points(points)
-    end
+    points = _validate_input(n, points, printformulaq)
+    if points == []; return; end
     return _compute(n, points, printformulaq)
 end  # compute
+
+"""
+```function search(n, points, printformulaq = false)```
+
+Compute a formula for the nth order derivative using the given points.
+
+For the input, ```n``` and ```points``` (See [```compute```]), there may not be
+formulas which use the two end points like -2 and 3 in -2 : 3 or [-2, -1, 0, 1,
+2, 3]. In this case, ```search``` tries to find a formula by shrinking the
+range to, first -1 : 3, then, -2 : 2, then -1 : 2, and so on, until a formula
+is found or no formulas can be found at all.
+
+See also [```compute```], [```searchbackward```], and [```searchforward```].
+
+Examples
+=====
+```
+import FiniteDifferenceFormula as fd
+fd.search(2, -10:9)
+```
+"""
+function search(n, points, printformulaq = false)
+    global _range_input, _range_inputq
+    points = _validate_input(n, points, printformulaq)
+    if points == []; return; end
+    result = _compute(n, points, printformulaq)
+    while result == nothing && length(points) > n + 1   # failed
+        if _range_inputq; _range_input = points[2] : points[end]; end
+        result = _compute(n, points[2 : end], printformulaq)
+
+        if result == nothing
+            if _range_inputq; _range_input = points[1] : points[end - 1]; end
+            result = _compute(n, points[1 : end - 1], printformulaq)
+
+            if result == nothing
+                if _range_inputq; _range_input = points[2] : points[end - 1]; end
+                points = points[2 : end - 1]
+            end
+        end
+    end
+    return result
+end
+
+function _searchforward(n, points, printformulaq = false, forwardq = true)
+    global _range_input, _range_inputq
+    points = _validate_input(n, points, printformulaq)
+    if points == []; return; end
+    result = _compute(n, points, printformulaq)
+    while result == nothing && length(points) > n + 1   # failed
+        points = forwardq ? points[2 : end] : points[1 : end - 1]
+        if _range_inputq; _range_input = points[1] : points[end]; end
+        result = _compute(n, points, printformulaq)
+    end
+    return result
+end
+
+"""
+```function searchforward(n, points, printformulaq = false)```
+
+Compute a formula for the nth order derivative using the given points.
+
+For the input, ```n``` and ```points``` (See [```compute```]), there may not be
+formulas which use the two end points like -2 and 3 in -2 : 3 or [-2, -1, 0,
+1, 2, 3]. In this case, ```searchforward``` tries to find a formula by
+shrinking the range from the left endpoint to, first -1 : 3, then, 0 : 3, then
+1 : 3, and so on, until a formula is found or no formulas can be found at all.
+
+See also [```compute```], [```search```], and [```searchbackward```].
+
+Examples
+=====
+```
+import FiniteDifferenceFormula as fd
+fd.searchforward(2, -10:9)
+```
+"""
+function searchforward(n, points, printformulaq = false)
+    return _searchforward(n, points, printformulaq, true)
+end
+
+"""
+```function searchbackward(n, points, printformulaq = false)```
+
+Compute a formula for the nth order derivative using the given points.
+
+For the input, ```n``` and ```points``` (See [```compute```]), there may not be
+formulas which use the two end points like -2 and 3 in -2 : 3 or [-2, -1, 0,
+1, 2, 3]. In this case, ```searchbackward``` tries to find a formula by
+shrinking the range from the right endpoint to, first -2 : 2, then, -2 : 1, then
+-2 : 0, and so on, until a formula is found or no formulas can be found at all.
+
+See also [```compute```], [```search```], and [```searchforward```].
+
+Examples
+=====
+```
+import FiniteDifferenceFormula as fd
+fd.searchbackward(2, -10:9)
+```
+"""
+function searchbackward(n, points, printformulaq = false)
+    return _searchforward(n, points, printformulaq, false)
+end
+
 
 # before v1.0.7, we thankfully used the function 'rref' provided by the package
 # RowEchelon v0.2.1. since it has been removed from the base, it is safer for
