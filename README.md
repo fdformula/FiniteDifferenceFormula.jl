@@ -155,7 +155,7 @@ fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 It is exactly the same as function activatejuliafunction(n::Int, points, k, m::Int). The name
 is self-explanatory.
 
-### function taylor(j, num_of_terms)
+### function taylor(j, num_of_terms = 10)
 
 The function returns the coefficients of the first num_of_terms of the Taylor series of f(x[i+j])
 about x[i].
