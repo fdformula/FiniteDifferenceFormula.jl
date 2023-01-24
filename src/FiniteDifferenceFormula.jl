@@ -792,7 +792,7 @@ function formula()
     global _range_inputq, _range_input, _bigO, _julia_func_basename
 
     if !_computedq
-        println("Please call compute(n, points) first!")
+        println("Please call 'compute', 'search', 'searchbackward', or 'searchforward' first!")
         return
     end
 
@@ -867,7 +867,7 @@ function truncationerror()
             return (_bigO_exp, _bigO)
         end
     end
-    println("Please call 'compute' first.")
+    println("Please call 'compute', 'search', 'searchbackward', or 'searchforward' first!")
     return (-1, "")
 end  # truncationerror
 
@@ -910,7 +910,7 @@ function decimalplaces(n)
                     "Julia function for the newly computed formula, using ",
                     "the new decimal places.")
         else
-            println("You may start your work by calling 'compute'.")
+            println("You may start your work by calling 'compute', 'search', 'searchbackward', or 'searchforward'.")
         end
     else
         println("decimalplaces(n): a nonnegative integer is expected.")
@@ -1169,7 +1169,7 @@ function activatejuliafunction(external_dataq = false)
     global _julia_exact_func_expr1, _julia_decimal_func_expr
 
     if !external_dataq && !_computedq
-        println("Please run 'compute' first.")
+        println("Please call 'compute', 'search', 'searchbackward', or 'searchforward' first!")
         return
     end
 
