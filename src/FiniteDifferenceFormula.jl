@@ -237,27 +237,33 @@ end  # compute
 # just a few lines of code.
 #
 # customized code from RowEchelon v0.2.1, also vectorized, simplified 1/10/23
+# input: A = [1 0 0 ... 0 | 1; ...]
 function _rref(A::Matrix{Rational{BigInt}})
     nr, nc = size(A)
-    i = j = 1                     # A[i, j], pivot entries
+    i = j = 1                   # A[i, j], pivot entries
     while i <= nr && j <= nc
-        (m, mi) = findmax(abs.(A[i : nr, j]))
-        if m != 0
+        J = j + 1
+        if i != 1               # A[1, :] = [1 0 ... 0 1], the best pivot row!
+            (m, mi) = findmax(abs.(A[i : nr, j]))
+            if m == 0
+                j = J
+                continue
+            end
             mi += i - 1
-            if mi != i
+            if mi != i          # interchange the two rows
                 A[i, j : nc], A[mi, j : nc] = A[mi, j : nc], A[i, j : nc]
             end
-            J = j + 1               #
             A[i, J : nc] /= A[i, j] # A[i, j : nc] /= A[i, j] depends on how
             A[i, j] = 1             # Julia implements inside; not a safe way
-            for r = 1 : nr
-                if r == i || A[r, j] == 0; continue; end
-                A[r, J : nc] -= A[r, j] * A[i, J : nc] # same as above
-                A[r, j] = 0                            #
-            end
-            i += 1
         end
-        j += 1
+
+        for r = 1 : nr              # eliminate entries above/below A[i, j]
+            if r == i || A[r, j] == 0; continue; end
+            A[r, J : nc] -= A[r, j] * A[i, J : nc] # same as above
+            A[r, j] = 0                            #
+        end
+        i += 1
+        j  = J
     end
     return A
 end
@@ -347,7 +353,13 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # where j = 1, 2, ..., len but not n.
     #
     A = Matrix{Rational{BigInt}}(undef, len, len)
-    row = 1
+    B = zeros(Rational{BigInt}, len, 1)
+
+    A[1, 2 : len] .= 0                   # setup an equation so that k[1] = 1
+    A[1, 1]        = 1
+    B[1]           = 1                   # so that k[1] = 1
+
+    row = 2
     for order in 0 : len - 1  # correspond to f(x[i]), f'(x[i]), f''(x[i]), ...
         if order == n; continue; end     # skip f^(n)(x[i])
 
@@ -357,6 +369,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
         for j = 1 : len
             A[row, j] = coefs[j][order + 1]
         end
+        if row == len; break; end
         row += 1
     end
 
@@ -381,11 +394,6 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # x[i+points[2]], ..., x[i+points[len]])? Therefore, we can assume that
     # k[1] != 0.
     #
-    A[len, 2 : len] .= 0                   # setup an equation so that k[1] = 1
-    A[len, 1]        = 1
-
-    B = zeros(Rational{BigInt}, len, 1)
-    B[len] = 1                             # so that k[1] = 1
 
     # solve Ax = B for x, i.e., k[:]
     k = _rref([A B])[:, len + 1]
@@ -1107,10 +1115,14 @@ end  # activatejuliafunction
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
 # for teaching/learning!
 """
-```taylor(j)```
+```taylor(j, n = 10))```
 
-Compute and return a number of the first coeficients of Taylor series of
+Compute and return coeficients of the first n terms of the Taylor series of
 f(x[i + j]) = f(x[i] + jh) about x[i], where h is the increment in x.
+
+```n``` is a positive integer. If it's larger than a predetermined value
+(by default, 30; it can be changed by the function
+```_set_default_max_num_of_taylor_terms```), it's replaced by the latter.
 
 See also [```_set_default_max_num_of_taylor_terms```].
 
@@ -1122,9 +1134,8 @@ fd.taylor(-2)
 fd.taylor(5)
 ```
 """
-function taylor(j::Int)
-    global _max_num_of_taylor_terms
-    return _taylor_coefs(j, _max_num_of_taylor_terms)
+function taylor(j::Int, num_of_terms::Int = 10)
+    return _taylor_coefs(j, num_of_terms)
 end  # taylor
 
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
@@ -1138,8 +1149,12 @@ f(x[i] + jh) or a Taylor series with the first coefficients in the list
 ```coefs```. The latter provides another way to verify if a formula is valid
 or not.
 
+```num_of_nonzero_terms``` is a positive integer. If it's larger than a
+predetermined value (by default, 30; it can be changed by the function
+```_set_default_max_num_of_taylor_terms```), it's replaced by the latter.
+
 See also [```_set_default_max_num_of_taylor_terms```], [```verifyformula```],
-[```activatejuliafunction```].
+[```activatejuliafunction```], and [```taylor```].
 
 Examples
 ====
