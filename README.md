@@ -5,7 +5,7 @@ for teaching/learning the finite difference method. It generates finite differen
 formulas for derivatives of various orders by using Taylor series expansions of a
 function at evenly spaced points. It also gives the truncation error of a formula
 in the big-O notation. We can use it to generate new formulas in addition to
-verification of known ones. See documentation in the source code for the algorithm.
+verification of known ones.
 
 We may play with this package when teaching/learning numerical computing, especially
 the finite difference method, and explore the distribution, symmetry, and beauty in
