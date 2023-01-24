@@ -1,4 +1,4 @@
-You may start your work by calling 'compute'.
+You may start your work by calling 'compute', 'search', 'searchbackward', or 'searchforward'.
 The following formula passed all tests: sum of coefs being zero, symmetry of coefs about x[i], etc.
 
 Computing result:
