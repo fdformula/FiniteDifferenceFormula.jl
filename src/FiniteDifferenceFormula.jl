@@ -273,7 +273,7 @@ function search(n, points, printformulaq = false)
             result = _compute(n, points[1 : end - 1], printformulaq)
 
             if result == nothing
-                points = points[2 : end - 1]
+                pop!(points); popfirst!(points)  # points = points[2 : end - 1]
                 if _range_inputq; _range_input = points[1] : points[end]; end
             end
         end
@@ -287,7 +287,8 @@ function _searchforward(n, points, printformulaq = false, forwardq::Bool = true)
     if points == []; return; end
     result = _compute(n, points, printformulaq)
     while result == nothing && length(points) > n + 1   # failed
-        points = forwardq ? points[2 : end] : points[1 : end - 1]
+        #points = forwardq ? points[2 : end] : points[1 : end - 1]
+        if forwardq; popfirst!(points); else pop!(points); end
         if _range_inputq; _range_input = points[1] : points[end]; end
         result = _compute(n, points, printformulaq)
     end
