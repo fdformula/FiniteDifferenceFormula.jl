@@ -32,11 +32,14 @@ In Julia REPL, execute the following two commands in order.
 
 ## The package exports twelve functions
 
-- compute, find, findforward, findbackward, formula, truncationerror
-- decimalplaces, activatejuliafunction, verifyformula, taylor, printtaylor
-- \_set\_default\_max\_num\_of\_taylor\_terms
+```_set_default_max_num_of_taylor_terms```, ```activatejuliafunction```,
+```compute```, ```decimalplaces```, ```find```, ```findbackward```,
+```findforward```, ```formula```, ```printtaylor```, ```taylor```, 
+```truncationerror```, ```verifyformula```
 
-### functions, compute, find, findforward, and findbackward, take the same arguments (n, points, printformulaq = false)
+### functions, ```compute```, ```find```, ```findforward```, and ```findbackward```
+
+All take the same arguments (n, points, printformulaq = false)
 
 #### Input
 
@@ -75,7 +78,7 @@ k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]
 where len = length(points). It is this equation that gives the formula for computing f^(n)(x[i])
 and the truncation error in the big-O notation as well.
 
-### function formula( )
+### function ```formula()```
 
 The function generates and lists
 
@@ -86,12 +89,12 @@ The function generates and lists
 
 1. Julia function for f^(n)(x[i]).
 
-### function truncationerror( )
+### function ```truncationerror()```
 
 The function returns a tuple, (n, "O(h^n)"), the truncation error of the newly computed finite
 difference formula in the big-O notation.
 
-### function decimalplaces( ) or decimalplaces(n)
+### function ```decimalplaces()``` or ```decimalplaces(n)```
 
 Without an argument, the function returns current decimal places. With argument n, it sets the
 decimal places to be n for generating Julia function(s) for formulas if n is a nonnegative
@@ -101,7 +104,7 @@ decimal places are used by default.
 This function can only affect Julia functions with the suffix "d" such as f1stderiv2ptcentrald.
 See function activatejuliafunction().
 
-### function activatejuliafunction( )
+### function ```activatejuliafunction()```
 
 Call this function to activate the Julia function(s) for the newly computed finite
 difference formula. For example, after compute(1, -1:1), it activates the
@@ -130,7 +133,7 @@ fd.f1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative err
                                       # cp:     0.2836621854632262
 ```
 
-### function activatejuliafunction(n, points, k, m)
+### function ```activatejuliafunction(n, points, k, m)```
 
 It allows users to load a formula from some source to test and see if it is correct. If it is valid,
 its truncation error in the big-O notation can be determined. Furthermore, if the input data is not
@@ -149,26 +152,26 @@ fd.activatejuliafunction(4, 0:4, [2//5 -8//5 12//5 -8//3 2//5], 5)
 fd.activatejuliafunction(4, [0, 1, 2, 3, 4], [2/5 -8/5 12/5 -8/3 2/5], 5)
 fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 ```
-### verifyformula(n, points, k, m)
+### function ```verifyformula(n, points, k, m)```
 
 It is exactly the same as function activatejuliafunction(n::Int, points, k, m::Int). The name
 is self-explanatory.
 
-### function taylor(j, n = 10)
+### function ```taylor(j, n = 10)```
 
 The function returns the coefficients of the first n terms of the Taylor series of f(x[i+j])
 about x[i].
 
-### function printtaylor(j, n = 10)
+### function ```printtaylor(j, n = 10)```
 
 The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
 
-### function printtaylor(coefficients\_of\_taylor\_series, n = 10)
+### function ```printtaylor(coefficients_of_taylor_series, n = 10)```
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
 provided.
 
-### function \_set\_default\_max\_num\_of\_taylor\_terms(n) or \_set\_default\_max\_num\_of\_taylor\_terms()
+### function ```_set_default_max_num_of_taylor_terms(n)``` or ```_set_default_max_num_of_taylor_terms()```
 
 The function sets to n the default maximum number of the first terms of Taylor series to be computed and
 displayed. Usually, users never need to know its existence. (If no change is made, the default value is 30.)
