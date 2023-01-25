@@ -283,7 +283,7 @@ function find(n, points, printformulaq = false)
     return result
 end
 
-function _searchforward(n, points, printformulaq = false, forwardq::Bool = true)
+function _findforward(n, points, printformulaq = false, forwardq::Bool = true)
     global _range_input, _range_inputq
     points = _validate_input(n, points, printformulaq)
     if points == []; return; end
@@ -318,7 +318,7 @@ fd.findforward(2, -10:9)
 ```
 """
 function findforward(n, points, printformulaq = false)
-    return _searchforward(n, points, printformulaq, true)
+    return _findforward(n, points, printformulaq, true)
 end
 
 """
@@ -341,11 +341,11 @@ import FiniteDifferenceFormula as fd
 fd.compute(3,-100:50)
 # output: ***** Warning: 3, -100:22 might be your input for which a formula is found.
 fd.findbackward(3,-99:50)
-# (final) output: (3, -99:23, ...)
+# output: (3, -99:23, ...)
 ```
 """
 function findbackward(n, points, printformulaq = false)
-    return _searchforward(n, points, printformulaq, false)
+    return _findforward(n, points, printformulaq, false)
 end
 
 # before v1.0.7, we thankfully used the function 'rref' provided by the package
