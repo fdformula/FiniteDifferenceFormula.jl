@@ -336,7 +336,10 @@ Examples
 =====
 ```
 import FiniteDifferenceFormula as fd
-fd.searchbackward(2, -10:9)
+fd.compute(3,-100:50)
+# output: ***** Warning: 3, -100:22 might be your input for which a formula is found.
+fd.searchbackward(3,-99:50)
+# (final) output: (3, -99:23, ...)
 ```
 """
 function searchbackward(n, points, printformulaq = false)
@@ -651,8 +654,11 @@ function _test_formula_validity()
         #    # what's the error?
         #else
         if start > 1 || stop < len
-            s = _range_inputq ?
-                (points[start] : points[stop]) : points[start : stop]
+            if _range_inputq
+                s = _range_input = points[start] : points[stop]  # v1.1.5
+            else
+                s = points[start : stop]
+            end
             println("***** Warning: $n, $s might be your input for which a ",
                     "formula is found.\n")
             formula_for_inputq = false
