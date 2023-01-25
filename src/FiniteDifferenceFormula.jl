@@ -15,7 +15,7 @@ module FiniteDifferenceFormula
 using Printf
 
 ############################# EXPORTED FUNCTIONS ##############################
-export compute, search, searchforward, searchbackward, formula, truncationerror
+export compute, find, findforward, findbackward, formula, truncationerror
 export verifyformula, activatejuliafunction
 
 # for teaching/learning/exploring
@@ -240,26 +240,26 @@ function compute(n, points, printformulaq = false)
 end  # compute
 
 """
-```function search(n, points, printformulaq = false)```
+```function find(n, points, printformulaq = false)```
 
 Compute a formula for the nth order derivative using the given points.
 
 For the input, ```n``` and ```points``` (See [```compute```]), there may not be
 formulas which use the two end points like -2 and 3 in -2 : 3 or [-2, -1, 0, 1,
-2, 3]. In this case, ```search``` tries to find a formula by shrinking the
+2, 3]. In this case, ```find``` tries to find a formula by shrinking the
 range to, first -1 : 3, then, -2 : 2, then -1 : 2, and so on, until a formula
 is found or no formulas can be found at all.
 
-See also [```compute```], [```searchbackward```], and [```searchforward```].
+See also [```compute```], [```findbackward```], and [```findforward```].
 
 Examples
 =====
 ```
 import FiniteDifferenceFormula as fd
-fd.search(2, -10:9)
+fd.find(2, -10:9)
 ```
 """
-function search(n, points, printformulaq = false)
+function find(n, points, printformulaq = false)
     global _range_input, _range_inputq
     points = _validate_input(n, points, printformulaq)
     if points == []; return; end
@@ -296,41 +296,41 @@ function _searchforward(n, points, printformulaq = false, forwardq::Bool = true)
 end
 
 """
-```function searchforward(n, points, printformulaq = false)```
+```function findforward(n, points, printformulaq = false)```
 
 Compute a formula for the nth order derivative using the given points.
 
 For the input, ```n``` and ```points``` (See [```compute```]), there may not be
 formulas which use the two end points like -2 and 3 in -2 : 3 or [-2, -1, 0,
-1, 2, 3]. In this case, ```searchforward``` tries to find a formula by
+1, 2, 3]. In this case, ```findforward``` tries to find a formula by
 shrinking the range from the left endpoint to, first -1 : 3, then, 0 : 3, then
 1 : 3, and so on, until a formula is found or no formulas can be found at all.
 
-See also [```compute```], [```search```], and [```searchbackward```].
+See also [```compute```], [```find```], and [```findbackward```].
 
 Examples
 =====
 ```
 import FiniteDifferenceFormula as fd
-fd.searchforward(2, -10:9)
+fd.findforward(2, -10:9)
 ```
 """
-function searchforward(n, points, printformulaq = false)
+function findforward(n, points, printformulaq = false)
     return _searchforward(n, points, printformulaq, true)
 end
 
 """
-```function searchbackward(n, points, printformulaq = false)```
+```function findbackward(n, points, printformulaq = false)```
 
 Compute a formula for the nth order derivative using the given points.
 
 For the input, ```n``` and ```points``` (See [```compute```]), there may not be
 formulas which use the two end points like -2 and 3 in -2 : 3 or [-2, -1, 0,
-1, 2, 3]. In this case, ```searchbackward``` tries to find a formula by
+1, 2, 3]. In this case, ```findbackward``` tries to find a formula by
 shrinking the range from the right endpoint to, first -2 : 2, then, -2 : 1, then
 -2 : 0, and so on, until a formula is found or no formulas can be found at all.
 
-See also [```compute```], [```search```], and [```searchforward```].
+See also [```compute```], [```find```], and [```findforward```].
 
 Examples
 =====
@@ -338,11 +338,11 @@ Examples
 import FiniteDifferenceFormula as fd
 fd.compute(3,-100:50)
 # output: ***** Warning: 3, -100:22 might be your input for which a formula is found.
-fd.searchbackward(3,-99:50)
+fd.findbackward(3,-99:50)
 # (final) output: (3, -99:23, ...)
 ```
 """
-function searchbackward(n, points, printformulaq = false)
+function findbackward(n, points, printformulaq = false)
     return _searchforward(n, points, printformulaq, false)
 end
 
@@ -799,7 +799,7 @@ function formula()
     global _range_inputq, _range_input, _bigO, _julia_func_basename
 
     if !_computedq
-        println("Please call 'compute', 'search', 'searchbackward', or 'searchforward' first!")
+        println("Please call 'compute', 'find', 'findbackward', or 'findforward' first!")
         return
     end
 
@@ -863,6 +863,16 @@ end  # formula
 ```truncationerror()```
 
 Show the truncation error of the last computed formula in the big_O notation.
+
+Examples
+====
+```
+import FiniteDifferenceFormula as fd
+fd.compute(2,-3:3)
+fd.truncationerror()
+fd.find(3,[-2, 1, 2, 5, 7, 15])
+fd.truncationerror()
+```
 """
 function truncationerror()
     global _bigO, _bigO_exp, _computedq, _formula_status
@@ -874,7 +884,7 @@ function truncationerror()
             return (_bigO_exp, _bigO)
         end
     end
-    println("Please call 'compute', 'search', 'searchbackward', or 'searchforward' first!")
+    println("Please call 'compute', 'find', 'findbackward', or 'findforward' first!")
     return (-1, "")
 end  # truncationerror
 
@@ -917,7 +927,7 @@ function decimalplaces(n)
                     "Julia function for the newly computed formula, using ",
                     "the new decimal places.")
         else
-            println("You may start your work by calling 'compute', 'search', 'searchbackward', or 'searchforward'.")
+            println("You may start your work by calling 'compute', 'find', 'findbackward', or 'findforward'.")
         end
     else
         println("decimalplaces(n): a nonnegative integer is expected.")
@@ -1176,7 +1186,7 @@ function activatejuliafunction(external_dataq = false)
     global _julia_exact_func_expr1, _julia_decimal_func_expr
 
     if !external_dataq && !_computedq
-        println("Please call 'compute', 'search', 'searchbackward', or 'searchforward' first!")
+        println("Please call 'compute', 'find', 'findbackward', or 'findforward' first!")
         return
     end
 
