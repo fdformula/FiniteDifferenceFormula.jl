@@ -169,9 +169,12 @@ function _validate_input(n, points, printformulaq = false)
     end
     n = round(Int, n)  # 4.0 --> 4
 
-    if (typeof(points) <: Tuple) || !(typeof(points[1]) <: Integer)
-        println("Invalid input, $points. A list of integers like [-2, 1, ...]",
-                " is expected.")
+    oldlen = length(points)
+    if oldlen == 0 ||  # v1.1.5, invalid input: 10:9
+       (typeof(points) <: Tuple) ||
+       !(typeof(points[1]) <: Integer)
+        println("Invalid input, $points. A list of integers like -1:2 or ",
+                "[-1, 0, 1, 2] is expected.")
         return []
     end
     if typeof(printformulaq) != Bool
@@ -180,7 +183,6 @@ function _validate_input(n, points, printformulaq = false)
         return []
     end
 
-    oldlen = length(points)
     points = sort(unique(collect(points)))
     len = length(points)
     if len < 2
@@ -196,7 +198,7 @@ function _validate_input(n, points, printformulaq = false)
         if printformulaq; print(", true"); end
         println(").\n", _dashline())
     else
-        _format_of_points(points)   # no change; set _range_input & _range_inputq
+        _format_of_points(points)   # no change; set _range_input[q]
     end
 
     return points
