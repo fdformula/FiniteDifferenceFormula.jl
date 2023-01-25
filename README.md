@@ -36,7 +36,7 @@ In Julia REPL, execute the following two commands in order.
 - decimalplaces, activatejuliafunction, verifyformula, taylor, printtaylor
 - \_set\_default\_max\_num\_of\_taylor\_terms
 
-### functions compute, find, findforward, and findbackward, take the same arguments (n, points, printformulaq = false)
+### functions, compute, find, findforward, and findbackward, take the same arguments (n, points, printformulaq = false)
 
 #### Input
 
@@ -58,7 +58,7 @@ from lowest to highest with duplicate ones removed.
 #### Output
 
 Each function returns a tuple, (n, points, [k[1], k[2], ..., k[stop-start+1]], m) where n,
-points, k[:] and m are described below. With the information, you may generate formulas for
+points, k[:] and m are described below. With the information, you may generate functions for
 any programming language of your choice.
 
 While 'compute' may fail to find a formula using the points, others try to find one, if possible,
@@ -130,7 +130,7 @@ fd.f1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative err
                                       # cp:     0.2836621854632262
 ```
 
-### function activatejuliafunction(n::Int, points, k, m::Int)
+### function activatejuliafunction(n, points, k, m)
 
 It allows users to load a formula from some source to test and see if it is correct. If it is valid,
 its truncation error in the big-O notation can be determined. Furthermore, if the input data is not
@@ -149,7 +149,7 @@ fd.activatejuliafunction(4, 0:4, [2//5 -8//5 12//5 -8//3 2//5], 5)
 fd.activatejuliafunction(4, [0, 1, 2, 3, 4], [2/5 -8/5 12/5 -8/3 2/5], 5)
 fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 ```
-### verifyformula(n::Int, points, k, m::Int)
+### verifyformula(n, points, k, m)
 
 It is exactly the same as function activatejuliafunction(n::Int, points, k, m::Int). The name
 is self-explanatory.
