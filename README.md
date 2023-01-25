@@ -39,7 +39,7 @@ In Julia REPL, execute the following two commands in order.
 
 ### functions, ```compute```, ```find```, ```findforward```, and ```findbackward```
 
-All take the same arguments (n, points, printformulaq = false)
+All take the same arguments (n, points, printformulaq = false).
 
 #### Input
 
