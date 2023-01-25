@@ -34,7 +34,7 @@ In Julia REPL, execute the following two commands in order.
 
 - compute, find, findforward, findbackward, formula, truncationerror
 - decimalplaces, activatejuliafunction, verifyformula, taylor, printtaylor
-- _set_default_max_num_of_taylor_terms
+- \_set\_default\_max\_num\_of\_taylor\_terms
 
 ### functions compute, find, findforward, and findbackward, take the same arguments (n, points, printformulaq = false)
 
@@ -163,12 +163,12 @@ about x[i].
 
 The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
 
-### function printtaylor(coefficients_of_taylor_series, n = 10)
+### function printtaylor(coefficients\_of\_taylor\_series, n = 10)
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
 provided.
 
-### function _set_default_max_num_of_taylor_terms(n) or _set_default_max_num_of_taylor_terms()
+### function \_set\_default\_max\_num\_of\_taylor\_terms(n) or \_set\_default\_max\_num\_of\_taylor\_terms()
 
 The function sets to n the default maximum number of terms of Taylor series. Usually, users
 never need to know its existence. (If no change is made, the default value is 30.) The value
