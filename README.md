@@ -32,11 +32,11 @@ In Julia REPL, execute the following two commands in order.
 
 ## The package exports twelve functions
 
-- compute, search, searchforward, searchbackward, formula, truncationerror
+- compute, find, findforward, findbackward, formula, truncationerror
 - decimalplaces, activatejuliafunction, verifyformula, taylor, printtaylor
 - _set_default_max_num_of_taylor_terms
 
-### functions compute, search, searchforward, and searchbackward take the same arguments (n, points, printformulaq = false)
+### functions compute, find, findforward, and findbackward, take the same arguments (n, points, printformulaq = false)
 
 #### Input
 
@@ -148,7 +148,7 @@ fd.truncationerror()
 fd.activatejuliafunction(4, 0:4, [2//5 -8//5 12//5 -8//3 2//5], 5)
 fd.activatejuliafunction(4, [0, 1, 2, 3, 4], [2/5 -8/5 12/5 -8/3 2/5], 5)
 fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
-``` 
+```
 ### verifyformula(n::Int, points, k, m::Int)
 
 It is exactly the same as function activatejuliafunction(n::Int, points, k, m::Int). The name
