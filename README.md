@@ -79,8 +79,8 @@ and the truncation error in the big-O notation as well.
 
 The function generates and lists
 
-1. k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-       = m*f^(n)(x[i]) + ..., m > 0
+1. k[1]\*f(x[i+points[1]]) + k[2]\*f(x[i+points[2]]) + ... + k[len]\*f(x[i+points[len]])
+       = m\*f^(n)(x[i]) + ..., m > 0
 
 1. The formula for f^(n)(x[i]), including estimation of accuracy in the big-O notation.
 
