@@ -69,7 +69,7 @@ to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero term o
 series of the linear combination is f^(n)(x[i]):
 
 ```Julia
-    k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]]) = m*f^(n)(x[i]) + ..., m > 0
+k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]]) = m*f^(n)(x[i]) + ..., m > 0
 ```
 
 where len = length(points). It is this equation that gives the formula for computing f^(n)(x[i])
@@ -170,11 +170,11 @@ provided.
 
 ### function \_set\_default\_max\_num\_of\_taylor\_terms(n) or \_set\_default\_max\_num\_of\_taylor\_terms()
 
-The function sets to n the default maximum number of terms of Taylor series. Usually, users
-never need to know its existence. (If no change is made, the default value is 30.) The value
-affects the behaviors of functions 'taylor' and 'printtaylor' only. When you need more than
-30 terms of a Taylor series, the value should be set. To have m nonzero terms, n should
-certainly be larger than or equal to m, say, n = m + 8. The function returns the present default value.
+The function sets to n the default maximum number of the first terms of Taylor series to be computed and
+displayed. Usually, users never need to know its existence. (If no change is made, the default value is 30.)
+The value affects the behaviors of functions 'taylor' and 'printtaylor' only. When you need more than
+30 terms of a Taylor series, the value should be set. To have m nonzero terms, n should certainly be larger
+than or equal to m, say, n = m + 8. The function returns the present default value.
 
 ## Examples
 
