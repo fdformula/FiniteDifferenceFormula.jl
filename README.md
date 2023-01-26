@@ -67,9 +67,9 @@ any programming language of your choice.
 While 'compute' may fail to find a formula using the points, others try to find one, if possible,
 by using fewer points in different ways. (See the docstring of each function.)
 
-The algorithm uses the linear combination of f(x[i+j]), j ∈ points, a given list of points,
-to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero term of the Taylor
-series of the linear combination is f^(n)(x[i]):
+The algorithm uses the linear combination of f(x[i+j]) = f(x[i] + jh), where h is the increment
+in x and j ∈ points, to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero
+term of the Taylor series of the linear combination is f^(n)(x[i]):
 
 ```Julia
 k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]]) = m*f^(n)(x[i]) + ..., m > 0
