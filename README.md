@@ -163,7 +163,7 @@ about x[i].
 
 ### function ```printtaylor(j, n = 10)```
 
-The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
+The function prints the first n nonzero terms of the Taylor series of f(x[i+j]) about x[i].
 
 ### function ```printtaylor(coefficients_of_taylor_series, n = 10)```
 
