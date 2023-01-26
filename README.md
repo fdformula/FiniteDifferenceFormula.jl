@@ -60,9 +60,8 @@ from lowest to highest with duplicate ones removed.
 
 #### Output
 
-Each function returns a tuple, (n, points, [k[1], k[2], ..., k[stop-start+1]], m) where n,
-points, k[:] and m are described below. With the information, you may generate functions for
-any programming language of your choice.
+Each function returns a tuple, (n, points, k[:], m), where n, points, k[:] and m are described below.
+With the information, you may generate functions for any programming language of your choice.
 
 While 'compute' may fail to find a formula using the points, others try to find one, if possible,
 by using fewer points in different ways. (See the docstring of each function.)
