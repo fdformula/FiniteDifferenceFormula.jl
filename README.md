@@ -175,8 +175,8 @@ provided.
 The function sets to n the default maximum number of the first terms of Taylor series to be computed and
 displayed. Usually, users never need to know its existence. (If no change is made, the default value is 30.)
 The value affects the behavior of functions 'taylor' and 'printtaylor' only. When you need more than
-30 terms of a Taylor series, the value should be set. To have m nonzero terms, n should certainly be larger
-than or equal to m, say, n = m + 8. The function returns the present default value.
+30 terms of a Taylor series, the value should be set. To have m nonzero terms, n should certainly be at least
+m, say, n = m + 8. The function returns the present default value.
 
 ## Examples
 
