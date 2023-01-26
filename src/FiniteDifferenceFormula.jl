@@ -155,7 +155,7 @@ function _print_taylor(coefs, num_of_nonzero_terms = 10)
         num_of_nonzero_terms -= 1
         if num_of_nonzero_terms == 0; break; end
     end
-    println(" + ...\n")
+    println(" + ...")
     return
 end  # _print_taylor
 
@@ -643,7 +643,12 @@ function _test_formula_validity()
 
             println("***** Error: $n, $input_points : i = $i, k[1]*coefs[1][$i]",
                     " + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] ",
-                    "= $x != 0, i.e., $fnxi can't be eliminated.")
+                    "= $x != 0, i.e., $fnxi can't be eliminated as indicated ",
+                    "in the following computing result:")
+            println(_dashline())
+            print(_lcombination_expr(_data), " =\n")
+            _print_taylor(_lcombination_coefs, 5)   # print at most 5 nonzero terms
+            println(_dashline())
             has_solutionq = false
             break
         end
@@ -678,7 +683,7 @@ function _test_formula_validity()
         if len <= n
             println("***** Error: $n, $input_points : Invalid input. ",
                     "At least $(n + 1) points are needed for the $(_nth(n)) ",
-                    "derivative.\n")
+                    "derivative.")
             _formula_status = -200
             return m
         end
@@ -830,10 +835,10 @@ function formula()
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     println("Computing result:\n")
     print(_lcombination_expr(_data), " =\n")
-    _print_taylor(_lcombination_coefs, 5);   # print at most 5 nonzero terms
+    _print_taylor(_lcombination_coefs, 5)   # print at most 5 nonzero terms
 
     if _formula_status > 0
-        println("The exact formula:\n")
+        println("\nThe exact formula:\n")
         _print_bigo_formula(_data, _bigO)
         data1 = _FDData
         if _data.m != 1                 # print in another format
@@ -856,8 +861,8 @@ function formula()
             global _julia_decimal_func_expr = _julia_func_expr(data1, true)
             print(_julia_func_basename, "d", _julia_decimal_func_expr, "\n\n")
         end
-    #else
-    #    _formula_status = -100         # no formula can't be generated
+    else
+        println("\nNo formula can be found.") # v1.1.7
     end
 
     return
@@ -1310,7 +1315,7 @@ function printtaylor(j::Int, num_of_nonzero_terms::Int = 10)
         return;
     end
     coefs = taylor(j)
-    println("\nf(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) =")
+    print("f(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) = ")
     _print_taylor(coefs, num_of_nonzero_terms)
     return
 end  # printtaylor
