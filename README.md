@@ -153,7 +153,7 @@ fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 ```
 ### function ```verifyformula(n, points, k, m)```
 
-It is exactly the same as function activatejuliafunction(n::Int, points, k, m::Int). The name
+It is exactly the same as function activatejuliafunction(n, points, k, m). The name
 is self-explanatory.
 
 ### function ```taylor(j, n = 10)```
