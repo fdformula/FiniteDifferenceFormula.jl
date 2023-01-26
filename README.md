@@ -115,7 +115,7 @@ f1stderiv2ptcentrale1(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
 f1stderiv2ptcentrald(f, x, i, h)  = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
 ```
 The suffixes 'e' and 'd' stand for 'exact' and 'decimal', respectively. No suffix? It is "exact".
-After activating the function(s), we can evaluate right away in the present Julia REPL session. E.g.,
+After activating the function(s), we can evaluate right away in the present Julia REPL session. For example,
 
 ```Julia
 FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
