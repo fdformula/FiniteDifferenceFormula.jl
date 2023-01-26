@@ -10,7 +10,7 @@ module FiniteDifferenceFormula
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
 
-# Warning: users should not call/access a function/variable starting with "_" !
+# Warning: users should not call/access a function/variable starting with "_".
 
 using Printf
 
@@ -635,8 +635,12 @@ function _test_formula_validity()
     global _formula_status = 0
     for i = 1 : n
         if _lcombination_coefs[i] != 0
+            x = Float64(_lcombination_coefs[i])  # v1.1.7
+            fnxi = "f" * (i <= 4 ? ("'" ^ (i - 1)) : "^($(i - 1))") * "(x[i])"
+
             println("***** Error: $n, $input_points : i = $i, k[1]*coefs[1][$i]",
-                    " + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] != 0")
+                    " + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] ",
+                    "= $x != 0, i.e., $fnxi can't be eliminated.")
             has_solutionq = false
             break
         end
@@ -669,8 +673,8 @@ function _test_formula_validity()
 
     if !has_solutionq
         if len <= n
-            println("***** Error: $n, $input_points : Invalid input because",
-                    " at least $(n + 1) points are needed for the $(_nth(n)) ",
+            println("***** Error: $n, $input_points : Invalid input. ",
+                    "At least $(n + 1) points are needed for the $(_nth(n)) ",
                     "derivative.\n")
             _formula_status = -200
             return m
