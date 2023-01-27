@@ -30,12 +30,10 @@ In Julia REPL, execute the following two commands in order.
 1. import Pkg
 1. Pkg.add("FiniteDifferenceFormula")
 
-## The package exports twelve functions
+## The package exports the following functions
 
-```_set_default_max_num_of_taylor_terms```, ```activatejuliafunction```,
-```compute```, ```decimalplaces```, ```find```, ```findbackward```,
-```findforward```, ```formula```, ```printtaylor```, ```taylor```, 
-```truncationerror```, ```verifyformula```
+```activatejuliafunction```, ```compute```, ```decimalplaces```, ```find```, ```findbackward```,
+```findforward```, ```formula```, ```printtaylor```, ```taylor```, ```truncationerror```, ```verifyformula```
 
 ### functions, ```compute```, ```find```, ```findforward```, and ```findbackward```
 
@@ -169,14 +167,6 @@ The function prints the first n terms of the Taylor series of f(x[i+j]) about x[
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
 provided.
-
-### function ```_set_default_max_num_of_taylor_terms(n)``` or ```_set_default_max_num_of_taylor_terms()```
-
-The function sets to n the default maximum number of the first terms of Taylor series to be computed and
-displayed. Usually, users never need to know its existence. (If no change is made, the default value is 30.)
-The value affects the behavior of functions 'taylor' and 'printtaylor' only. When you need more than
-30 terms of a Taylor series, the value should be set. To show m nonzero terms, n should be at least
-m, say, n = m + 8. The function returns the present default value.
 
 ## Examples
 
