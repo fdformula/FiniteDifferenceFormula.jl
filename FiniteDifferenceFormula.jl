@@ -1280,7 +1280,7 @@ nonzero terms of a Taylor series of which the coefficients are
 provided in the list ```coefs``` (or through ```points``` and
 ```k[:]``` as in the linear combination ```k[1]*f(x[i+points[1]]) +
 k[2]*f(x[i+points[2]]) + ...)```). The latter provides also another way to
-verify if a formula is valid or not.
+verify if a formula is mathematically valid or not.
 
 See also [```verifyformula```], [```activatejuliafunction```], and [```taylor```].
 
