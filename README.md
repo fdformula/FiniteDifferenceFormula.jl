@@ -164,10 +164,12 @@ about x[i].
 
 The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
 
-### function ```printtaylor(coefficients_of_taylor_series, n = 10)```
+### function ```printtaylor(coefs, n = 10)``` or ```printtaylor(points, k, n = 10)```
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
-provided. It provides also another way to verify if a formula is correct.
+provided in ```coefs``` or given by ```points``` and ```k[:]``` as in the linear combination
+```k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + ``` It provides also another way
+to verify if a formula is correct.
 
 ## Examples
 
@@ -185,6 +187,7 @@ fd.printtaylor(-2, 5)                # print the first 5 terms of the Taylor ser
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(5);
 fd.printtaylor(coefs, 7)             # print the 1st 7 nonzero terms of the Taylor series of
                                      # 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+5])
+fd.printtaylor([0, 1, 2, 5], [2, -5, 4, -1], 7)
 fd.activatejuliafunction()           # activate Julia function(s) of the newly computed formula in present REPL session
 fd.verifyformula(1, 2:3, [-4, 5], 6) # verify if f'(x[i]) = (-4f(x[i+2] + 5f(x[i+3)) / (6h) is a valid formula
 ```
