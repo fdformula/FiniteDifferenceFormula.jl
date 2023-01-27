@@ -167,7 +167,7 @@ The function prints the first n terms of the Taylor series of f(x[i+j]) about x[
 ### function ```printtaylor(coefs, n = 10)``` or ```printtaylor(points, k, n = 10)```
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
-provided in ```coefs``` or given by ```points``` and ```k[:]``` as in the linear combination
+provided in ```coefs``` or given through ```points``` and ```k[:]``` as in the linear combination
 ```k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...``` It provides also another way
 to verify if a formula is correct.
 
