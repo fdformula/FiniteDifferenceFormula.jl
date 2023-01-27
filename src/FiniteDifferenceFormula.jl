@@ -1262,8 +1262,12 @@ fd.taylor(-2)
 fd.taylor(5)
 ```
 """
-function taylor(j::Int, num_of_terms::Int = 10)
-    return _taylor_coefs(j, num_of_terms)
+function taylor(j::Int, n::Int = 10)
+    if n < 1
+        println("n = $n? It is expected to be an positive integer.")
+        return;
+    end
+    return _taylor_coefs(j, n)
 end  # taylor
 
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
@@ -1290,26 +1294,26 @@ fd.printtaylor(coefs, n) # this n can be any positive integer
 fd.printtaylor(-fd.taylor(0) + 3*fd.taylor(1) - 3*fd.taylor(2) + fd.taylor(3))
 ```
 """
-function printtaylor(j::Int, num_of_terms::Int = 10)
-    if num_of_terms < 0
-        println("$num_of_terms? It is expected to be an positive integer.\n")
+function printtaylor(j::Int, n::Int = 10)
+    if n < 1
+        println("n = $n? It is expected to be an positive integer.")
         return;
     end
-    coefs = taylor(j, num_of_terms)
+    coefs = taylor(j, n)
     print("f(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) = ")
-    _print_taylor(coefs, num_of_terms)
+    _print_taylor(coefs, n)
     return
 end  # printtaylor
 
 # print readable Taylor series of a function/expression about x[i]. e.g.,
 # fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2))
-function printtaylor(coefs, num_of_nonzero_terms::Int = 10)
-    if num_of_nonzero_terms < 0
-        println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
+function printtaylor(coefs, n::Int = 10)
+    if n < 1
+        println("n = $n? It is expected to be an positive integer.")
         return;
     end
     coefs = collect(coefs)
-    _print_taylor(coefs, num_of_nonzero_terms)
+    _print_taylor(coefs, n)
     return
 end  # printtaylor
 
