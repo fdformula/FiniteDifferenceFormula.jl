@@ -764,12 +764,11 @@ function _julia_func_expr(data::_FDData, decimalq = false, julia_REPL_funcq = fa
 
     global _julia_func_basename = "f$(_nth(data.n))deriv$(n)pt$(s)"
     fexpr  = "(f, x, i, h) = "
-    if julia_REPL_funcq; fexpr *= "Float64("; end
+    if julia_REPL_funcq; fexpr *= "Float64( "; end   # convert the final result
     fexpr *= "( "
     fexpr *= _lcombination_expr(data, decimalq, julia_REPL_funcq)
     fexpr *= " ) / " * _denominator_expr(data, julia_REPL_funcq)
-    if julia_REPL_funcq; fexpr *= ")"; end
-
+    if julia_REPL_funcq; fexpr *= " )"; end
     return fexpr
 end  # _julia_func_expr
 
