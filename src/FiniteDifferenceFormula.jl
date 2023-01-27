@@ -78,7 +78,7 @@ end  # _initialization
 #
 # Usage:
 #   for f(x[i+k]), call _taylor_coefs(k, ...), k = ±0, ±1, ±2, ...
-function _taylor_coefs(h, max_num_of_terms)
+function _taylor_coefs(h, max_num_of_terms = 30)
     result = Matrix{Rational{BigInt}}(undef, 1, max_num_of_terms)
     factorial::BigInt = 1
     for n in 1 : max_num_of_terms
@@ -1272,12 +1272,15 @@ end  # taylor
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
 """
-```printtaylor(j, n = 10)``` or ```printtaylor(coefs, n = 10)```
+```printtaylor(j, n = 10)```, ```printtaylor(coefs, n = 10)```, or
+```printtaylor(points, k, n::Int = 10)```
 
-Display the first n terms of the Taylor series of f(x[i+j]) =
-f(x[i] + jh) or a Taylor series with the first n nonzero coefficients in the list
-```coefs```. The latter provides also another way to verify if a formula is valid
-or not.
+Display the first n terms of the Taylor series of f(x[i+j]) or the first n
+nonzero terms of a Taylor series of which the coefficients are
+provided in the list ```coefs``` (or through ```points``` and
+```k[:]``` as in the linear combination ```k[1]*f(x[i+points[1]]) +
+k[2]*f(x[i+points[2]]) + ...)```). The latter provides also another way to
+verify if a formula is mathematically valid or not.
 
 See also [```verifyformula```], [```activatejuliafunction```], and [```taylor```].
 
@@ -1291,6 +1294,7 @@ n = 50
 coefs=2*fd.taylor(0, n) - 6*fd.taylor(1, n) + 4*fd.taylor(2, n)
 fd.printtaylor(coefs, n) # this n can be any positive integer
 fd.printtaylor(-fd.taylor(0) + 3*fd.taylor(1) - 3*fd.taylor(2) + fd.taylor(3))
+fd.printtaylor(0:3, [-1, 3, -3, 1], 6)
 ```
 """
 function printtaylor(j::Int, n::Int = 10)
@@ -1312,6 +1316,32 @@ function printtaylor(coefs, n::Int = 10)
         return;
     end
     coefs = collect(coefs)
+    _print_taylor(coefs, n)
+    return
+end  # printtaylor
+
+# input: points and k[:] are as in the linear combination:
+# k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...
+function printtaylor(points, k, n::Int = 10)
+    if n < 1
+        println("n = $n? It is expected to be an positive integer.")
+        return;
+    end
+    oldlen = length(points)
+    points = sort(unique(collect(points)))
+    len = length(points)
+    if oldlen != len
+        println("Your input, points = $points.")
+    end
+    if len != length(k)
+       println("Error: invalid input. The sizes of points and k are not the same.")
+       return
+    end
+    k = collect(k)
+    coefs = k[1] * _taylor_coefs(points[1])
+    for i in 2 : len
+        coefs += k[i] * _taylor_coefs(points[i])
+    end
     _print_taylor(coefs, n)
     return
 end  # printtaylor
