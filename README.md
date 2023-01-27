@@ -63,7 +63,7 @@ With the information, you may generate functions for any programming language of
 
 While 'compute' may fail to find a formula using the points, others try to find one, if possible,
 by using fewer points in different ways. (See the docstring of each function by, say,
-```FiniteDifferenceFormula.find```, in Julia REPL, if the module is imported.)
+```?FiniteDifferenceFormula.find```, in Julia REPL, if the module is imported.)
 
 The algorithm uses the linear combination of f(x[i+j]) = f(x[i] + jh), where h is the increment
 in x and j ∈ points, to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero
