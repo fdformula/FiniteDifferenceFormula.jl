@@ -62,7 +62,7 @@ Each function returns a tuple, (n, points, k[:], m), where n, points, k[:] and m
 With the information, you may generate functions for any programming language of your choice.
 
 While 'compute' may fail to find a formula using the points, others try to find one, if possible,
-by using fewer points in different ways. (See the docstring of each function.)
+by using fewer points in different ways. (See the docstring of each function by, say, ?find, in Julia REPL.)
 
 The algorithm uses the linear combination of f(x[i+j]) = f(x[i] + jh), where h is the increment
 in x and j ∈ points, to eliminate f(x[i]), f'(x[i]), f''(x[i]), ..., so that the first nonzero
