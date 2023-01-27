@@ -1,26 +1,21 @@
-module FiniteDifferenceFormula
-
 #
-# This Julia module generates n-point finite difference formulas for the 1st,
-# 2nd, ..., derivatives by using Taylor series expansions of a function at
-# evenly spaced points. It also allows users to examine and test formulas right
-# away in the current Julia REPL. It surely helps when we teach/learn numerical
-# computing, especially, the finite difference method.
+# This Julia module, FiniteDifferenceFormula, generates n-point finite difference
+# formulas for the 1st, 2nd, ..., derivatives by using Taylor series expansions of
+# a function at evenly spaced points. It also allows users to examine and test
+# formulas right away in current Julia REPL session. It surely helps when we
+# teach/learn numerical computing, especially, the finite difference method.
 #
 # David Wang, dwang at liberty dot edu, on 12/20/2022
 #
-
 # Warning: users should not call/access a function/variable starting with "_".
+#
+module FiniteDifferenceFormula
 
 using Printf
 
 ############################# EXPORTED FUNCTIONS ##############################
 export compute, find, findforward, findbackward, formula, truncationerror
-export verifyformula, activatejuliafunction
-
-# for teaching/learning/exploring
-export decimalplaces, taylor, printtaylor
-export _set_default_max_num_of_taylor_terms
+export verifyformula, activatejuliafunction, decimalplaces, taylor, printtaylor
 
 ######################### BEGIN OF GLOBAL VARIABLES ###########################
 _decimal_places::Int = 16     # use it to print Julia function for a formula
@@ -89,7 +84,7 @@ function _taylor_coefs(h, max_num_of_terms)
     for n in 1 : max_num_of_terms
         N = n - 1          # order of derivatives in Taylor series
         if N > 0; factorial *= N; end
-        result[n] = 1 // factorial * h^N
+        result[n] = 1 // factorial * BigInt(h)^N
     end
     return result
 end  # _taylor_coefs
@@ -646,7 +641,7 @@ function _test_formula_validity()
                     "= $x != 0, i.e., $fnxi can't be eliminated as indicated ",
                     "in the following computing result:")
             println(_dashline())
-            print(_lcombination_expr(_data), " =\n")
+            print(_lcombination_expr(_data), " =\n    ")
             _print_taylor(_lcombination_coefs, 5)   # print at most 5 nonzero terms
             println(_dashline())
             has_solutionq = false
@@ -834,7 +829,7 @@ function formula()
     # print Taylor series expansion of the linear combination:
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
     println("Computing result:\n")
-    print(_lcombination_expr(_data), " =\n")
+    print(_lcombination_expr(_data), " =\n    ")
     _print_taylor(_lcombination_coefs, 5)   # print at most 5 nonzero terms
 
     if _formula_status > 0
@@ -903,9 +898,6 @@ function truncationerror()
 end  # truncationerror
 
 ######################## for teaching/learning/exploring #######################
-
-_max_num_of_taylor_terms = 30
-# it should be a constant. usually, users never need to change it.
 
 # show current decimal places
 """
@@ -1262,12 +1254,6 @@ end  # activatejuliafunction
 Compute and return coefficients of the first n terms of the Taylor series of
 f(x[i + j]) = f(x[i] + jh) about x[i], where h is the increment in x.
 
-```n``` is a positive integer. If it's larger than a predetermined value
-(by default, 30; it can be changed by the function
-```_set_default_max_num_of_taylor_terms```), it's replaced by the latter.
-
-See also [```_set_default_max_num_of_taylor_terms```].
-
 Examples
 ====
 ```
@@ -1283,20 +1269,14 @@ end  # taylor
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
 """
-```printtaylor(j, num_of_nonzero_terms = 10)``` or
-```printtaylor(coefs, num_of_nonzero_terms = 10)```
+```printtaylor(j, n = 10)``` or ```printtaylor(coefs, n = 10)```
 
-Display the first ```num_of_nonzero_terms``` of the Taylor series of f(x[i+j]) =
-f(x[i] + jh) or a Taylor series with the first coefficients in the list
-```coefs```. The latter provides another way to verify if a formula is valid
+Display the first n terms of the Taylor series of f(x[i+j]) =
+f(x[i] + jh) or a Taylor series with the first n nonzero coefficients in the list
+```coefs```. The latter provides also another way to verify if a formula is valid
 or not.
 
-```num_of_nonzero_terms``` is a positive integer. If it's larger than a
-predetermined value (by default, 30; it can be changed by the function
-```_set_default_max_num_of_taylor_terms```), it's replaced by the latter.
-
-See also [```_set_default_max_num_of_taylor_terms```], [```verifyformula```],
-[```activatejuliafunction```], and [```taylor```].
+See also [```verifyformula```], [```activatejuliafunction```], and [```taylor```].
 
 Examples
 ====
@@ -1304,19 +1284,20 @@ Examples
 import FiniteDifferenceFormula as fd
 coefs = [2,-27,270,-490,270,-27,2]
 fd.printtaylor(coefs, 6)
-coefs=2*fd.taylor(0) - 6*fd.taylor(1) + 4*fd.taylor(2)
-fd.printtaylor(coefs, 6)
+n = 50
+coefs=2*fd.taylor(0, n) - 6*fd.taylor(1, n) + 4*fd.taylor(2, n)
+fd.printtaylor(coefs, n) # this n can be any positive integer
 fd.printtaylor(-fd.taylor(0) + 3*fd.taylor(1) - 3*fd.taylor(2) + fd.taylor(3))
 ```
 """
-function printtaylor(j::Int, num_of_nonzero_terms::Int = 10)
-    if num_of_nonzero_terms < 0
-        println("$num_of_nonzero_terms? It is expected to be an positive integer.\n")
+function printtaylor(j::Int, num_of_terms::Int = 10)
+    if num_of_terms < 0
+        println("$num_of_terms? It is expected to be an positive integer.\n")
         return;
     end
-    coefs = taylor(j)
+    coefs = taylor(j, num_of_terms)
     print("f(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) = ")
-    _print_taylor(coefs, num_of_nonzero_terms)
+    _print_taylor(coefs, num_of_terms)
     return
 end  # printtaylor
 
@@ -1331,46 +1312,5 @@ function printtaylor(coefs, num_of_nonzero_terms::Int = 10)
     _print_taylor(coefs, num_of_nonzero_terms)
     return
 end  # printtaylor
-
-# for explorers/researchers. users never need to know its existence
-"""
-```_set_default_max_num_of_taylor_terms()``` or
-```_set_default_max_num_of_taylor_terms(n)```
-
-Show the maximum number of the first terms of a Taylor series to calculate and
-store, if no argument is passed to the function. Otherwise, reset that number
-to n. The latter affects the behavior of ```taylor``` and ```printtaylor```.
-
-*Usually, users don't need to know the existence of this function*. Only when
-you want to view more first terms of a Taylor series, reset the value. For
-example, if you want to see the first n nonzero terms, choose a number larger
-than n, say, n + 8, and call ```_set_default_max_num_of_taylor_terms(n + 8)```.
-
-See also [```taylor```] and [```printtaylor```].
-
-Examples
-====
-```
-import FiniteDifferenceFormula as fd
-_set_default_max_num_of_taylor_terms()    # by default, it is 30
-_set_default_max_num_of_taylor_terms(60)
-```
-"""
-function _set_default_max_num_of_taylor_terms(n::Int)
-    global _max_num_of_taylor_terms
-    if n < 0
-        println("Wrong input, $n. A positive integer is expected.")
-    elseif n < 10
-        println("$n? It doesn't have to be so small. The default value ",
-                "is still $_max_num_of_taylor_terms.")
-    else
-        _max_num_of_taylor_terms = round(Int, n)
-    end
-    return _max_num_of_taylor_terms
-end  # _set_default_max_num_of_taylor_terms
-
-function _set_default_max_num_of_taylor_terms()
-    return _max_num_of_taylor_terms
-end
 
 end # module
