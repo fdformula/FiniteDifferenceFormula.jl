@@ -166,7 +166,7 @@ The function prints the first n terms of the Taylor series of f(x[i+j]) about x[
 ### function ```printtaylor(coefficients_of_taylor_series, n = 10)```
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
-provided.
+provided. It provides also another way to verify if a formula is correct.
 
 ## Examples
 
