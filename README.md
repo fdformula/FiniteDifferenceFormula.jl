@@ -105,7 +105,7 @@ See function activatejuliafunction().
 ### function ```activatejuliafunction()```
 
 Call this function to activate the Julia function(s) for the newly computed finite
-difference formula. For example, after compute(1, -1:1), it activates the
+difference formula. For example, after compute(1, -1:1) and decimalplaces(4), it activates the
 following Julia functions.
 
 ```Julia
