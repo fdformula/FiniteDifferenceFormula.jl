@@ -197,7 +197,7 @@ function _validate_input(n, points, printformulaq = false)
     end
 
     return points
-end
+end  # _validate_input
 
 """
 ```compute(n, points, printformulaq = false)```
@@ -509,7 +509,6 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # solve Ax = B for x, i.e., k[:]
     k = _rref([A B])[:, len + 1]
-
     k = k // gcd(k)                        # change each element to an integer
     # the following code does the same     # for translating to other languages
     ## for i in 1 : len
@@ -944,8 +943,8 @@ end  # decimalplaces
 function _format_of_points(points)
     global _range_inputq, _range_input
     if length(points) == length(points[1] : points[end])
-        global _range_inputq = true
-        global _range_input  = points[1] : points[end]
+        _range_inputq = true
+        _range_input  = points[1] : points[end]
         return _range_input
     end
     return points
@@ -995,21 +994,6 @@ end
 # if you have data from textbooks or other sources, you may use this function
 # to verify if it is right, activate related Julia function(s), evaluate and
 # see the computiong results.
-#
-# it seemed to be very useful when I tried to port this package to Python
-# (3.11.1, the newest version as of 1/13/2023). the effort failed in hours
-# because Python's SymPy might not be able to handle very large integers.
-# for example, it failed to
-#   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18,19]) .............. (3)
-# but could successfully
-#   compute(3,[0,1,2,3,6,8,9,10,11,12,13,14,15,16,17,18])
-#
-# 1/19/23: removed SymPy, included 'from fractions import Fraction', and treated
-# a "matrix" as a list of lists for which a special 'rref' was coded. a big
-# progress! however, still failed to, say, compute(1, -30:30).
-#
-# thus, the functionality of Julia's BigInt and Rational is simply amazing!!!
-#
 """
 ```verifyformula(n, points, k, m = 1)``` or
 ```activatejuliafunction(n, points, k, m = 1)```
@@ -1190,7 +1174,7 @@ function activatejuliafunction(external_dataq = false)
     global _julia_func_basename, _julia_exact_func_expr
     global _julia_exact_func_expr1, _julia_decimal_func_expr
 
-    if !external_dataq && !_computedq
+    if !(external_dataq || _computedq)
         println("Please call 'compute', 'find', 'findbackward', or 'findforward' first!")
         return
     end
@@ -1221,8 +1205,6 @@ function activatejuliafunction(external_dataq = false)
             "temporarily in the FiniteDifferenceFormula module. Usage:\n")
     println("  import FiniteDifferenceFormula as fd\n")
     println("  f, x, i, h = sin, 0:0.01:10, 501, 0.01")
-
-    fmt = Printf.Format("%.8f")      # format of relative error
 
     # sine is taken as the example b/c sin^(n)(x) = sin(n π/2 + x), simply
     exact = sin(_data.n * pi /2 + 5) # x[501] = 5
@@ -1338,9 +1320,9 @@ function printtaylor(points, k, n::Int = 10)
        return
     end
     k = collect(k)
-    coefs = k[1] * _taylor_coefs(points[1])
+    coefs = k[1] * _taylor_coefs(points[1], n)
     for i in 2 : len
-        coefs += k[i] * _taylor_coefs(points[i])
+        coefs += k[i] * _taylor_coefs(points[i], n)
     end
     _print_taylor(coefs, n)
     return
