@@ -111,15 +111,15 @@ difference formula. For example, after compute(1, -1:1) and decimalplaces(4), it
 following Julia functions.
 
 ```Julia
-f1stderiv2ptcentrale(f, x, i, h)  = ( -f(x[i-1]) + f(x[i+1]) ) / (2 * h)
-f1stderiv2ptcentrale1(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
-f1stderiv2ptcentrald(f, x, i, h)  = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
+fd1stderiv2ptcentrale(f, x, i, h)  = ( -f(x[i-1]) + f(x[i+1]) ) / (2 * h)
+fd1stderiv2ptcentrale1(f, x, i, h) = ( -1/2 * f(x[i-1]) + 1/2 * f(x[i+1]) ) / h
+fd1stderiv2ptcentrald(f, x, i, h)  = ( -0.5000 * f(x[i-1]) + 0.5000 * f(x[i+1]) ) / h
 ```
 The suffixes 'e' and 'd' stand for 'exact' and 'decimal', respectively. No suffix? It is "exact".
 After activating the function(s), we can evaluate right away in the present Julia REPL session. For example,
 
 ```Julia
-FiniteDifferenceFormula.f1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
+FiniteDifferenceFormula.fd1stderiv2ptcentrale(sin, 0:0.01:pi, 3, 0.01)
 ```
 Below is the output of activatejuliafunction(). It gives us the first chance to examine the usability
 of the computed or tested formula.
@@ -127,10 +127,10 @@ of the computed or tested formula.
 ```Julia
 import FiniteDifferenceFormula as fd
 f, x, i, h = sin, 0:0.01:10, 501, 0.01
-fd.f1stderiv2ptcentrale(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
-fd.f1stderiv2ptcentrale1(f, x, i, h)  # result: 0.2836574577837647, relative error = 0.00166666%
-fd.f1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
-                                      # cp:     0.2836621854632262
+fd.fd1stderiv2ptcentrale(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
+fd.fd1stderiv2ptcentrale1(f, x, i, h)  # result: 0.2836574577837647, relative error = 0.00166666%
+fd.fd1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative error = 0.00166666%
+                                       # cp:     0.2836621854632262
 ```
 
 ### function ```activatejuliafunction(n, points, k, m)```
