@@ -571,8 +571,10 @@ function _lcombination_expr(data::_FDData, decimalq = false, julia_REPL_funcq = 
         if julia_REPL_funcq && firstq
             c2s = _c2s(data.k[i], true, decimalq)
             if c2s == ""
+                # times = "*"   # -2x == -2 * x in Julia;  an error in other languages
                 c2s = "1"
             elseif c2s == "-"
+                # times = "*"   # same as above
                 c2s = "-1"
             end
             s *= "BigFloat(" * c2s * ")"
@@ -761,7 +763,7 @@ function _julia_func_expr(data::_FDData, decimalq = false, julia_REPL_funcq = fa
         n += 1
     end
 
-    global _julia_func_basename = "f$(_nth(data.n))deriv$(n)pt$(s)"
+    global _julia_func_basename = "fd$(_nth(data.n))deriv$(n)pt$(s)"
     fexpr  = "(f, x, i, h) = "
     if julia_REPL_funcq; fexpr *= "Float64( "; end   # convert the final result
     fexpr *= "( "
