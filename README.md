@@ -101,7 +101,7 @@ decimal places to be n for generating Julia function(s) for formulas if n is a n
 integer. It returns the (new) default decimal places. Without/before calling the function, 16
 decimal places are used by default.
 
-This function can only affect Julia functions with the suffix "d" such as f1stderiv2ptcentrald.
+This function can only affect Julia functions with the suffix "d" such as fd1stderiv2ptcentrald.
 See function activatejuliafunction().
 
 ### function ```activatejuliafunction()```
