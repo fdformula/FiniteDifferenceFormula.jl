@@ -188,13 +188,12 @@ fd.compute(2, -3:0, true)            # find, generate, and print "4"-point backw
 fd.compute(3, -9:9)                  # find "19"-point central formula for f'''(x[i])
 fd.decimalplaces(6)                  # use 6 decimal places to generate Julia functions of computed formulas
 fd.compute(2, [-3 -2 1 2 7])         # find formula for f''(x[i]) using points x[i+j], j = -3, -2, 1, 2, and 7
-fd.compute(1,-230:230)               # find "461"-point central formula for f'(x[i]). it takes long time!
+fd.compute(1,-230:230)               # find "461"-point central formula for f'(x[i]). it may take hours!
 fd.formula()                         # generate and print the formula computed last time you called compute(...)
 fd.truncationerror()                 # print and return the truncation error of the newly computed formula
 fd.printtaylor(-2, 5)                # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
 coefs = 2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2) - fd.taylor(5);
-fd.printtaylor(coefs, 7)             # print the 1st 7 nonzero terms of the Taylor series of
-                                     # 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+5])
+fd.printtaylor(coefs, 7)             # print the 1st 7 nonzero terms of the Taylor series of 2f(x[i]) - 5f(x[i+1]) + 4f(x[i+2]) - f(x[i+5])
 fd.printtaylor([0, 1, 2, 5], [2, -5, 4, -1], 7)
 fd.activatejuliafunction()           # activate Julia function(s) of the newly computed formula in present REPL session
 fd.verifyformula(1, 2:3, [-4, 5], 6) # verify if f'(x[i]) = (-4f(x[i+2] + 5f(x[i+3)) / (6h) is a valid formula
