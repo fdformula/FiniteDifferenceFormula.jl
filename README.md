@@ -142,9 +142,9 @@ fd.fd1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative er
 
 ### function ```activatejuliafunction(n, points, k, m)``` or ```verifyformula(n, points, k, m)```
 
-It allows users to load a formula from some source to test and see if it is correct. If it is valid,
-its truncation error in the big-O notation can be determined. Furthermore, if the input data is not
-for a valid formula, it tries also to find one, if possible, using n and points.
+They are the same. Each allows users to load a formula from some source to test and see if it is correct.
+If it is valid, its truncation error in the big-O notation can be determined. Furthermore, if the input
+data is not for a valid formula, it tries also to find one, if possible, using n and points.
 
 Here, n is the order of a derivative, points are a list, k is a list of the corresponding
 coefficients of a formula, and m is the coefficient of the term f^(n)(x[i]) in the linear
