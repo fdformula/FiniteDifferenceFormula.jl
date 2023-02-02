@@ -140,7 +140,7 @@ fd.fd1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative er
                                        # cp:     0.2836621854632262
 ```
 
-### function ```activatejuliafunction(n, points, k, m)```
+### function ```activatejuliafunction(n, points, k, m)``` or ```verifyformula(n, points, k, m)```
 
 It allows users to load a formula from some source to test and see if it is correct. If it is valid,
 its truncation error in the big-O notation can be determined. Furthermore, if the input data is not
@@ -159,10 +159,6 @@ fd.activatejuliafunction(4, 0:4, [2//5 -8//5 12//5 -8//3 2//5], 5)
 fd.activatejuliafunction(4, [0, 1, 2, 3, 4], [2/5 -8/5 12/5 -8/3 2/5], 5)
 fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 ```
-### function ```verifyformula(n, points, k, m)```
-
-It is exactly the same as function activatejuliafunction(n, points, k, m). The name
-is self-explanatory.
 
 ### function ```taylor(j, n = 10)```
 
