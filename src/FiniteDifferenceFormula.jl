@@ -551,7 +551,63 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     else
         return nothing
     end
-end   # _compute
+end  # _compute
+
+"""
+```loadcomputingresults(results)```
+
+Input: 'results' is a tuple, (n, points, k[:], m). See compute(...).
+
+Load computing results from the output of compute(...). After this
+command, formula(), activatepythonfunction(), truncationerror(0, etc.,
+are available. It allows users to work on saved computing results (say,
+in a textfile). For example, when it takes hours to compute/find a
+formula, users may run commands like the following one from OS terminal
+
+julia -e "import FiniteDifferenceFormula as fd; println(fd.compute(1, range(-200, 201)))" > data.txt
+
+and then mannually load data from data.txt to this function later.
+
+See also [compute].
+"""
+function loadcomputingresults(results)
+    global _lcombination_coefs, _data, _computedq
+    if !(typeof(results) <: Tuple) || length(results) != 4
+        println("Invalid input. A tuple of the form (n, points, k, m) is expected.")
+        println("It is the output of compute(...).")
+        return
+    end
+
+    _initialization()
+    n, points, k, m, = results
+    points = collect(points)
+    _format_of_points(points)
+    k = Rational.(k)
+
+    len = length(points)
+    max_num_of_terms = max(len, n) + 8
+
+    # setup the coefficients of Taylor series expansions of f(x) at each of
+    # the involved points
+    coefs = Array{Any}(undef, len)
+    for i in 1 : len
+        coefs[i] = _taylor_coefs(points[i], max_num_of_terms)
+    end
+
+    # Taylor series of the linear combination
+    # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...
+    _lcombination_coefs = k[1] * coefs[1]  # let Julia determine the type
+    for i in 2 : len
+        if k[i] == 0; continue; end
+        _lcombination_coefs += k[i] * coefs[i]
+    end
+
+    _data = _FDData(n, points, k, m, coefs)
+    _computedq = true
+
+    _test_formula_validity()
+    return
+end  # of loadcomputingresults
 
 # return a string of the linear combination
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
