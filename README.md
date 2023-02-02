@@ -44,7 +44,7 @@ All take the same arguments (n, points, printformulaq = false).
 #### Input
 
 ```
-            n:  the n-th order derivative to be found
+            n: the n-th order derivative to be found
        points: in the format of a range, start : stop, or a vector
 printformulaq: print the computed formula or not
 ```
