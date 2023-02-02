@@ -35,7 +35,8 @@ In Julia REPL, execute the following two commands in order.
 ## The package exports the following functions
 
 ```activatejuliafunction```, ```compute```, ```decimalplaces```, ```find```, ```findbackward```,
-```findforward```, ```formula```, ```printtaylor```, ```taylor```, ```truncationerror```, ```verifyformula```
+```findforward```, ```formula```, ```loadcomputingresults```, ```printtaylor```, ```taylor```,
+```truncationerror```, ```verifyformula```
 
 ### functions, ```compute```, ```find```, ```findforward```, and ```findbackward```
 
@@ -88,6 +89,13 @@ The function generates and lists
 1. The formula for f^(n)(x[i]), including estimation of accuracy in the big-O notation.
 
 1. Julia function for f^(n)(x[i]).
+
+### function ```loadcomputingresults(results)```
+
+The function load results, a tuple of the form (n, points, k, m), returned by ```compute```.
+For example, it may take hours to compute/find a formula invloving hundreds of points. In this
+case, users can save the results in a text file, and come back later to work on the results
+with ```activatejuliar```, ```formula```, ```truncationerror```, and so on.
 
 ### function ```truncationerror()```
 
