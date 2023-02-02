@@ -52,7 +52,6 @@ printformulaq: print the computed formula or not
 
 |   points     |   The points/nodes to be used                  |
 |   ---------- | ---------------------------------------------- |
-|    0:2       |   x[i], x[i+1], x[i+2]                         |
 |   -3:2       |   x[i-3], x[i-2], x[i-1], x[i], x[i+1], x[i+2] |
 |   [1 0 1 -1] |   x[i-1], x[i], x[i+1]                         |
 
@@ -182,7 +181,6 @@ provided in ```coefs``` or given through ```points``` and ```k[:]``` as in the l
 to verify if a formula is correct.
 
 ## Examples
-
 ```Julia
 import FiniteDifferenceFormula as fd
 fd.compute(1, 0:2, true)             # find, generate, and print "3"-point forward formula for f'(x[i])
