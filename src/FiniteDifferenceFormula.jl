@@ -581,10 +581,15 @@ function loadcomputingresults(results)
     _initialization()
     n, points, k, m, = results
     points = collect(points)
+    len = length(points)
+    if len == length(k) + 1
+        println("\nYour input might be from Python FiniteDifferenceFormula.")
+        pop!(points)
+        len -= 1
+    end
     _format_of_points(points)
     k = Rational.(k)
 
-    len = length(points)
     max_num_of_terms = max(len, n) + 8
 
     # setup the coefficients of Taylor series expansions of f(x) at each of
