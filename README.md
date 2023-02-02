@@ -87,7 +87,7 @@ The function generates and lists
 
 1. The formula for f^(n)(x[i]), including estimation of accuracy in the big-O notation.
 
-1. Julia function for f^(n)(x[i]).
+1. Julia function(s) for f^(n)(x[i]).
 
 ### function ```loadcomputingresults(results)```
 
