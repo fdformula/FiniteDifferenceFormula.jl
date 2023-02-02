@@ -92,9 +92,9 @@ The function generates and lists
 
 ### function ```loadcomputingresults(results)```
 
-The function load results, a tuple of the form (n, points, k, m), returned by ```compute```.
+The function loads results, a tuple of the form (n, points, k, m), returned by ```compute```.
 For example, it may take hours to compute/find a formula invloving hundreds of points. In this
-case, users can save the results in a text file, and come back later to work on the results
+case, we can save the results in a text file and come back later to work on the results
 with ```activatejuliar```, ```formula```, ```truncationerror```, and so on.
 
 ### function ```truncationerror()```
