@@ -18,8 +18,9 @@ export compute, find, findforward, findbackward, formula, truncationerror
 export verifyformula, activatejuliafunction, decimalplaces, taylor, printtaylor
 
 ######################### BEGIN OF GLOBAL VARIABLES ###########################
-_decimal_places::Int = 16     # use it to print Julia function for a formula
-                              # call decimalplaces(n) to reset it
+_NUM_OF_EXTRA_TAYLOR_TERMS::Int  = 8       # for examining truncation error
+_decimal_places::Int             = 16      # for generating Julia function(s)
+                                           # call decimalplaces(n) to reset it
 
 mutable struct _FDData
     n; points; k; m; coefs                 # on one line? separated by ;
@@ -421,6 +422,7 @@ end
 #
 function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     global _lcombination_coefs, _formula_status, _range_inputq, _range_input
+    global _NUM_OF_EXTRA_TAYLOR_TERMS
 
     # for teaching's purpose, we don't do so
     # if length(points) <= n
@@ -432,7 +434,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # setup a linear system Ax = B first
     len = length(points)
-    max_num_of_terms = max(len, n) + 8
+    max_num_of_terms = max(len, n) + _NUM_OF_EXTRA_TAYLOR_TERMS
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
     # involved points
@@ -571,7 +573,8 @@ and then mannually load data from data.txt to this function later.
 See also [compute].
 """
 function loadcomputingresults(results)
-    global _lcombination_coefs, _data, _computedq
+    global _lcombination_coefs, _data, _computedq, _NUM_OF_EXTRA_TAYLOR_TERMS
+
     if !(typeof(results) <: Tuple) || length(results) != 4
         println("Invalid input. A tuple of the form (n, points, k, m) is expected.")
         println("It is the output of compute(...).")
@@ -590,7 +593,7 @@ function loadcomputingresults(results)
     _format_of_points(points)
     k = Rational.(k)
 
-    max_num_of_terms = max(len, n) + 8
+    max_num_of_terms = max(len, n) + _NUM_OF_EXTRA_TAYLOR_TERMS
 
     # setup the coefficients of Taylor series expansions of f(x) at each of
     # the involved points
@@ -1082,6 +1085,7 @@ fd.verifyformula(2, -3:3, [1//90,-3//20,3//2,-49//18,3//2,-3//20,1//90])
 ```
 """
 function activatejuliafunction(n, points, k, m = 1)
+    global _NUM_OF_EXTRA_TAYLOR_TERMS
     if !isinteger(n) || n <= 0
         println("Error: invalid first argument, $n. A positive integer is ",
                 "expected.")
@@ -1172,7 +1176,7 @@ function activatejuliafunction(n, points, k, m = 1)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
     # involved points
-    max_num_of_terms = max(len, n) + 8
+    max_num_of_terms = max(len, n) + _NUM_OF_EXTRA_TAYLOR_TERMS
     coefs = Array{Any}(undef, len)
     for i in 1 : len
         coefs[i] = _taylor_coefs(points[i], max_num_of_terms)
@@ -1368,6 +1372,7 @@ end  # printtaylor
 # input: points and k[:] are as in the linear combination:
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...
 function printtaylor(points, k, n::Int = 10)
+    global _NUM_OF_EXTRA_TAYLOR_TERMS
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
         return;
@@ -1383,9 +1388,10 @@ function printtaylor(points, k, n::Int = 10)
        return
     end
     k = collect(k)
-    coefs = k[1] * _taylor_coefs(points[1], n)
+    max_num_of_terms = max(n, len, 30) + _NUM_OF_EXTRA_TAYLOR_TERMS
+    coefs = k[1] * _taylor_coefs(points[1], max_num_of_terms)
     for i in 2 : len
-        coefs += k[i] * _taylor_coefs(points[i], n)
+        coefs += k[i] * _taylor_coefs(points[i], max_num_of_terms)
     end
     _print_taylor(coefs, n)
     return
