@@ -23,7 +23,7 @@ is mathematically. However, due to rounding errors, this may not be true numeric
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-Note: This package is ported to Python, https://github.com/Winux2k/FiniteDifferenceFormula.py.
+Note: This package has been ported to Python, https://github.com/Winux2k/FiniteDifferenceFormula.py.
 
 ## How to install the package
 
