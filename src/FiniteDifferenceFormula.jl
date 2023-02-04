@@ -1363,7 +1363,7 @@ function printtaylor()   #v0.6.4
     # print the Taylor series of the linear combination of
     # k[1]f(x[i+points[1]]) + k[2]f(x[i+points[2]]) + ...
     if _computedq
-        print(_lcombination_expr(_data), "=\n    ",)
+        print(_lcombination_expr(_data), " =\n    ",)
         _print_taylor(_lcombination_coefs, 5)
     else
         println("Please call 'compute', 'find', 'findbackward', or",
