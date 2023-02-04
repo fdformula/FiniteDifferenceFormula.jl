@@ -165,6 +165,12 @@ fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 The function returns the coefficients of the first n terms of the Taylor series of f(x[i+j])
 about x[i].
 
+### function ```printtaylor()```
+
+The function prints the first few nonzero terms of the Taylor series of the linear combination
+
+k[1] f(x[i+points[1]]) + k[2] f(x[i+points[2]]) + ... for the newly computed formula.
+
 ### function ```printtaylor(j, n = 10)```
 
 The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
