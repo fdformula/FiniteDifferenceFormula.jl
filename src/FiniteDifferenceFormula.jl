@@ -1324,10 +1324,10 @@ end  # taylor
 ```printtaylor()```
   - Print the first few nonzero terms of the Taylor series of the linear
     combination k[0]f(x[i+j0]) + k[1]f(x[i+j1]) + ... for the newly
-    computed formula.
+    computed formula (even if failed).
 
 ```printtaylor(j, n = 10)```
-  - Print the 1st n terms of Taylor series of f(x[i+j])
+  - Print the 1st n terms of Taylor series of f(x[i+j]) about x[i].
 
 ```printtaylor(coefs, n = 10)```, or
   - Print the 1st n terms of Taylor series with coefficients in 'coefs'
