@@ -1321,15 +1321,23 @@ end  # taylor
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
 """
-```printtaylor(j, n = 10)```, ```printtaylor(coefs, n = 10)```, or
-```printtaylor(points, k, n::Int = 10)```
+```printtaylor()```
+  - Print the first few nonzero terms of the Taylor series of the linear
+    combination k[0]f(x[i+j0]) + k[1]f(x[i+j1]) + ... for the newly
+    computed formula.
 
-Display the first n terms of the Taylor series of f(x[i+j]) or the first n
-nonzero terms of a Taylor series of which the coefficients are
-provided in the list ```coefs``` (or through ```points``` and
-```k[:]``` as in the linear combination ```k[1]*f(x[i+points[1]]) +
-k[2]*f(x[i+points[2]]) + ...)```). The latter provides also another way to
-verify if a formula is mathematically valid or not.
+```printtaylor(j, n = 10)```
+  - Print the 1st n terms of Taylor series of f(x[i+j])
+
+```printtaylor(coefs, n = 10)```, or
+  - Print the 1st n terms of Taylor series with coefficients in 'coefs'
+
+```printtaylor(points, k, n::Int = 10)```
+  - Prints the 1st n nonzero terms of the Taylor series of the linear
+    combination:  k[0]f(x[i+points[0]]) + k[1]f(x[i+points[1]]) + ...
+
+The last two provide also another way to verify if a formula is mathematically
+valid or not.
 
 See also [```verifyformula```], [```activatejuliafunction```], and [```taylor```].
 
@@ -1337,15 +1345,33 @@ Examples
 ====
 ```
 import FiniteDifferenceFormula as fd
-coefs = [2,-27,270,-490,270,-27,2]
-fd.printtaylor(coefs, 6)
+fd.compute(1, [0, 1, 5, 8])
+fd.printtaylor()
+
+fd.printtaylor(2)
+
 n = 50
 coefs=2*fd.taylor(0, n) - 6*fd.taylor(1, n) + 4*fd.taylor(2, n)
 fd.printtaylor(coefs, n) # this n can be any positive integer
+
 fd.printtaylor(-fd.taylor(0) + 3*fd.taylor(1) - 3*fd.taylor(2) + fd.taylor(3))
 fd.printtaylor(0:3, [-1, 3, -3, 1], 6)
 ```
 """
+function printtaylor()   #v0.6.4
+    global _data, _computedq, _lcombination_coefs
+    # print the Taylor series of the linear combination of
+    # k[1]f(x[i+points[1]]) + k[2]f(x[i+points[2]]) + ...
+    if _computedq
+        print(_lcombination_expr(_data), "=\n    ",)
+        _print_taylor(_lcombination_coefs, 5)
+    else
+        println("Please call 'compute', 'find', 'findbackward', or",
+                "'findforward' first!")
+    end
+    return
+end  # printtaylor()
+
 function printtaylor(j::Int, n::Int = 10)
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
