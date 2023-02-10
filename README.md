@@ -75,7 +75,7 @@ and the truncation error in the big-O notation as well.
 
 ### function ```loadcomputingresults(results)```
 The function loads results, a tuple of the form (n, points, k, m), returned by ```compute```.
-For example, it may take hours to compute/find a formula invloving hundreds of points. In this
+For example, it may take hours to compute/find formulas invloving hundreds of points. In this
 case, we can save the results in a text file and come back later to work on the results
 with ```activatejuliafunction```, ```formula```, ```truncationerror```, and so on.
 
