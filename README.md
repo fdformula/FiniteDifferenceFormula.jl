@@ -1,12 +1,11 @@
 # FiniteDifferenceFormula
 
-This Julia package provides a general finite difference formula generator and a tool
-for teaching/learning the finite difference method. It generates finite difference
-formulas for derivatives of various orders by using Taylor series expansions of a
-function at evenly spaced points. It also gives the truncation error of a formula
-in the big-O notation. We can use it to generate new formulas in addition to
-verification of known ones. By changing decimal places, we can also see how rounding
-errors may affect a result.
+This Julia package, also ported to Python, https://github.com/fdformula/FiniteDifferenceFormula.py, provides
+a general finite difference formula generator and a tool for teaching/learning the finite difference method.
+It generates finite difference formulas for derivatives of various orders by using Taylor series expansions of a
+function at evenly spaced points. It also gives the truncation error of a formula in the big-O notation. We
+can use it to generate new formulas in addition to verification of known ones. By changing decimal places, we
+can also see how rounding errors may affect a result.
 
 Beware, though formulas are mathematically correct, they may not be numerically useful.
 This is true especially when we derive formulas for a derivative of higher order. For
@@ -17,8 +16,6 @@ in a special way. Similarly, the more points are used, the more precise a formul
 is mathematically. However, due to rounding errors, this may not be true numerically.
 
 To run the code, you need the Julia programming language (https://julialang.org/).
-
-Note: This package has been ported to Python, https://github.com/Winux2k/FiniteDifferenceFormula.py.
 
 ## How to install the package
 
