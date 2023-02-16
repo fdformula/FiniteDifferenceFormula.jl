@@ -821,11 +821,7 @@ function _julia_func_expr(data::_FDData, decimalq = false, julia_REPL_funcq = fa
         end
     end
 
-    n = 0    # how many points are actually involved?
-    for i in eachindex(data.points)
-        if data.k[i] == 0; continue; end
-        n += 1
-    end
+    n = _num_of_used_points()
 
     global _julia_func_basename = "fd$(_nth(data.n))deriv$(n)pt$(s)"
     fexpr  = "(f, x, i, h) = "
@@ -1422,5 +1418,55 @@ function printtaylor(points, k, n::Int = 10)
     _print_taylor(coefs, n)
     return
 end  # printtaylor
+
+# return the number of points actually used in a formula
+function _num_of_used_points()
+    global _data
+    n = 0
+    for i in eachindex(_data.points)
+        if _data.k[i] == 0; continue; end
+        n += 1
+    end
+    return n
+end  # _num_of_used_points
+
+function formulatable(highest_order = 3, max_num_of_points = 5)
+    global _data, _bigO
+    if !(isinteger(highest_order) && isinteger(max_num_of_points)) || highest_order < 1 || max_num_of_points < 1
+        println("Error: Invalid input, $highest_order, $max_num_of_points . Positive integers are expected,")
+        return
+    end
+    half = round(Int, max_num_of_points / 2)
+    for n in 1 : highest_order
+        # forward schemes
+        for num_of_points in n + 1 : max_num_of_points
+            compute(n, 0 : num_of_points - 1)
+            if _formula_status > 0
+                println(_num_of_used_points(), "-point forward finite difference formula:")
+                _print_bigo_formula(_data, _bigO)
+            end
+        end
+
+        # backward schemes
+        for num_of_points in n + 1 : max_num_of_points
+            compute(n, 1 - num_of_points : 0)
+            if _formula_status > 0
+                println(_num_of_used_points(), "-point backward finite difference formula:")
+                _print_bigo_formula(_data, _bigO)
+            end
+        end
+
+        # central schemes
+        for num_of_points in round(Int, n / 2) : half
+            len = 2 * num_of_points + 1
+            if n >= len || len > max_num_of_points; continue; end
+            compute(n, -num_of_points : num_of_points)
+            if _formula_status > 0
+                println(_num_of_used_points(), "-point central finite difference formula:")
+                _print_bigo_formula(_data, _bigO)
+            end
+        end
+    end
+end  # formulatable
 
 end # module
