@@ -23,23 +23,27 @@ is mathematically. However, due to rounding errors, this may not be true numeric
 To run the code, you need the Julia programming language (https://julialang.org/), a
 wonderful and amazing computing platform.
 
-Note: This package has been ported to Python, https://github.com/fdformula/FiniteDifferenceFormula.py.
+Note: This package has been ported to Python, https://github.com/Winux2k/FiniteDifferenceFormula.py.
 
 ## How to install the package
+
 In Julia REPL, execute the following two commands in order.
 
 1. import Pkg
 1. Pkg.add("FiniteDifferenceFormula")
 
 ## The package exports the following functions
+
 ```activatejuliafunction```, ```compute```, ```decimalplaces```, ```find```, ```findbackward```,
-```findforward```, ```formula```, ```loadcomputingresults```, ```printtaylor```, ```taylor```,
-```truncationerror```, ```verifyformula```
+```findforward```, ```formula```, ```formulatable```, ```loadcomputingresults```, ```printtaylor```,
+```taylor```, ```truncationerror```, ```verifyformula```
 
 ### functions, ```compute```, ```find```, ```findforward```, and ```findbackward```
+
 All take the same arguments (n, points, printformulaq = false).
 
 #### Input
+
 ```
             n: the n-th order derivative to be found
        points: in the format of a range, start : stop, or a vector
@@ -55,6 +59,7 @@ A vector can be like [1, 0, 2] or [1 0 2]. It will be rearranged so that element
 from lowest to highest with duplicate ones removed.
 
 #### Output
+
 Each function returns a tuple, (n, points, k[:], m), where n, points, k[:] and m are described below.
 With the information, you may generate functions for any programming language of your choice.
 
@@ -74,12 +79,14 @@ where len = length(points). It is this equation that gives the formula for compu
 and the truncation error in the big-O notation as well.
 
 ### function ```loadcomputingresults(results)```
+
 The function loads results, a tuple of the form (n, points, k, m), returned by ```compute```.
 For example, it may take hours to compute/find formulas invloving hundreds of points. In this
 case, we can save the results in a text file and come back later to work on the results
 with ```activatejuliafunction```, ```formula```, ```truncationerror```, and so on.
 
 ### function ```formula()```
+
 The function generates and lists
 
 1. k[1]\*f(x[i+points[1]]) + k[2]\*f(x[i+points[2]]) + ... + k[len]\*f(x[i+points[len]])
@@ -90,10 +97,12 @@ The function generates and lists
 1. Julia function(s) for f^(n)(x[i]).
 
 ### function ```truncationerror()```
+
 The function returns a tuple, (n, "O(h^n)"), the truncation error of the newly computed finite
 difference formula in the big-O notation.
 
 ### function ```decimalplaces()``` or ```decimalplaces(n)```
+
 Without an argument, the function returns current decimal places. With argument n, it sets the
 decimal places to be n for generating Julia function(s) for formulas if n is a nonnegative
 integer. It returns the (new) default decimal places. Without/before calling the function, 16
@@ -103,6 +112,7 @@ This function can only affect Julia functions with the suffix "d" such as fd1std
 See function activatejuliafunction().
 
 ### function ```activatejuliafunction()```
+
 Call this function to activate the Julia function(s) for the newly computed finite
 difference formula. For example, after compute(1, -1:1) and decimalplaces(4), it activates the
 following Julia functions.
@@ -131,6 +141,7 @@ fd.fd1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative er
 ```
 
 ### function ```activatejuliafunction(n, points, k, m)``` or ```verifyformula(n, points, k, m)```
+
 They are the same. Each allows users to load a formula from some source to test and see if it is correct.
 If it is valid, its truncation error in the big-O notation can be determined. Furthermore, if the input
 data is not for a valid formula, it tries also to find one, if possible, using n and points.
@@ -150,21 +161,25 @@ fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 ```
 
 ### function ```taylor(j, n = 10)```
+
 The function returns the coefficients of the first n terms of the Taylor series of f(x[i+j])
 about x[i].
 
-### function ```printtaylor()```
-The function prints the first few nonzero terms of the Taylor series of the linear combination
-k[1] f(x[i+points[1]]) + k[2] f(x[i+points[2]]) + ... for the newly computed formula.
-
 ### function ```printtaylor(j, n = 10)```
+
 The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
 
 ### function ```printtaylor(coefs, n = 10)``` or ```printtaylor(points, k, n = 10)```
+
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
 provided in ```coefs``` or given through ```points``` and ```k[:]``` as in the linear combination
 ```k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...``` It provides also another way
 to verify if a formula is correct.
+
+### function ```formulatable(highest_order = 3, max_num_of_points = 5)```
+
+By default, the function prints all forward, backward, and central finite difference formulas for
+the 1st, 2nd, and 3rd derivatives, using at most 5 points.
 
 ## Examples
 
