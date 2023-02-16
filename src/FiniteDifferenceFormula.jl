@@ -14,8 +14,9 @@ module FiniteDifferenceFormula
 using Printf
 
 ############################# EXPORTED FUNCTIONS ##############################
-export compute, find, findforward, findbackward, formula, truncationerror
-export verifyformula, activatejuliafunction, decimalplaces, taylor, printtaylor
+export compute, find, findforward, findbackward, formula, formulas
+export truncationerror, verifyformula, activatejuliafunction
+export decimalplaces, taylorcoefs, tcoefs, taylor
 
 ######################### BEGIN OF GLOBAL VARIABLES ###########################
 _NUM_OF_EXTRA_TAYLOR_TERMS::Int  = 8       # for examining truncation error
@@ -1293,7 +1294,7 @@ end  # activatejuliafunction
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
 # for teaching/learning!
 """
-```taylor(j, n = 10))```
+```taylorcoefs(j, n = 10))```
 
 Compute and return coefficients of the first n terms of the Taylor series of
 f(x[i + j]) = f(x[i] + jh) about x[i], where h is the increment in x.
@@ -1302,59 +1303,69 @@ Examples
 ====
 ```
 import FiniteDifferenceFormula as fd
-fd.taylor(-2)
-fd.taylor(5)
+fd.taylorcoefs(-2)
+fd.taylorcoefs(5, 4)
 ```
 """
-function taylor(j::Int, n::Int = 10)
+function taylorcoefs(j::Int, n::Int = 10)
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
         return;
     end
     return _taylor_coefs(j, n)
-end  # taylor
+end  # taylorcoefs
+
+"""
+```tcoefs(j, n = 10))```
+
+Same as taylorcoefs(j, n).
+"""
+function tcoefs(j::Int, n::Int = 10)
+    return taylorcoefs(j, n)
+end  # tcoefs
 
 # print readable Taylor series expansion of f(x[i + j]) about x[i]
 # for teaching/learning!
 """
-```printtaylor()```
+```taylor()```
   - Print the first few nonzero terms of the Taylor series of the linear
     combination k[0]f(x[i+j0]) + k[1]f(x[i+j1]) + ... for the newly
     computed formula (even if failed).
 
-```printtaylor(j, n = 10)```
+```taylor(j, n = 10)```
   - Print the 1st n terms of Taylor series of f(x[i+j]) about x[i].
 
-```printtaylor(coefs, n = 10)```, or
+```taylor(coefs, n = 10)```, or
   - Print the 1st n terms of Taylor series with coefficients in 'coefs'
 
-```printtaylor(points, k, n::Int = 10)```
+```taylor(points, k, n::Int = 10)```
   - Prints the 1st n nonzero terms of the Taylor series of the linear
     combination:  k[0]f(x[i+points[0]]) + k[1]f(x[i+points[1]]) + ...
 
 The last two provide also another way to verify if a formula is mathematically
 valid or not.
 
-See also [```verifyformula```], [```activatejuliafunction```], and [```taylor```].
+See also [```verifyformula```], [```activatejuliafunction```], and
+[```taylorcoefs```].
 
 Examples
 ====
 ```
 import FiniteDifferenceFormula as fd
 fd.compute(1, [0, 1, 5, 8])
-fd.printtaylor()
+fd.taylor()
 
-fd.printtaylor(2)
+fd.taylor(2)
 
 n = 50
-coefs=2*fd.taylor(0, n) - 6*fd.taylor(1, n) + 4*fd.taylor(2, n)
-fd.printtaylor(coefs, n) # this n can be any positive integer
+coefs = 2*fd.tcoefs(0, n) - 6*fd.tcoefs(1, n) + 4*fd.tcoefs(2, n)
+fd.taylor(coefs, n) # this n can be any positive integer
 
-fd.printtaylor(-fd.taylor(0) + 3*fd.taylor(1) - 3*fd.taylor(2) + fd.taylor(3))
-fd.printtaylor(0:3, [-1, 3, -3, 1], 6)
+fd.taylor(-fd.tcoefs(0) + 3*fd.tcoefs(1) - 3*fd.tcoefs(2) + fd.tcoefs(3))
+fd.taylor(0:3, [-1, 3, -3, 1], 6)
 ```
 """
-function printtaylor()   #v0.6.4
+function taylor()   #v0.6.4
     global _data, _computedq, _lcombination_coefs
     # print the Taylor series of the linear combination of
     # k[1]f(x[i+points[1]]) + k[2]f(x[i+points[2]]) + ...
@@ -1366,22 +1377,22 @@ function printtaylor()   #v0.6.4
                 "'findforward' first!")
     end
     return
-end  # printtaylor()
+end  # taylor()
 
-function printtaylor(j::Int, n::Int = 10)
+function taylor(j::Int, n::Int = 10)
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
         return;
     end
-    coefs = taylor(j, n)
+    coefs = taylorcoefs(j, n)
     print("f(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) = ")
     _print_taylor(coefs, n)
     return
-end  # printtaylor
+end  # taylor
 
 # print readable Taylor series of a function/expression about x[i]. e.g.,
-# fd.printtaylor(2*fd.taylor(0) - 5*fd.taylor(1) + 4*fd.taylor(2))
-function printtaylor(coefs, n::Int = 10)
+# fd.taylor(2*fd.taylorcoefs(0) - 5*fd.taylorcoefs(1) + 4*fd.taylorcoefs(2))
+function taylor(coefs, n::Int = 10)
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
         return;
@@ -1389,11 +1400,11 @@ function printtaylor(coefs, n::Int = 10)
     coefs = collect(coefs)
     _print_taylor(coefs, n)
     return
-end  # printtaylor
+end  # taylor
 
 # input: points and k[:] are as in the linear combination:
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...
-function printtaylor(points, k, n::Int = 10)
+function taylor(points, k, n::Int = 10)
     global _NUM_OF_EXTRA_TAYLOR_TERMS
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
@@ -1417,7 +1428,7 @@ function printtaylor(points, k, n::Int = 10)
     end
     _print_taylor(coefs, n)
     return
-end  # printtaylor
+end  # taylor
 
 # return the number of points actually used in a formula
 function _num_of_used_points()
@@ -1430,10 +1441,29 @@ function _num_of_used_points()
     return n
 end  # _num_of_used_points
 
-function formulatable(highest_order = 3, max_num_of_points = 5)
+"""
+```formulas(highest_order = 3, max_num_of_points = 5)```
+
+By default, the function prints all forward, backward, and central finite
+difference formulas for the 1st, 2nd, and 3rd derivatives, using at most
+5 points.
+
+Examples
+====
+
+```julia-repl
+julia> import FiniteDifferenceFormula as fd
+# prints all forward, backward, and central finite difference formulas
+# for the 1st, 2nd, ..., 5th derivatives, using at most 11 points.
+julia> fd.formulas(5, 11)
+```
+"""
+function formulas(highest_order = 3, max_num_of_points = 5)
     global _data, _bigO
-    if !(isinteger(highest_order) && isinteger(max_num_of_points)) || highest_order < 1 || max_num_of_points < 1
-        println("Error: Invalid input, $highest_order, $max_num_of_points . Positive integers are expected,")
+    if !(isinteger(highest_order) && isinteger(max_num_of_points)) ||
+        highest_order < 1 || max_num_of_points < 1
+        println("Error: Invalid input, $highest_order, $max_num_of_points .",
+                "Positive integers are expected,")
         return
     end
     half = round(Int, max_num_of_points / 2)
@@ -1442,7 +1472,8 @@ function formulatable(highest_order = 3, max_num_of_points = 5)
         for num_of_points in n + 1 : max_num_of_points
             compute(n, 0 : num_of_points - 1)
             if _formula_status > 0
-                println(_num_of_used_points(), "-point forward finite difference formula:")
+                println(_num_of_used_points(),
+                        "-point forward finite difference formula:")
                 _print_bigo_formula(_data, _bigO)
             end
         end
@@ -1451,7 +1482,8 @@ function formulatable(highest_order = 3, max_num_of_points = 5)
         for num_of_points in n + 1 : max_num_of_points
             compute(n, 1 - num_of_points : 0)
             if _formula_status > 0
-                println(_num_of_used_points(), "-point backward finite difference formula:")
+                println(_num_of_used_points(),
+                        "-point backward finite difference formula:")
                 _print_bigo_formula(_data, _bigO)
             end
         end
@@ -1459,14 +1491,17 @@ function formulatable(highest_order = 3, max_num_of_points = 5)
         # central schemes
         for num_of_points in round(Int, n / 2) : half
             len = 2 * num_of_points + 1
-            if n >= len || len > max_num_of_points; continue; end
+            if n >= len; continue; end
             compute(n, -num_of_points : num_of_points)
             if _formula_status > 0
-                println(_num_of_used_points(), "-point central finite difference formula:")
-                _print_bigo_formula(_data, _bigO)
+                x = _num_of_used_points()
+                if x <= max_num_of_points
+                    println(x, "-point central finite difference formula:")
+                    _print_bigo_formula(_data, _bigO)
+                end
             end
         end
     end
-end  # formulatable
+end  # formulas
 
 end # module
