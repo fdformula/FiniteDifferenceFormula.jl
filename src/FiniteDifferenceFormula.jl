@@ -1442,34 +1442,61 @@ function _num_of_used_points()
 end  # _num_of_used_points
 
 """
-```formulas(highest_order = 3, max_num_of_points = 5)```
+```formulas(orders = 1:3, min_num_of_points = 2, max_num_of_points = 5)```
 
 By default, the function prints all forward, backward, and central finite
-difference formulas for the 1st, 2nd, and 3rd derivatives, using at most
-5 points.
+difference formulas for the 1st, 2nd, and 3rd derivatives, using at least 2
+and at most 5 points.
 
 Examples
 ====
 
 ```julia-repl
+# The following examples show all forward, backward, and central finite
+# difference formulas for the specified derivatives, using at least 4 and
+# at most 11 points.
 julia> import FiniteDifferenceFormula as fd
-# prints all forward, backward, and central finite difference formulas
-# for the 1st, 2nd, ..., 5th derivatives, using at most 11 points.
-julia> fd.formulas(5, 11)
+julia> fd.formulas(2:5, 4, 11)    # the 2nd, 3rd, .., 5th derivatives
+juliq> fd.formulas([2, 4], 4, 11) # the 2nd and 4th derivatives
+julia> fd.formulas(3, 4, 11)      # the 3rd derivative
 ```
 """
-function formulas(highest_order = 3, max_num_of_points = 5)
+function formulas(orders = 1:3, min_num_of_points::Int = 2, max_num_of_points::Int = 5)
     global _data, _bigO
-    if !(isinteger(highest_order) && isinteger(max_num_of_points)) ||
-        highest_order < 1 || max_num_of_points < 1
-        println("Error: Invalid input, $highest_order, $max_num_of_points .",
+    if  !(typeof((collect(orders))[1]) <: Integer)
+        println("Error: Invalid input, $orders. ",
                 "Positive integers are expected,")
         return
     end
-    half = round(Int, max_num_of_points / 2)
-    for n in 1 : highest_order
+    if min_num_of_points < 2
+        println("Error: Invalid input, $min_num_of_points.",
+                "An integer greather than 1 is expected,")
+        return
+    end
+    if  max_num_of_points < min_num_of_points
+        println("Error: Invalid input, $max_num_of_points.",
+                "An integer greather than $min_num_of_points is expected,")
+        return
+    end
+    for i in eachindex(orders)
+        if orders[i] < 1
+            println("Error: Invalid input, $orders. ",
+                    "Positive integers are expected.")
+            return
+        end
+    end
+
+    oldlen = length(orders)
+    orders = sort(unique(collect(orders)))
+    if oldlen != length(orders)
+        println("Your input: formulas(", orders, ", $min_num_of_points, ",
+                "$max_num_of_points)")
+    end
+
+    for n in orders
         # forward schemes
-        for num_of_points in n + 1 : max_num_of_points
+        start = max(n + 1, min_num_of_points)
+        for num_of_points in start : max_num_of_points
             compute(n, 0 : num_of_points - 1)
             if _formula_status > 0
                 println(_num_of_used_points(),
@@ -1479,7 +1506,7 @@ function formulas(highest_order = 3, max_num_of_points = 5)
         end
 
         # backward schemes
-        for num_of_points in n + 1 : max_num_of_points
+        for num_of_points in start : max_num_of_points
             compute(n, 1 - num_of_points : 0)
             if _formula_status > 0
                 println(_num_of_used_points(),
@@ -1489,7 +1516,7 @@ function formulas(highest_order = 3, max_num_of_points = 5)
         end
 
         # central schemes
-        for num_of_points in round(Int, n / 2) : half
+        for num_of_points in floor(Int, max(n, min_num_of_points) / 2) : ceil(Int, max_num_of_points / 2)
             len = 2 * num_of_points + 1
             if n >= len; continue; end
             compute(n, -num_of_points : num_of_points)
