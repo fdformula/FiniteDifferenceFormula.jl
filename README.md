@@ -1,11 +1,11 @@
 # FiniteDifferenceFormula
 
-This Julia package, also ported to Python, https://github.com/fdformula/FiniteDifferenceFormula.py, provides
-a general finite difference formula generator and a tool for teaching/learning the finite difference method.
-It generates finite difference formulas for derivatives of various orders by using Taylor series expansions of a
-function at evenly spaced points. It also gives the truncation error of a formula in the big-O notation. We
-can use it to generate new formulas in addition to verification of known ones. By changing decimal places, we
-can also see how rounding errors may affect a result.
+This Julia package, also ported to Python, https://github.com/fdformula/FiniteDifferenceFormula.py, provides a general
+finite difference formula generator and a tool for teaching/learning the finite difference method. It generates finite
+difference formulas for derivatives of various orders by using Taylor series expansions of a function at evenly spaced
+points. It also gives the truncation error of a formula in the big-O notation. We can use it to generate new formulas
+in addition to verification of known ones. By changing decimal places, we can also see how rounding errors may affect
+a result.
 
 Beware, though formulas are mathematically correct, they may not be numerically useful.
 This is true especially when we derive formulas for a derivative of higher order. For
@@ -168,10 +168,10 @@ provided in ```coefs``` or given through ```points``` and ```k[:]``` as in the l
 ```k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...``` It provides also another way
 to verify if a formula is correct.
 
-### function ```formulas(highest_order = 3, max_num_of_points = 5)```
+### function ```formulas(orders = [1, 2, 3], min_num_of_points = 2, max_num_of_points = 5)```
 
 By default, the function prints all forward, backward, and central finite difference formulas for
-the 1st, 2nd, and 3rd derivatives, using at most 5 points.
+the 1st, 2nd, and 3rd derivatives, using 2 to 5 points.
 
 ## Examples
 
@@ -191,5 +191,6 @@ fd.taylor(coefs, 7)                  # print the 1st 7 nonzero terms of the Tayl
 fd.taylor([0, 1, 2, 5], [2, -5, 4, -1], 7)
 fd.activatejuliafunction()           # activate Julia function(s) of the newly computed formula in present REPL session
 fd.verifyformula(1, 2:3, [-4, 5], 6) # verify if f'(x[i]) = (-4f(x[i+2] + 5f(x[i+3)) / (6h) is a valid formula
-fd.formulas(5, 10)                   # print all forward, backword, and central formulas for the 1st, 2nd, ..., 5th derivatives, using at most 10 points
+fd.formulas(2, 5, 9)                 # print all forward, backword, and central formulas for the 2nd derivative, using 5 to 9 points
+fd.formulas([2, 4], 5, 9)            # print all forward, backword, and central formulas for the 2nd and 4th derivatives, using 5 to 9 points
 ```
