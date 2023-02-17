@@ -70,14 +70,14 @@ k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]
 where len = length(points). It is this equation that gives the formula for computing f^(n)(x[i])
 and the truncation error in the big-O notation as well.
 
-### function ```loadcomputingresults(results)```
+### function ```loadcomputingresults```(results)
 
 The function loads results, a tuple of the form (n, points, k, m), returned by ```compute```.
 For example, it may take hours to compute/find formulas invloving hundreds of points. In this
 case, we can save the results in a text file and come back later to work on the results
 with ```activatejuliafunction```, ```formula```, ```truncationerror```, and so on.
 
-### function ```formula()```
+### function ```formula```()
 
 The function generates and lists
 
@@ -88,12 +88,12 @@ The function generates and lists
 
 1. Julia function(s) for f^(n)(x[i]).
 
-### function ```truncationerror()```
+### function ```truncationerror```()
 
 The function returns a tuple, (n, "O(h^n)"), the truncation error of the newly computed finite
 difference formula in the big-O notation.
 
-### function ```decimalplaces()``` or ```decimalplaces(n)```
+### function ```decimalplaces```() or ```decimalplaces```(n)
 
 Without an argument, the function returns current decimal places. With argument n, it sets the
 decimal places to be n for generating Julia function(s) for formulas if n is a nonnegative
@@ -103,7 +103,7 @@ decimal places are used by default.
 This function can only affect Julia functions with the suffix "d" such as fd1stderiv2ptcentrald.
 See function activatejuliafunction().
 
-### function ```activatejuliafunction()```
+### function ```activatejuliafunction```()
 
 Call this function to activate the Julia function(s) for the newly computed finite
 difference formula. For example, after compute(1, -1:1) and decimalplaces(4), it activates the
@@ -132,7 +132,7 @@ fd.fd1stderiv2ptcentrald(f, x, i, h)   # result: 0.2836574577837647, relative er
                                        # cp:     0.2836621854632262
 ```
 
-### function ```activatejuliafunction(n, points, k, m)``` or ```verifyformula(n, points, k, m)```
+### function ```activatejuliafunction```(n, points, k, m) or ```verifyformula```(n, points, k, m)
 
 They are the same. Each allows users to load a formula from some source to test and see if it is correct.
 If it is valid, its truncation error in the big-O notation can be determined. Furthermore, if the input
@@ -152,23 +152,23 @@ fd.activatejuliafunction(4, [0, 1, 2, 3, 4], [2/5 -8/5 12/5 -8/3 2/5], 5)
 fd.activatejuliafunction(2, [-1 2 0 2 3 6], [1.257 21.16 2.01 -3.123 -9.5], -12)
 ```
 
-### function ```taylorcoefs(j, n = 10)``` or ```tcoefs(j, n = 10)```
+### function ```taylorcoefs```(j, n = 10) or ```tcoefs```(j, n = 10)
 
 The function returns the coefficients of the first n terms of the Taylor series of f(x[i+j])
 about x[i].
 
-### function ```taylor(j, n = 10)```
+### function ```taylor```(j, n = 10)
 
 The function prints the first n terms of the Taylor series of f(x[i+j]) about x[i].
 
-### function ```taylor(coefs, n = 10)``` or ```taylor(points, k, n = 10)```
+### function ```taylor```(coefs, n = 10) or ```taylor```(points, k, n = 10)
 
 The function prints the first n nonzero terms of a Taylor series of which the coefficients are
 provided in ```coefs``` or given through ```points``` and ```k[:]``` as in the linear combination
 ```k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ...``` It provides also another way
 to verify if a formula is correct.
 
-### function ```formulas(orders = [1, 2, 3], min_num_of_points = 2, max_num_of_points = 5)```
+### function ```formulas```(orders = [1, 2, 3], min_num_of_points = 2, max_num_of_points = 5)
 
 By default, the function prints all forward, backward, and central finite difference formulas for
 the 1st, 2nd, and 3rd derivatives, using 2 to 5 points.
