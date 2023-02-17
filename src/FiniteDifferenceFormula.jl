@@ -1452,8 +1452,7 @@ Examples
 
 ```julia-repl
 # The following examples show all forward, backward, and central finite
-# difference formulas for the specified derivatives, using at least 4 and
-# at most 11 points.
+# difference formulas for the specified derivatives, using 4 to 11 points.
 julia> import FiniteDifferenceFormula as fd
 julia> fd.formulas(2:5, 4, 11)    # the 2nd, 3rd, .., 5th derivatives
 juliq> fd.formulas([2, 4], 4, 11) # the 2nd and 4th derivatives
