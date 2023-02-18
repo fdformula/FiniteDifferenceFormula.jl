@@ -1464,18 +1464,18 @@ function formulas(orders = 1:3,
                   max_num_of_points::Int = 5)
     global _data, _bigO
     if  !(typeof((collect(orders))[1]) <: Integer)
-        println("Error: Invalid input, $orders. ",
-                "Positive integers are expected,")
+        println("Error: Invalid input, orders = $orders. ",
+                "It must be a positive integer or a list of positive integers.")
         return
     end
     if min_num_of_points < 2
-        println("Error: Invalid input, $min_num_of_points. ",
-                "An integer greather than 1 is expected,")
+        println("Error: Invalid input, min_num_of_points = $min_num_of_points. ",
+                "It must be at least 2.")
         return
     end
     if  max_num_of_points < min_num_of_points
-        println("Error: Invalid input, $max_num_of_points. ",
-                "An integer greather than $min_num_of_points is expected,")
+        println("Error: Invalid input, max_num_of_points = $max_num_of_points. ",
+                "It must be at least $min_num_of_points.")
         return
     end
     for i in eachindex(orders)
