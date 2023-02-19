@@ -1480,7 +1480,7 @@ function formulas(orders = 1:3,
     end
     for i in eachindex(orders)
         if orders[i] < 1
-            println("Error: Invalid input, $orders. ",
+            println("Error: Invalid input, orders = $orders. ",
                     "Positive integers are expected.")
             return
         end
