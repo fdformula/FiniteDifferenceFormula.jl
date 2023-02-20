@@ -234,7 +234,7 @@ julia> fd.compute(2, [-5, -2, 1, 2, 4], true)
 """
 function compute(n, points, printformulaq = false)
     points = _validate_input(n, points, printformulaq)
-    if points == []; return; end
+    if points == []; return nothing; end
     return _compute(n, points, printformulaq)
 end  # compute
 
@@ -261,7 +261,7 @@ fd.find(2, -10:9)
 function find(n, points, printformulaq = false)
     global _range_input, _range_inputq
     points = _validate_input(n, points, printformulaq)
-    if points == []; return; end
+    if points == []; return nothing; end
     result = _compute(n, points, printformulaq)
     while result == nothing && length(points) > n + 1   # failed
         if _range_inputq; _range_input = points[2] : points[end]; end
@@ -283,7 +283,7 @@ end
 function _findforward(n, points, printformulaq = false, forwardq::Bool = true)
     global _range_input, _range_inputq
     points = _validate_input(n, points, printformulaq)
-    if points == []; return; end
+    if points == []; return nothing; end
     result = _compute(n, points, printformulaq)
     while result == nothing && length(points) > n + 1   # failed
         #points = forwardq ? points[2 : end] : points[1 : end - 1]
@@ -430,7 +430,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     #     pts = _range_inputq ? "$(_range_input)" : "$(points')"
     #     println("$pts is invalid because at least $(n + 1) points are ",
     #             "needed for the $(_nth(n)) derivative.")
-    #     return
+    #     return nothing
     # end
 
     # setup a linear system Ax = B first
@@ -1086,28 +1086,28 @@ function activatejuliafunction(n, points, k, m = 1)
     if !isinteger(n) || n <= 0
         println("Error: invalid first argument, $n. A positive integer is ",
                 "expected.")
-        return
+        return nothing
     end
     n = round(Int, n)  # 4.0 --> 4
     if length(points) == 1
         println("Error: invalid input, points = $points. A list of two or ",
                 "more points is expected.")
-        return
+        return nothing
     end
     if !(typeof(points[1]) <: Integer)
         println("Error: invalid input, $points. Integers are expected.")
-        return
+        return nothing
     end
 
     # tuple input can cause trouble - Julia 1.8.5: x = (1, 2//3), y = collect(x)
     # typeof(y[1]) != typeof(y[2]) !!!
     if typeof(points) <: Tuple
         println("Invalid input, $points. A list like [1, 2, ...] is expected")
-        return
+        return nothing
     end
     if typeof(k) <: Tuple
         println("Invalid input, $k. A list like [1, 2, ...] is expected")
-        return
+        return nothing
     end
 
     oldlen = length(points)
@@ -1119,11 +1119,11 @@ function activatejuliafunction(n, points, k, m = 1)
     #if n <= len
     #    println("Error: at least $(n+1) points are needed for the $(_nth(n))",
     #            " derivative.")
-    #    return
+    #    return nothing
     #end
     if len != length(k)
         println("Error: The number of points != the number of coefficients.");
-        return
+        return nothing
     end
 
     _initialization()      # needed b/c it's like computing a new formula
@@ -1145,7 +1145,7 @@ function activatejuliafunction(n, points, k, m = 1)
         if rewrittenq; println("You input: $n, $input_points, $k, $m."); end
         println("Error: invalid input, the last argument m = 0. ",
                 "It can't be zero.")
-        return
+        return nothing
     end
 
     # "normalize" k[:] so that each element is integer
@@ -1228,7 +1228,7 @@ function activatejuliafunction(n, points, k, m = 1)
             return result
         end
     end
-    return
+    return nothing
 end  # activatejuliafunction
 
 # activate function(s) for the newly computed finite difference formula,
@@ -1240,7 +1240,7 @@ function activatejuliafunction(external_dataq = false)
 
     if !(external_dataq || _computedq)
         println("Please call 'compute', 'find', 'findbackward', or 'findforward' first!")
-        return
+        return nothing
     end
 
     # generate Julia function in/for current REPL session
@@ -1256,7 +1256,7 @@ function activatejuliafunction(external_dataq = false)
         end  # m = 1? no decimal formula
     else
         print("No valid formula is for activation.")
-        return
+        return nothing
     end
 
     eval(Meta.parse(_julia_func_basename * (count == 1 ? "" : "e") * _julia_exact_func_expr))
@@ -1288,7 +1288,7 @@ function activatejuliafunction(external_dataq = false)
     if !(external_dataq && _formula_status == 250)
         println("\nCall fd.formula() to view the very definition.")
     end
-    return
+    return nothing
 end  # activatejuliafunction
 
 # calculate the coefficients of Taylor series of f(x[i + j]) about x[i]
@@ -1310,7 +1310,7 @@ fd.taylorcoefs(5, 4)
 function taylorcoefs(j::Int, n::Int = 10)
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
-        return;
+        return nothing
     end
     return _taylor_coefs(j, n)
 end  # taylorcoefs
@@ -1382,7 +1382,7 @@ end  # taylor()
 function taylor(j::Int, n::Int = 10)
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
-        return;
+        return
     end
     coefs = taylorcoefs(j, n)
     print("f(x[i" * (j == 0 ? "" : (j > 0 ? "+$j" : "$j")) * "]) = ")
@@ -1395,7 +1395,7 @@ end  # taylor
 function taylor(coefs, n::Int = 10)
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
-        return;
+        return
     end
     coefs = collect(coefs)
     _print_taylor(coefs, n)
@@ -1408,7 +1408,7 @@ function taylor(points, k, n::Int = 10)
     global _NUM_OF_EXTRA_TAYLOR_TERMS
     if n < 1
         println("n = $n? It is expected to be an positive integer.")
-        return;
+        return
     end
     oldlen = length(points)
     points = sort(unique(collect(points)))
@@ -1528,9 +1528,13 @@ function formulas(orders = 1:3,
                     println(x, "-point central finite difference formula:")
                     _print_bigo_formula(_data, _bigO)
                 end
+            #else
+            #    _initialization() # v1.2.6
             end
         end
     end
+
+    return
 end  # formulas
 
 end # module
