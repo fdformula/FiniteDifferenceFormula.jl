@@ -156,7 +156,7 @@ function _print_taylor(coefs, num_of_nonzero_terms = 10)
     return
 end  # _print_taylor
 
-function _dashline(); return "-" ^ 105; end
+function _dashline(n = 105); return "-" ^ n; end
 
 function _validate_input(n, points, printformulaq = false)
     if !isinteger(n) || n < 1
@@ -748,7 +748,7 @@ function _test_formula_validity()
             _formula_status = -200
             return m
         end
-        println("\n***** Error: $n, $input_points : can't find a formula.\n")
+        println("\n***** Error: can't find a formula.\n")
         _formula_status = -100
         return m
     end
@@ -1066,7 +1066,7 @@ function(s). If not, try to find a formula for the derivative using the points.
 
 ```
      n: the n-th order derivative
-points: in the format of a range, start : stop, or a vector
+points: in the format of a range, start : stop, or a list
      k: a list of the coefficients in a formula
      m: the coefficient in the denominator of a formula
 ```
@@ -1110,11 +1110,14 @@ function activatejuliafunction(n, points, k, m = 1)
         return nothing
     end
 
-    oldlen = length(points)
-    points = sort(unique(collect(points)))
     len = length(points)
+    if len != length(unique(collect(points))) # v1.2.7, removed sort(...)
+        println("Error: Invalid input - $points contains duplicate points.")
+        return nothing
+    end
+    points = collect(points)
 
-    rewrittenq = oldlen != len
+    rewrittenq = false
     # don't do so for teaching
     #if n <= len
     #    println("Error: at least $(n+1) points are needed for the $(_nth(n))",
@@ -1206,9 +1209,16 @@ function activatejuliafunction(n, points, k, m = 1)
         find_oneq = true
     end
 
-    if find_oneq                   # the input can't be a formula, but still
+    if find_oneq
+        # v1.2.7
+        println(">>>>> Your input doesn't define a valid finite difference ",
+                "formula.\n\n",
+                "However, it is still activated for your examination.\n")
+
         _formula_status = 250      # force to activate Julia function
         # 250, reserved for communication w/ another 'activatejuliafunction'
+    else # v1.2.7
+        println(">>>>> Your input defines a valid finite difference formula.\n")
     end
     global _computedq   = true     # assume a formula has been computed
 
@@ -1220,7 +1230,7 @@ function activatejuliafunction(n, points, k, m = 1)
 
     if find_oneq                   # use the basic input to generate a formula
         _formula_status = -100
-        println(_dashline(), "\nFinding a formula using the points....")
+        println(_dashline(), "\nFinding a formula using the points....\n")
         result = _compute(n, points)
         if _formula_status >= 0
             println("Call fd.formula() to view the results and fd.activatejulia",
