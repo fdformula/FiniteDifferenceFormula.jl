@@ -702,7 +702,9 @@ function _test_formula_validity(verifyingq::Bool = false)
             end
             fnxi = "f" * (i <= 4 ? ("'" ^ (i - 1)) : "^($(i - 1))") * "(x[i])"
 
-            println("***** Error: $n, $input_points : i = $i, k[1]*coefs[1][$i]",
+            print("***** Error: $n, $input_points")
+            if verifyingq; print(", $k"); end
+            println(" : i = $i, k[1]*coefs[1][$i]",
                     " + k[2]*coefs[2][$i] + ... + k[$len]*coefs[$len][$i] ",
                     "= $x != 0, i.e., $fnxi can't be eliminated as indicated ",
                     "in the following computing result:")
