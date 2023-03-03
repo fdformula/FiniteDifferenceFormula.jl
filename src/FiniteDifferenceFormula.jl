@@ -28,7 +28,7 @@ mutable struct _FDData
 end
 
 _data                            = _FDData # share results between functions
-_computedq::Bool                 = false   # make sure compute is called first
+_computedq::Bool                 = false   # make sure compute() is called first
 _formula_status::Int             = 0       # a formula may not be available
                                            # values? see _test_formula_validity()
 
@@ -614,7 +614,7 @@ function loadcomputingresults(results)
     _data = _FDData(n, points, k, m, coefs)
     _computedq = true
 
-    _test_formula_validity()
+    _test_formula_validity(true)
     return
 end  # of loadcomputingresults
 
@@ -671,7 +671,7 @@ end
 #        of coefficients about x[i]
 #
 # return m as in equation (1) for 'activatejuliafunction'
-function _test_formula_validity()
+function _test_formula_validity(verifyingq::Bool = false)
     # to find f^(n)(x[i]) by obtaining
     #
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
@@ -748,7 +748,9 @@ function _test_formula_validity()
             _formula_status = -200
             return m
         end
-        println("\n***** Error: can't find a formula.\n")
+        print("\n***** Error: $n, $input_points")
+        if verifyingq; print(", $k"); end
+        println(": can't find a formula.\n")
         _formula_status = -100
         return m
     end
@@ -1117,7 +1119,6 @@ function activatejuliafunction(n, points, k, m = 1)
     end
     points = collect(points)
 
-    rewrittenq = false
     # don't do so for teaching
     #if n <= len
     #    println("Error: at least $(n+1) points are needed for the $(_nth(n))",
@@ -1132,6 +1133,7 @@ function activatejuliafunction(n, points, k, m = 1)
     _initialization()      # needed b/c it's like computing a new formula
     input_points = _format_of_points(points)
 
+    rewrittenq = false
     # "normalize" input so that m > 0, and m is integer
     if m < 0; k *= -1; m *= -1; rewrittenq = true; end
     if isinteger(m)
@@ -1192,7 +1194,7 @@ function activatejuliafunction(n, points, k, m = 1)
 
     global _data = _FDData(n, points, k, m, coefs)
     global _formula_status
-    M = _test_formula_validity()
+    M = _test_formula_validity(true)
     find_oneq::Bool = _formula_status == -100
 
     # perhaps, the coefficients k[:] is correct, but m is not
@@ -1211,14 +1213,12 @@ function activatejuliafunction(n, points, k, m = 1)
 
     if find_oneq
         # v1.2.7
-        println(">>>>> Your input doesn't define a valid finite difference ",
-                "formula.\n\n",
-                "However, it is still activated for your examination.\n")
-
+        println(">>>>> Your input doesn't define a valid formula, but it is ",
+                "still activated for your examination.\n")
         _formula_status = 250      # force to activate Julia function
         # 250, reserved for communication w/ another 'activatejuliafunction'
     else # v1.2.7
-        println(">>>>> Your input defines a valid finite difference formula.\n")
+        println(">>>>> Your input defines a valid formula.\n")
     end
     global _computedq   = true     # assume a formula has been computed
 
