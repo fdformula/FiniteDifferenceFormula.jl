@@ -166,8 +166,8 @@ function _validate_input(n, points, printformulaq = false)
     end
     n = round(Int, n)  # 4.0 --> 4
 
-    oldlen = length(points)
-    if oldlen == 0 ||  # v1.1.5, invalid input: 10:9
+    len = length(points)
+    if len == 0 ||  # v1.1.5, invalid input: 10:9
        (typeof(points) <: Tuple) ||
        !(typeof(points[1]) <: Integer)
         println("Invalid input, $points. A list of integers like -1:2 or ",
@@ -180,6 +180,7 @@ function _validate_input(n, points, printformulaq = false)
         return []
     end
 
+    oldpoints = points # v1.2.8
     points = sort(unique(collect(points)))
     len = length(points)
     if len < 2
@@ -189,7 +190,7 @@ function _validate_input(n, points, printformulaq = false)
     end
 
     _initialization()
-    if len != oldlen
+    if oldpoints != points
         input_points = _format_of_points(points)
         print(_dashline(), "\nYour input is converted to ($n, $input_points")
         if printformulaq; print(", true"); end
