@@ -1423,12 +1423,15 @@ function taylor(points, k, n::Int = 10)
         println("n = $n? It is expected to be an positive integer.")
         return
     end
-    oldlen = length(points)
+    oldpoints = points
     points = sort(unique(collect(points)))
     len = length(points)
-    if oldlen != len
-        println("Your input, points = $points.")
+    if oldpoints != points #v1.2.8
+        println(_dashline())
+        println("Your input: points = $points.")
+        println(_dashline())
     end
+    oldpoints = []
     if len != length(k)
        println("Error: invalid input. The sizes of points and k are not the same.")
        return
@@ -1499,12 +1502,15 @@ function formulas(orders = 1:3,
         end
     end
 
-    oldlen = length(orders)
+    oldorders = orders
     orders = sort(unique(collect(orders)))
-    if oldlen != length(orders)
+    if oldorders != orders
+        println(_dashline())
         println("Your input: formulas($orders, $min_num_of_points, ",
                 "$max_num_of_points)")
+        println(_dashline())
     end
+    oldorders = []
 
     for n in orders
         # forward schemes
