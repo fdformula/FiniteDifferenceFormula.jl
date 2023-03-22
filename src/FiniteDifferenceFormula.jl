@@ -180,8 +180,8 @@ function _validate_input(n, points, printformulaq = false)
         return []
     end
 
-    oldpoints = points # v1.2.8
-    points = sort(unique(collect(points)))
+    oldpoints = collect(points) # v1.2.8
+    points = sort(unique(oldpoints))
     len = length(points)
     if len < 2
         println("Invalid input, $points. A list of two or more different ",
@@ -1423,8 +1423,8 @@ function taylor(points, k, n::Int = 10)
         println("n = $n? It is expected to be an positive integer.")
         return
     end
-    oldpoints = points
-    points = sort(unique(collect(points)))
+    oldpoints = collect(points)
+    points = sort(unique(oldpoints))
     len = length(points)
     if oldpoints != points #v1.2.8
         println(_dashline())
@@ -1502,8 +1502,8 @@ function formulas(orders = 1:3,
         end
     end
 
-    oldorders = orders
-    orders = sort(unique(collect(orders)))
+    oldorders = collect(orders)
+    orders = sort(unique(oldorders))
     if oldorders != orders
         println(_dashline())
         println("Your input: formulas($orders, $min_num_of_points, ",
