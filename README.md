@@ -182,7 +182,7 @@ fd.compute(2, -3:0, true)                  # find, generate, and print "4"-point
 fd.compute(3, -9:9)                        # find "19"-point central formula for f'''(x[i])
 fd.decimalplaces(6)                        # use 6 decimal places to generate Julia functions of computed formulas
 fd.compute(2, [-3 -2 1 2 7])               # find formula for f''(x[i]) using points x[i+j], j = -3, -2, 1, 2, and 7
-fd.compute(1,-230:230)                     # find "461"-point central formula for f'(x[i]). it may take hours!
+fd.compute(1, -230:230)                    # find "461"-point central formula for f'(x[i]). it may take hours!
 fd.formula()                               # generate and print the formula computed last time you called compute(...)
 fd.truncationerror()                       # print and return the truncation error of the newly computed formula
 fd.taylor(-2, 5)                           # print the first 5 terms of the Taylor series of f(x[i-2]) about x[i]
