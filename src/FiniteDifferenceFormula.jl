@@ -348,39 +348,56 @@ end
 
 # before v1.0.7, we thankfully used the function 'rref' provided by the package
 # RowEchelon v0.2.1. since it has been removed from the base, it is safer for
-# this package to have its own implementation of the function. anyway, it is
-# just a few lines of code.
+# this package to have its own implementation of the function.
 #
-# customized code from RowEchelon v0.2.1, also vectorized, simplified 1/10/23
-# input: A = [1 0 0 ... 0 | 1; ...]
-function _rref(A::Matrix{Rational{BigInt}})
-    nr, nc = size(A)
-    i = j = 1                   # A[i, j], pivot entries
-    while i <= nr && j <= nc
-        J = j + 1
-        if i != 1               # A[1, :] = [1 0 ... 0 1], the best pivot row!
-            (m, mi) = findmax(abs.(A[i : nr, j]))
-            if m == 0
-                j = J
-                continue
-            end
+# customized from RowEchelon v0.2.1, also vectorized, simplified on 1/10/23
+#
+# v1.2.9, optimized again on 10/4/2023 for the purpose of this project. at the
+# end, # A is "virtually" an identity matrix (but not actually). the time
+# performance has a 35% increase.
+#
+# input:  A and B as in Ax = B
+# output: B is the solution x
+#
+# assume: A is square & invertible; A = [ 1 0 0 ... 0; x x x ...]
+function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
+    nr, nc = size(A);
+    i = 1
+    while i < nr
+        j = i + 1
+        # make a[i, i] the pivotal entry
+        if i != 1              # A[1, 1] = 1 is already the pivotal entry
+            (m, mi) = findmax(abs.(A[i : nr, i]))
             mi += i - 1
-            if mi != i          # interchange the two rows
-                A[i, j : nc], A[mi, j : nc] = A[mi, j : nc], A[i, j : nc]
+            if mi != i         # interchange the two rows
+                A[i, i : nc], A[mi, i : nc] = A[mi, i : nc], A[i, i : nc]
+                B[i], B[mi] = B[mi], B[i]
             end
-            A[i, J : nc] /= A[i, j] # A[i, j : nc] /= A[i, j] depends on how
-            A[i, j] = 1             # Julia implements inside; not a safe way
+            B[i] /= A[i, i]
+            A[i, j : nc] /= A[i, i]
+            # A[i, i] = 1      # never used again
         end
 
-        for r = 1 : nr              # eliminate entries above/below A[i, j]
-            if r == i || A[r, j] == 0; continue; end
-            A[r, J : nc] -= A[r, j] * A[i, J : nc] # same as above
-            A[r, j] = 0                            #
+        for r = j : nr         # eliminate entries below A[i, i]
+            if A[r, i] != 0
+                B[r] -= A[r, i] * B[i]
+                A[r, j : nc] -= A[r, i] * A[i, j : nc]
+                # A[r, i] = 0  # never used again
+            end
         end
-        i += 1
-        j  = J
+        i = j
     end
-    return A
+    B[nr] /= A[nr, nr]
+    # A[nr, nr] = 1            # never used again
+
+    for i = nr : -1 : 2        # eliminate entries above A[i, i]
+        for r = 1 : i - 1
+            if A[r, i] != 0
+                B[r] -= A[r, i] * B[i]
+                # A[r, i] = 0  # never used again
+            end
+        end
+    end
 end
 
 #
@@ -512,11 +529,11 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     #
 
     # solve Ax = B for x, i.e., k[:]
-    k = _rref([A B])[:, len + 1]
-    k = k // gcd(k)                        # change each element to an integer
+    _rref!(A, B); A = []                   # output: B is the solution
+    k = B // gcd(B)                        # change each element to an integer
     # the following code does the same     # for translating to other languages
     ## for i in 1 : len
-    ##    if k[i] != round(BigInt, k[i]); k *= denominator(k[i]); end
+    ##    if B[i] != round(BigInt, B[i]); k *= denominator(B[i]); end
     ## end
 
     # Taylor series expansion of the linear combination
