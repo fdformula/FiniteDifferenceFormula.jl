@@ -1292,19 +1292,19 @@ function activatejuliafunction(external_dataq = false)
     println("The following function$(count == 3 ? "s are" : " is") available ",
             "temporarily in the FiniteDifferenceFormula module. Usage:\n")
     println("  import FiniteDifferenceFormula as fd\n")
-	# v1.3.0, data points are determined according to input points rather than
-	# f, x, i, h = sin, 0:0.01:10, 501, 0.01
-	h = 0.01
-	center = findmax(abs.(collect(_data.points)))[1] + 1
-	if center < 251; center = 251; end
-	stop = round(Int, center * 2 * h) + 1
-	example = "f, x, i, h = sin, 0:" * string(h) * ":" * string(stop) * ", " * string(center) * ", " * string(h)
+    # v1.3.0, data points are determined according to input points rather than
+    # f, x, i, h = sin, 0:0.01:10, 501, 0.01
+    h = 0.01
+    center = findmax(abs.(collect(_data.points)))[1] + 1
+    if center < 251; center = 251; end
+    stop = round(Int, center * 2 * h) + 1
+    example = "f, x, i, h = sin, 0:" * string(h) * ":" * string(stop) * ", " * string(center) * ", " * string(h)
     eval(Meta.parse(example))
-	xi = (center - 1) * h   # i.e., x[center]
-	println("  ", example, "  # xi = ", xi)
+    # xi = (center - 1) * h   # 
+    println("  ", example, "  # xi = ", x[center])
 
     # sine is taken as the example b/c sin^(n)(x) = sin(n π/2 + x), simply
-    exact = sin(_data.n * pi /2 + xi)
+    exact = sin(_data.n * pi /2 + x[center])
 
     _printexampleresult(count == 1 ? "" : "e", exact)
     if count == 3
