@@ -346,15 +346,9 @@ function findbackward(n, points, printformulaq = false)
     return _findforward(n, points, printformulaq, false)
 end
 
-# before v1.0.7, we thankfully used the function 'rref' provided by the package
-# RowEchelon v0.2.1. since it has been removed from the base, it is safer for
-# this package to have its own implementation of the function.
-#
-# customized from RowEchelon v0.2.1, also vectorized, simplified on 1/10/23
-#
-# v1.2.9, optimized again on 10/4/2023 for the purpose of this project. at the
-# end, # A is "virtually" an identity matrix (but not actually). the time
-# performance has a 35% increase.
+# v1.2.9, reimplemented Gauss-Jordan Elimination and optimized on 10/4/2023 for
+# the purpose of this project. at the end, # A is "virtually" an identity matrix
+# (but not actually). the time performance has a 35% increase.
 #
 # input:  A and B as in Ax = B
 # output: B is the solution x
@@ -568,7 +562,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if printformulaq; formula(); end
 
     if _formula_status >= 0
-        return (n, _range_inputq ? _range_input : points, round.(BigInt, k), m)
+        return (n, _range_inputq ? _range_input : points, round.(BigInt, k'), m)
     else
         return nothing
     end
@@ -1298,11 +1292,16 @@ function activatejuliafunction(external_dataq = false)
     println("The following function$(count == 3 ? "s are" : " is") available ",
             "temporarily in the FiniteDifferenceFormula module. Usage:\n")
     println("  import FiniteDifferenceFormula as fd\n")
-    println("  f, x, i, h = sin, 0:0.01:10, 501, 0.01")
+	# v1.3.0, data points are determined according to input points rather than
+	# f, x, i, h = sin, 0:0.01:10, 501, 0.01
+	center = findmax(abs.(collect(_data.points)))[1] + 1
+	stop = center * 2
+	example = "f, x, i, h = sin, 0:0.01:" * string(stop) * ", " * string(center) * ", 0.01"
+    eval(Meta.parse(example))
+	println("  ", example, "   # xi = ", x[center])
 
     # sine is taken as the example b/c sin^(n)(x) = sin(n π/2 + x), simply
-    exact = sin(_data.n * pi /2 + 5) # x[501] = 5
-    eval(Meta.parse("f, x, i, h = sin, 0:0.01:10, 501, 0.01"))
+    exact = sin(_data.n * pi /2 + x[center])
 
     _printexampleresult(count == 1 ? "" : "e", exact)
     if count == 3
