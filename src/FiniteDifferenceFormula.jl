@@ -50,7 +50,7 @@ _bigO_exp::Int                   = -1      # the value of n as in O(h^n)
 
 # for future coders/maintainers of this package:
 # to compute a new formula, this function must be called first.
-function _initialization()
+function _reset() # 1.3.1, renamed from _initialization()
     global _data                    = nothing
     global _computedq               = false
     global _formula_status          = 0
@@ -66,7 +66,7 @@ function _initialization()
 
     global _bigO                    = ""
     global _bigO_exp                = -1
-end  # _initialization
+end  # _reset
 
 # This function returns the first 'max_num_of_terms' terms of Taylor series of
 # f(x[i+1]) centered at x=x[i] in a vector with f(x[i]), f'(x[i]), ..., removed.
@@ -169,7 +169,7 @@ function _validate_input(n, points, printformulaq = false)
     len = length(points)
     if len == 0 ||  # v1.1.5, invalid input: 10:9
        (typeof(points) <: Tuple) ||
-       !(typeof(points[1]) <: Integer)
+       !(typeof(points[1]) <: Int64)  # v1.3.1 from Integer
         println("Invalid input, $points. A list of integers like -1:2 or ",
                 "[-1, 0, 1, 2] is expected.")
         return []
@@ -180,8 +180,15 @@ function _validate_input(n, points, printformulaq = false)
         return []
     end
 
-    oldpoints = collect(points) # v1.2.8
-    points = sort(unique(oldpoints))
+    # v1.3.1, handling exceptions
+    oldpoints = [] # define the variable
+    try
+        oldpoints = collect(points) # v1.2.8
+        points = sort(unique(oldpoints))
+    catch OutOfMemoryError
+        println("Memory allocation error: _validate_input.")
+        return []
+    end
     len = length(points)
     if len < 2
         println("Invalid input, $points. A list of two or more different ",
@@ -189,7 +196,7 @@ function _validate_input(n, points, printformulaq = false)
         return []
     end
 
-    _initialization()
+    _reset()
     if oldpoints != points
         input_points = _format_of_points(points)
         print(_dashline(), "\nYour input is converted to ($n, $input_points")
@@ -451,7 +458,16 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
 
     # setup the coefficients of Taylor series expansions of f(x) at each of the
     # involved points
-    coefs = Array{Any}(undef, len)
+    # v1.3.1, handling exceptions
+    coefs = []  # define the variable
+    try
+        coefs = Array{Any}(undef, len)
+    catch OutOfMemoryError
+        println("Memory allocation error: _compute #1.")
+        _reset()
+        return nothing
+    end
+
     for i in 1 : len
         coefs[i] = _taylor_coefs(points[i], max_num_of_terms)
     end
@@ -479,9 +495,17 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     #
     # where j = 1, 2, ..., len but not n.
     #
-    A = Matrix{Rational{BigInt}}(undef, len, len)
-    B = zeros(Rational{BigInt}, len, 1)
-
+    # v1.3.1, handling exceptions
+    A = [] # define the variables
+    B = []
+    try
+        A = Matrix{Rational{BigInt}}(undef, len, len)
+        B = zeros(Rational{BigInt}, len, 1)
+    catch OutOfMemoryError
+        println("Memory allocation error: _compute #2.")
+        _reset()
+        return nothing
+    end
     A[1, 2 : len] .= 0                   # setup an equation so that k[1] = 1
     A[1, 1]        = 1
     B[1]           = 1                   # so that k[1] = 1
@@ -594,7 +618,7 @@ function loadcomputingresults(results)
         return
     end
 
-    _initialization()
+    _reset()
     n, points, k, m, = results
     points = collect(points)
     len = length(points)
@@ -1031,13 +1055,20 @@ end  # _format_of_points
 
 function _printexampleresult(suffix, exact)
     global _julia_func_basename
-
-    apprx = eval(Meta.parse("$(_julia_func_basename)$(suffix)(f, x, i, h)"))
+    #1.3.1, handling exceptions
+    apprx = 0.0    # define the variable
+    try
+        apprx = eval(Meta.parse("$(_julia_func_basename)$(suffix)(f, x, i, h)"))
+    catch BoundsError
+        println("BoundsError: _printexampleresult.")
+    return -1  # failure
+    end
     relerr = abs((apprx - exact) / exact) * 100
     print("  fd.$(_julia_func_basename)$(suffix)(f, x, i, h)  ",
           suffix == "e1" ? "" : " ", "# result: ")
     @printf("%.16f, ", apprx)
     print("relative error = "); @printf("%.8f", relerr); println("%")
+    return 0       # success
 end  # _printexampleresult
 
 # the name is self-explanatory. it is exactly the same as the function
@@ -1144,7 +1175,7 @@ function activatejuliafunction(n, points, k, m = 1)
         return nothing
     end
 
-    _initialization()      # needed b/c it's like computing a new formula
+    _reset()      # needed b/c it's like computing a new formula
     input_points = _format_of_points(points)
 
     rewrittenq = false
@@ -1298,18 +1329,26 @@ function activatejuliafunction(external_dataq = false)
     center = findmax(abs.(collect(_data.points)))[1] + 1
     if center < 251; center = 251; end
     stop = round(Int, center * 2 * h) + 1
-    example = "f, x, i, h = sin, 0:" * string(h) * ":" * string(stop) * ", " * string(center) * ", " * string(h)
-    eval(Meta.parse(example))
-    # xi = (center - 1) * h   # 
-    println("  ", example, "  # xi = ", x[center])
+    example = "f, x, i, h = sin, 0:$h:$stop, $center, $h"
+    # v1.3.1, handling exceptions
+    # x = [] # can't define the variable (Julia 1.9.3) ! eval(Meta.parse(str)) must be very special
+    try
+        eval(Meta.parse(example))
+    catch OutOfMemoryError
+        println("Memory allocation error: activatejuliafunction.")
+        return nothing
+    end
+
+    # xi = (center - 1) * h   # or x[center]
+    println("  $example  # xi = ", Printf.format(Printf.Format("%.2f"), x[center]))
 
     # sine is taken as the example b/c sin^(n)(x) = sin(n π/2 + x), simply
     exact = sin(_data.n * pi /2 + x[center])
 
-    _printexampleresult(count == 1 ? "" : "e", exact)
-    if count == 3
-        _printexampleresult("e1", exact)
-        _printexampleresult("d", exact)
+    if _printexampleresult(count == 1 ? "" : "e", exact) == 0 && count == 3
+        if _printexampleresult("e1", exact) == 0
+            _printexampleresult("d", exact)
+        end
     end
     len = length("fd.$(_julia_func_basename)")
     if count == 3; len += 1; end
@@ -1567,7 +1606,7 @@ function formulas(orders = 1:3,
                     _print_bigo_formula(_data, _bigO)
                 end
             #else
-            #    _initialization() # v1.2.6
+            #    _reset() # v1.2.6
             end
         end
     end
