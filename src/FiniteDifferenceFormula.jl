@@ -66,6 +66,10 @@ function _reset() # 1.3.1, renamed from _initialization()
 
     global _bigO                    = ""
     global _bigO_exp                = -1
+
+    if @isdefined(x) && length(x) > 201 #v1.3.2
+        x = []
+    end
 end  # _reset
 
 # This function returns the first 'max_num_of_terms' terms of Taylor series of
@@ -1326,24 +1330,34 @@ function activatejuliafunction(external_dataq = false)
     # v1.3.0, data points are determined according to input points rather than
     # f, x, i, h = sin, 0:0.01:10, 501, 0.01
     h = 0.01
-    center = findmax(abs.(collect(_data.points)))[1] + 1
-    if center < 251; center = 251; end
-    stop = round(Int, center * 2 * h) + 1
+    center = max(abs(_data.points[1]), abs(_data.points[end]))
+    if center < 99; center = 99; end
+    tmp = (center * 2 + 1) * h
+	center += 1
+    stop = ceil(Int, tmp)
     example = "f, x, i, h = sin, 0:$h:$stop, $center, $h"
     # v1.3.1, handling exceptions
     # x = [] # can't define the variable (Julia 1.9.3) ! eval(Meta.parse(str)) must be very special
     try
         eval(Meta.parse(example))
     catch OutOfMemoryError
-        println("Memory allocation error: activatejuliafunction.")
+        x = []
+        println("Memory allocation error: activatejuliafunction #1.")
         return nothing
     end
 
-    # xi = (center - 1) * h   # or x[center]
-    println("  $example  # xi = ", Printf.format(Printf.Format("%.2f"), x[center]))
-
-    # sine is taken as the example b/c sin^(n)(x) = sin(n π/2 + x), simply
-    exact = sin(_data.n * pi /2 + x[center])
+    #v1.3.2
+    exact = 0.0 # define a local variable
+    try
+        # xi = (center - 1) * h   # or x[center]
+        println("  $example  # xi = ", Printf.format(Printf.Format("%.2f"), x[center]))
+        # sine is taken as the example b/c sin^(n)(x) = sin(n π/2 + x), simply
+        exact = sin(_data.n * pi /2 + x[center])
+    catch BoundsError
+        x = []
+        println("Memory allocation error: activatejuliafunction #2.")
+        return nothing
+    end
 
     if _printexampleresult(count == 1 ? "" : "e", exact) == 0 && count == 3
         if _printexampleresult("e1", exact) == 0
