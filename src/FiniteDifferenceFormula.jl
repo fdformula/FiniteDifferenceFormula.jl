@@ -13,39 +13,44 @@ module FiniteDifferenceFormula
 
 using Printf
 
+# v1.3.3 for parallel computing in rref!
+# Start Julia: julia -t auto
+# See: https://juliafolds.github.io/data-parallelism/tutorials/quick-introduction/
+using Folds
+
 ############################# EXPORTED FUNCTIONS ##############################
 export compute, find, findforward, findbackward, formula, formulas
 export truncationerror, verifyformula, activatejuliafunction
 export decimalplaces, taylorcoefs, tcoefs, taylor
 
 ######################### BEGIN OF GLOBAL VARIABLES ###########################
-_NUM_OF_EXTRA_TAYLOR_TERMS::Int  = 8       # for examining truncation error
-_decimal_places::Int             = 16      # for generating Julia function(s)
-                                           # call decimalplaces(n) to reset it
+_NUM_OF_EXTRA_TAYLOR_TERMS::Int     = 8       # for examining truncation error
+_decimal_places::Int                = 16      # for generating Julia function(s)
+                                              # call decimalplaces(n) to reset it
 
 mutable struct _FDData
-    n; points; k; m; coefs                 # on one line? separated by ;
+    n; points; k; m; coefs                    # on one line? separated by ;
 end
 
-_data                            = _FDData # share results between functions
-_computedq::Bool                 = false   # make sure compute() is called first
-_formula_status::Int             = 0       # a formula may not be available
-                                           # values? see _test_formula_validity()
+_data                               = _FDData # share results between functions
+_computedq::Bool                    = false   # make sure compute() is called first
+_formula_status::Int                = 0       # a formula may not be available
+                                              # values? see _test_formula_validity()
 
 # a vector of the coefficients of Taylor series of the linear combination:
 # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-_lcombination_coefs              = Array{Any}
+_lcombination_coefs                 = Array{Any}
 
-_range_inputq::Bool              = false
-_range_input::UnitRange{Int}     = 0:0     # compute receives a range? save it
+_range_inputq::Bool                 = false
+_range_input::UnitRange{Int}        = 0:0     # compute receives a range? save it
 
-_julia_exact_func_expr::String   = ""      # 1st exact Julia function for f^(n)(x[i])
-_julia_exact_func_expr1::String  = ""      # 2nd exact Julia function for f^(n)(x[i])
-_julia_decimal_func_expr::String = ""      # decimal Julia function for f^(n)(x[i])
-_julia_func_basename::String     = ""
+_julia_exact_func_expr::String      = ""      # 1st exact Julia function for f^(n)(x[i])
+_julia_exact_func_expr1::String     = ""      # 2nd exact Julia function for f^(n)(x[i])
+_julia_decimal_func_expr::String    = ""      # decimal Julia function for f^(n)(x[i])
+_julia_func_basename::String        = ""
 
-_bigO::String                    = ""      # truncation error of a formula
-_bigO_exp::Int                   = -1      # the value of n as in O(h^n)
+_bigO::String                       = ""      # truncation error of a formula
+_bigO_exp::Int                      = -1      # the value of n as in O(h^n)
 ########################### END OF GLOBAL VARIABLES ###########################
 
 # for future coders/maintainers of this package:
@@ -365,6 +370,9 @@ end
 # output: B is the solution x
 #
 # assume: A is square & invertible; A = [ 1 0 0 ... 0; x x x ...]
+#
+# v1.3.3, use 'map' or Folds.map to improve time performance dramatically
+# for large matrix A
 function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
     nr, nc = size(A);
     i = 1
@@ -372,21 +380,25 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
         j = i + 1
         # make a[i, i] the pivotal entry
         if i != 1              # A[1, 1] = 1 is already the pivotal entry
-            (m, mi) = findmax(abs.(A[i : nr, i]))
+            (m, mi) = Folds.findmax(abs.(A[i : nr, i]))
             mi += i - 1
             if mi != i         # interchange the two rows
                 A[i, i : nc], A[mi, i : nc] = A[mi, i : nc], A[i, i : nc]
                 B[i], B[mi] = B[mi], B[i]
             end
             B[i] /= A[i, i]
-            A[i, j : nc] /= A[i, i]
+            ##A[i, j : nc] /= A[i, i]
+            f(x) = x / A[i, i]
+            A[i, j : nc] = Folds.map(f, A[i, j : nc])
             # A[i, i] = 1      # never used again
         end
 
         for r = j : nr         # eliminate entries below A[i, i]
             if A[r, i] != 0
                 B[r] -= A[r, i] * B[i]
-                A[r, j : nc] -= A[r, i] * A[i, j : nc]
+                g(x, y) = x - A[r, i] * y
+                ##A[r, j : nc] -= A[r, i] * A[i, j : nc]
+                A[r, j : nc] = Folds.map(g, A[r, j : nc], A[i, j : nc])
                 # A[r, i] = 0  # never used again
             end
         end
@@ -1333,7 +1345,7 @@ function activatejuliafunction(external_dataq = false)
     center = max(abs(_data.points[1]), abs(_data.points[end]))
     if center < 99; center = 99; end
     tmp = (center * 2 + 1) * h
-	center += 1
+    center += 1
     stop = ceil(Int, tmp)
     example = "f, x, i, h = sin, 0:$h:$stop, $center, $h"
     # v1.3.1, handling exceptions
