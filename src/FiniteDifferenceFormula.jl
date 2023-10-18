@@ -13,7 +13,7 @@ module FiniteDifferenceFormula
 
 using Printf
 
-# v1.3.3 for parallel computing in rref!
+# v1.3.3 for parallel computing using multiple threads in rref!
 # Start Julia: julia -t auto
 # See: https://juliafolds.github.io/data-parallelism/tutorials/quick-introduction/
 using Folds
