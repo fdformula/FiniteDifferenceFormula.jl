@@ -15,7 +15,7 @@ using Printf
 
 # v1.3.3 for parallel computing using multiple threads in rref!
 # Start Julia: julia -t auto
-# See: https://juliafolds.github.io/data-parallelism/tutorials/quick-introduction/
+# See: https://juliafolds.github.io/data-parallelism/
 using Folds
 
 ############################# EXPORTED FUNCTIONS ##############################
@@ -379,26 +379,38 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
     while i < nr
         j = i + 1
         # make a[i, i] the pivotal entry
+        worthy = nr - i > 50   # is it large or is it worhty for data parallelism
         if i != 1              # A[1, 1] = 1 is already the pivotal entry
-            (m, mi) = Folds.findmax(abs.(A[i : nr, i]))
+            m = mi = 0 # define the VARIABLES
+            if worthy
+                (m, mi) = Folds.findmax(abs.(A[i : nr, i]))
+            else
+                (m, mi) = findmax(abs.(A[i : nr, i]))
+            end
             mi += i - 1
             if mi != i         # interchange the two rows
                 A[i, i : nc], A[mi, i : nc] = A[mi, i : nc], A[i, i : nc]
                 B[i], B[mi] = B[mi], B[i]
             end
             B[i] /= A[i, i]
-            ##A[i, j : nc] /= A[i, i]
-            f(x) = x / A[i, i]
-            A[i, j : nc] = Folds.map(f, A[i, j : nc])
+            if worthy
+                f(x) = x / A[i, i]
+                A[i, j : nc] = Folds.map(f, A[i, j : nc])
+            else
+                A[i, j : nc] /= A[i, i]
+            end
             # A[i, i] = 1      # never used again
         end
 
         for r = j : nr         # eliminate entries below A[i, i]
             if A[r, i] != 0
                 B[r] -= A[r, i] * B[i]
-                g(x, y) = x - A[r, i] * y
-                ##A[r, j : nc] -= A[r, i] * A[i, j : nc]
-                A[r, j : nc] = Folds.map(g, A[r, j : nc], A[i, j : nc])
+                if worthy
+                    g(x, y) = x - A[r, i] * y
+                    A[r, j : nc] = Folds.map(g, A[r, j : nc], A[i, j : nc])
+                else
+                    A[r, j : nc] -= A[r, i] * A[i, j : nc]
+                end
                 # A[r, i] = 0  # never used again
             end
         end
@@ -408,10 +420,21 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
     # A[nr, nr] = 1            # never used again
 
     for i = nr : -1 : 2        # eliminate entries above A[i, i]
-        for r = 1 : i - 1
-            if A[r, i] != 0
-                B[r] -= A[r, i] * B[i]
-                # A[r, i] = 0  # never used again
+        if i > 50              # is it large or is it worhty for data parallelism
+            function f(x, y)
+				if x != 0
+					return y - x * B[i]
+				else
+					return y
+				end
+			end
+            B[1:i-1] = Folds.map(f, A[1:i-1, i], B[1:i-1])
+        else
+            for r = 1 : i - 1
+                if A[r, i] != 0
+                    B[r] -= A[r, i] * B[i]
+                    # A[r, i] = 0  # never used again
+                end
             end
         end
     end
