@@ -15,7 +15,8 @@ can hardly be put into use for numerical computing without, if possible, rewriti
 in a special way. Similarly, the more points are used, the more precise a formula
 is mathematically. However, due to rounding errors, this may not be true numerically.
 
-To run the code, you need the Julia programming language (https://julialang.org/).
+To run the code, you need the Julia programming language (https://julialang.org/). From v1.3.3 on, you may start Julia with
+the option ```-t auto```
 
 ## How to install the package
 
