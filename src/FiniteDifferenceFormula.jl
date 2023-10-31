@@ -16,7 +16,6 @@ using Printf
 # v1.3.3 for parallel computing using multiple threads in _rref!
 # Start Julia: julia -t auto
 using Base.Threads
-using Folds   # See: https://juliafolds.github.io/data-parallelism/
 
 ############################# EXPORTED FUNCTIONS ##############################
 export compute, find, findforward, findbackward, formula, formulas
@@ -371,8 +370,8 @@ end
 #
 # assume: A is square & invertible; A = [ 1 0 0 ... 0; x x x ...]
 #
-# v1.3.3, use @threads and/or Folds.map to improve time performance dramatically
-# for a large matrix A.
+# v1.3.3, use @threads, Threads.@threads, or Folds.map to improve time performance
+# dramatically for a large matrix A.
 #
 # @threads or Threads.@threads? No big difference. Both are faster than Folds.map.
 function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
@@ -403,9 +402,12 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
         @threads for r = j : nr      # eliminate entries below A[i, i]
             if A[r, i] != 0
                 B[r] -= A[r, i] * B[i]
+
+                ##A[r, j : nc] -= A[r, i] * A[i, j : nc]
                 @threads for k = j : nc          # Or:
                     A[r, k] -= A[r, i] * A[i, k] # g(x, y) = x - A[r, i] * y
                 end                              # A[r, j : nc] = Folds.map(g, A[r, j : nc], A[i, j : nc])
+
                 # A[r, i] = 0 # unnecessary
             end
         end
@@ -422,7 +424,7 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
             end                        #
         end                            #
     end
-end
+end # _rref!
 
 #
 # Algorithm
@@ -475,7 +477,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     #     return nothing
     # end
 
-    # setup a linear system Ax = B first
+    # setup a linear system Ax = k first
     len = length(points)
     max_num_of_terms = max(len, n) + _NUM_OF_EXTRA_TAYLOR_TERMS
 
@@ -522,10 +524,10 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     #
     # v1.3.1, handling exceptions
     A = [] # define the variables
-    B = []
+    k = []
     try
         A = Matrix{Rational{BigInt}}(undef, len, len)
-        B = zeros(Rational{BigInt}, 1, len) # v1.3.3 for output: no k' is needed
+        k = zeros(Rational{BigInt}, 1, len) # v1.3.3 for output: no k' is needed
     catch OutOfMemoryError
         println("Memory allocation error: _compute #2.")
         _reset()
@@ -533,7 +535,7 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     end
     A[1, 2 : len] .= 0                   # setup an equation so that k[1] = 1
     A[1, 1]        = 1
-    B[1]           = 1                   # so that k[1] = 1
+    k[1]           = 1
 
     row = 2
     for order in 0 : len - 1  # correspond to f(x[i]), f'(x[i]), f''(x[i]), ...
@@ -572,48 +574,49 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     # k[1] != 0.
     #
 
-    # solve Ax = B for x, i.e., k[:]
-    _rref!(A, B); A = []                 # output: B is the solution
-    tmp = gcd(B) # v1.3.3, parallelized
-    f1(x) = x // tmp
-    k = Folds.map(f1, B)
-    ##k = B // gcd(B)                    # change each element to an integer
-    # the following code does the same   # for translating to other languages
+    # solve Ax = k for x, i.e., k[:]
+    _rref!(A, k); A = []                 # output: k is the solution
+    tmp = gcd(k)                         # change each element to an integer
+    @threads for i in 1 : len
+        k[i] //= tmp
+    end
+    ## k //= gcd(k)
+    ## #the following code does the same  # for translating to other languages
     ## for i in 1 : len
-    ##    if B[i] != round(BigInt, B[i]); k *= denominator(B[i]); end
+    ##    if k[i] != round(BigInt, k[i]); k *= denominator(k[i]); end
     ## end
 
     # Taylor series expansion of the linear combination
     # k[1]*f(x[i+points[1]]) + k[2]*f(x[i+points[2]]) + ... + k[len]*f(x[i+points[len]])
-    function f2(x, y)
-        f(z) = x * z
-        return Folds.map(f, y)
-    end
-    _lcombination_coefs = Folds.sum(Folds.map(f2, k[1:len], coefs[1:len])) # can't be Threads.@threads etc.
-    ##_lcombination_coefs = k[1] * coefs[1]  # let Julia determine the type
-    ##for i in 2 : len
-    ##    if k[i] == 0; continue; end
-    ##    _lcombination_coefs += k[i] * coefs[i]
-    ##end
-
-    # find the first nonzero term, v1.0.3
-    m = _lcombination_coefs[n + 1]
-    for i in 1 : n # no need for parallelism because n is small
-        if _lcombination_coefs[i] != 0
-            m = _lcombination_coefs[i]
-            break
+    _lcombination_coefs = k[1] * coefs[1]  # let Julia determine the type
+    for i in 2 : len
+        if k[i] == 0; continue; end
+        @threads for j in 1 : max_num_of_terms
+            _lcombination_coefs[j] += k[i] * coefs[i][j]
         end
     end
+    ##function f2(x, y)
+    ##    f(z) = x * z
+    ##    return Folds.map(f, y)
+    ##end
+    ##_lcombination_coefs = Folds.sum(Folds.map(f2, k[1:len], coefs[1:len]))
+
+    m = _lcombination_coefs[n + 1]
+    # let _test_formula_validity() take care if m = 0 or m is the (n+1)th term.
 
     # "normalize" k[:] and m so that m is a positive integer
     if m < 0
-        k *= -1
-        f3(x) = -1 * x
-        _lcombination_coefs = Folds.map(f3, _lcombination_coefs)
+        @threads for i in 1 : len
+            k[i] *= -1
+        end
+        @threads for i in 1 : max_num_of_terms
+            _lcombination_coefs[i] *= -1
+        end
+        m = _lcombination_coefs[n + 1]
     end
-    m = _lcombination_coefs[n + 1]
+
     x = round(BigInt, m)
-    if x == m; m = x; end                  # already integer; don't show like 5//1
+    if x == m; m = x; end  # already integer. don't show like 5//1
 
     # save the results in a global variable for other functions
     global _data = _FDData(n, points, k, m, coefs)
@@ -624,10 +627,9 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
     if printformulaq; formula(); end
 
     if _formula_status >= 0
-        f4(x) = round(BigInt, x)
-        tmp = Folds.map(f4, k)
-        return (n, _range_inputq ? _range_input : points, tmp, m)
+        return (n, _range_inputq ? _range_input : points, round.(BigInt, k), m)
     else
+        _reset()
         return nothing
     end
 end  # _compute
@@ -833,7 +835,7 @@ function _test_formula_validity(verifyingq::Bool = false)
         return m
     end
 
-    if Folds.sum(k) != 0   # sum of coefficients must be 0
+    if sum(k) != 0   # sum of coefficients must be 0
         println("***** Warning: $n, $input_points : sum(k[:]) != 0")
         _formula_status += 1
     end
