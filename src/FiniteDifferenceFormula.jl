@@ -370,10 +370,11 @@ end
 #
 # assume: A is square & invertible; A = [ 1 0 0 ... 0; x x x ...]
 #
-# v1.3.3, use @threads, Threads.@threads, or Folds.map to improve time performance
+# v1.3.3, use Threads.@threads, Threads.@spawn, or Folds.map to improve time performance
 # dramatically for a large matrix A.
 #
-# @threads or Threads.@threads? No big difference. Both are faster than Folds.map.
+# Parallelization through Threads.@threads is easier to implement. It's performace
+# is the same like Threads.@spawn if not better here. Both are better than Folds.map.
 function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
     nr, nc = size(A);
     i = 1
@@ -393,20 +394,21 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
                 B[i], B[mi] = B[mi], B[i]
             end
             B[i] /= A[i, i]
-            @threads for k = j : nc  # Or:
-                A[i, k] /= A[i, i]   # f(x) = x / A[i, i]
-            end                      # A[i, j : nc] = Folds.map(f, A[i, j : nc])
+            @threads for k = j : nc  # Or: f(x) = x / A[i, i]; A[i, j : nc] = Folds.map(f, A[i, j : nc])
+                A[i, k] /= A[i, i]
+            end
             # A[i, i] = 1     # unnecessary
         end
 
+        # two @threads' here are better than just one, and the exterior one is better than the interior one.
         @threads for r = j : nr      # eliminate entries below A[i, i]
             if A[r, i] != 0
                 B[r] -= A[r, i] * B[i]
 
-                ##A[r, j : nc] -= A[r, i] * A[i, j : nc]
-                @threads for k = j : nc          # Or:
-                    A[r, k] -= A[r, i] * A[i, k] # g(x, y) = x - A[r, i] * y
-                end                              # A[r, j : nc] = Folds.map(g, A[r, j : nc], A[i, j : nc])
+                #A[r, j : nc] -= A[r, i] * A[i, j : nc]
+                @threads for k = j : nc  # Or: g(x, y) = x - A[r, i] * y; A[r, j : nc] = Folds.map(g, A[r, j : nc], A[i, j : nc])
+                    A[r, k] -= A[r, i] * A[i, k]
+                end
 
                 # A[r, i] = 0 # unnecessary
             end
@@ -418,11 +420,11 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
 
     # eliminate entries above A[i, i]
     for i in nr : -1 : 2      # can't be parallelized !
-        @threads for k = 1 : i - 1     # Or:
-            if A[k, i] != 0            # f(x, y) = x == 0 ? y : y - x * B[i]
-                B[k] -= A[k, i] * B[i] # B[1:j] = Folds.map(f, A[1:j, i], B[1:j])
-            end                        #
-        end                            #
+        @threads for k = 1 : i - 1     # Or: f(x, y) = x == 0 ? y : y - x * B[i]; B[1:j] = Folds.map(f, A[1:j, i], B[1:j])
+            if A[k, i] != 0
+                B[k] -= A[k, i] * B[i]
+            end
+        end
     end
 end # _rref!
 
