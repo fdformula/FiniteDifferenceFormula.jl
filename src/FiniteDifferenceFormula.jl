@@ -48,6 +48,9 @@ _julia_exact_func_expr1::String     = ""      # 2nd exact Julia function for f^(
 _julia_decimal_func_expr::String    = ""      # decimal Julia function for f^(n)(x[i])
 _julia_func_basename::String        = ""
 
+_bigO_exp::Int                      = Threads.nthreads() # used temporarily
+const _nthreads::Int                = _bigO_exp > 1 ? _bigO_exp - 1 : 1 # v.1.3.4
+
 _bigO::String                       = ""      # truncation error of a formula
 _bigO_exp::Int                      = -1      # the value of n as in O(h^n)
 ########################### END OF GLOBAL VARIABLES ###########################
@@ -361,24 +364,53 @@ function findbackward(n, points, printformulaq = false)
     return _findforward(n, points, printformulaq, false)
 end
 
+# "evenly" assign at least smallest_chunk_size elements to each thread/task
+#
+function partition(chunks, smallest_chunk_size, nthreads = _nthreads)
+    list = Vector()
+    len = length(chunks)
+    d, r = divrem(len, nthreads)
+
+    if d < smallest_chunk_size
+        nthreads = div(len, smallest_chunk_size)
+        d, r = divrem(len, nthreads == 0 ? 1 : nthreads)
+    end
+
+    d -= 1
+    start = chunks.start
+    while start <= chunks.stop
+        stop = start + d
+        if r > 0
+            stop += 1
+            r -= 1
+        end
+        push!(list, start : stop)
+        start = stop + 1
+    end
+    return list
+end
+
 # v1.2.9, reimplemented Gauss-Jordan Elimination and optimized on 10/4/2023 for
 # the purpose of this project. at the end, # A is "virtually" an identity matrix
 # (but not actually). the time performance has a 35% increase.
 #
-# input:  A and B as in Ax = B
-# output: B is the solution x
+# input:  A and b as in Ax = b
+# output: b is the solution x
 #
 # assume: A is square & invertible; A = [ 1 0 0 ... 0; x x x ...]
 #
 # v1.3.3, use Threads.@threads, Threads.@spawn, or Folds.map to improve time performance
 # dramatically for a large matrix A.
 #
-# Parallelization through Threads.@threads is easier to implement. It's performace
-# is the same like Threads.@spawn if not better here. Both are better than Folds.map.
-function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
+# Parallelization through Threads.@threads is easier to implement, but proper use of Threads.@spawn
+# is better. Both are better than Folds.map.
+#
+# v1.3.4 replaces the key @threads with @spawn
+function _rref!(A::Matrix{Rational{BigInt}}, b::Matrix{Rational{BigInt}})
     nr, nc = size(A);
     i = 1
     while i < nr
+print("Row ", i, " >> "); t = time()
         j = i + 1
         # make a[i, i] the pivotal entry
         if i != 1                    # A[1, 1] = 1 is already the pivotal entry
@@ -387,44 +419,46 @@ function _rref!(A::Matrix{Rational{BigInt}}, B::Matrix{Rational{BigInt}})
             mi += i - 1                           # and code using @threads for (nr = 12800)!!!
 
             if mi != i               # interchange the two rows
-                # interchange two rows: A[i, i : nc], A[mi, i : nc] = A[mi, i : nc], A[i, i : nc]
-                @threads for k = i : nc
-                    A[i, k], A[mi, k] = A[mi, k], A[i, k]
-                end
-                B[i], B[mi] = B[mi], B[i]
+                A[i, i : nc], A[mi, i : nc] = A[mi, i : nc], A[i, i : nc]
+                b[i], b[mi] = b[mi], b[i]
             end
-            B[i] /= A[i, i]
-            @threads for k = j : nc  # Or: f(x) = x / A[i, i]; A[i, j : nc] = Folds.map(f, A[i, j : nc])
-                A[i, k] /= A[i, i]
-            end
-            # A[i, i] = 1     # unnecessary
+            A[i, j : nc] /= A[i, i]
+            b[i] /= A[i, i]
+            # A[i, i] = 1            # unnecessary
         end
 
-        # two @threads' here are better than just one, and the exterior one is better than the interior one.
-        @threads for r = j : nr      # eliminate entries below A[i, i]
-            if A[r, i] != 0
-                B[r] -= A[r, i] * B[i]
+        # v1.3.4, rewritten and gain 1.37X speedup when A is large
+        chunks = partition(j : nc, 5)
+        for r = j : nr
+            Ari = A[r, i]
+            if Ari != 0
+                b[r] -= Ari * b[i]
 
-                #A[r, j : nc] -= A[r, i] * A[i, j : nc]
-                @threads for k = j : nc  # Or: g(x, y) = x - A[r, i] * y; A[r, j : nc] = Folds.map(g, A[r, j : nc], A[i, j : nc])
-                    A[r, k] -= A[r, i] * A[i, k]
+                tasks = map(chunks) do chunk
+                    Threads.@spawn begin
+                        local lk = ReentrantLock()
+                        lock(lk)              # though not needed theretically, it does matter!
+                        try
+                            A[r, chunk] -= Ari * A[i, chunk]  # for k in chunk; A[r, k] -= Ari * A[i, k]; end
+                        finally
+                            unlock(lk)
+                        end
+                    end
                 end
-
-                # A[r, i] = 0 # unnecessary
+                wait.(tasks)
+                # A[r, i] = 0        # unnecessary
             end
         end
         i = j
+println(round(time() - t;digits=2), " sec")
     end
-    B[nr] /= A[nr, nr]
-    # A[nr, nr] = 1           # unnecessary
+    b[nr] /= A[nr, nr]
+    # A[nr, nr] = 1                  # unnecessary
 
     # eliminate entries above A[i, i]
     for i in nr : -1 : 2      # can't be parallelized !
-        @threads for k = 1 : i - 1     # Or: f(x, y) = x == 0 ? y : y - x * B[i]; B[1:j] = Folds.map(f, A[1:j, i], B[1:j])
-            if A[k, i] != 0
-                B[k] -= A[k, i] * B[i]
-            end
-        end
+        chunk = 1 : i - 1
+        b[chunk] -= A[chunk, i] * b[i]
     end
 end # _rref!
 
