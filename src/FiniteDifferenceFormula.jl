@@ -414,7 +414,7 @@ function _rref!(A::Matrix{Rational{BigInt}}, b::Matrix{Rational{BigInt}})
         # make a[i, i] the pivotal entry
         if i != 1                    # A[1, 1] = 1 is already the pivotal entry
             # find the largest entry on A[i:end, i]
-            (m, mi) = findmax(abs.(A[i : nr, i])) # It seems a little faster than Folds.findmax
+            (_, mi) = findmax(abs.(A[i : nr, i])) # It seems a little faster than Folds.findmax
             mi += i - 1                           # and code using @threads for (nr = 12800)!!!
 
             if mi != i               # interchange the two rows
