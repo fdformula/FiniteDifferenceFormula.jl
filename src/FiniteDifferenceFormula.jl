@@ -410,7 +410,6 @@ function _rref!(A::Matrix{Rational{BigInt}}, b::Matrix{Rational{BigInt}})
     nr, nc = size(A);
     i = 1
     while i < nr
-print("Row ", i, " >> "); t = time()
         j = i + 1
         # make a[i, i] the pivotal entry
         if i != 1                    # A[1, 1] = 1 is already the pivotal entry
@@ -450,7 +449,6 @@ print("Row ", i, " >> "); t = time()
             end
         end
         i = j
-println(round(time() - t;digits=2), " sec")
     end
     b[nr] /= A[nr, nr]
     # A[nr, nr] = 1                  # unnecessary
