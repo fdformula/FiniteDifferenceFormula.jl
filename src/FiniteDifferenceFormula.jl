@@ -427,7 +427,7 @@ print("Row ", i, " >> "); t = time()
             # A[i, i] = 1            # unnecessary
         end
 
-        # v1.3.4, rewritten and gain 1.37X speedup when A is large
+        # v1.3.4, rewritten, 1.37X speedup when A is large
         chunks = partition(j : nc, 5)
         for r = j : nr
             Ari = A[r, i]
