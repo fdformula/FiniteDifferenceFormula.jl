@@ -429,7 +429,7 @@ function _rref!(A::Matrix{Rational{BigInt}}, b::Matrix{Rational{BigInt}})
             # A[i, i] = 1            # unnecessary
         end
 
-        # v1.3.4, rewritten, 1.6625X speedup when A is large, e.g., fd.compute(1, -250:250).
+        # v1.3.4, rewritten, 2.08X speedup over v1.3.3 when A is large, e.g., fd.compute(1, -250:250).
         chunks = partition(j : nc, 1)
         for r = j : nr
             Ari = A[i, r]
