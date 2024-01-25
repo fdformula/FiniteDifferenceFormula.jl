@@ -405,47 +405,53 @@ end
 # Parallelization through Threads.@threads is easier to implement, but proper use of Threads.@spawn
 # is better. Both are better than Folds.map.
 #
-# v1.3.4 replaces the key @threads with @spawn
+# v1.3.4:
+# 1. replaced the key @threads with @spawn
+# 2. took advatage of the fact tha Julia's matrix operation is column major. The present A is the
+#    transpose of the old A in previous versions of this package/module.
 function _rref!(A::Matrix{Rational{BigInt}}, b::Matrix{Rational{BigInt}})
-    nr, nc = size(A);
+    nc, nr = size(A);
     i = 1
     while i < nr
         j = i + 1
         # make a[i, i] the pivotal entry
         if i != 1                    # A[1, 1] = 1 is already the pivotal entry
-            # find the largest entry on A[i:end, i]
-            (_, mi) = findmax(abs.(A[i : nr, i])) # It seems a little faster than Folds.findmax
+            # find the largest entry on A[i, i:end]
+            (_, mi) = findmax(abs.(A[i, i : nr])) # It seems a little faster than Folds.findmax
             mi += i - 1                           # and code using @threads for (nr = 12800)!!!
 
             if mi != i               # interchange the two rows
-                A[i, i : nc], A[mi, i : nc] = A[mi, i : nc], A[i, i : nc]
+                A[i : nc, i], A[i : nc, mi] = A[i : nc, mi], A[i : nc, i]
                 b[i], b[mi] = b[mi], b[i]
             end
-            A[i, j : nc] /= A[i, i]
+            A[j : nc, i] /= A[i, i]
             b[i] /= A[i, i]
             # A[i, i] = 1            # unnecessary
         end
 
-        # v1.3.4, rewritten, 1.37X speedup when A is large
-        chunks = partition(j : nc, 5)
+        # v1.3.4, rewritten, 1.6625X speedup when A is large, e.g., fd.compute(1, -250:250).
+        chunks = partition(j : nc, 1)
         for r = j : nr
-            Ari = A[r, i]
+            Ari = A[i, r]
             if Ari != 0
                 b[r] -= Ari * b[i]
-
-                tasks = map(chunks) do chunk
-                    Threads.@spawn begin
-                        local lk = ReentrantLock()
-                        lock(lk)              # though not needed theretically, it does matter!
-                        try
-                            A[r, chunk] -= Ari * A[i, chunk]  # for k in chunk; A[r, k] -= Ari * A[i, k]; end
-                        finally
-                            unlock(lk)
+                if length(chunks) == 1
+                    A[chunks[1], r] -= Ari * A[chunks[1], i]
+                else
+                    local tasks = map(chunks) do chunk
+                        Threads.@spawn begin
+                            local lk = ReentrantLock()
+                            lock(lk) # though not needed theoretically, it does matter!
+                            try
+                                A[chunk, r] -= Ari * A[chunk, i]  # for k in chunk; A[k, r] -= Ari * A[k, i]; end
+                            finally
+                                unlock(lk)
+                            end
                         end
                     end
+                    wait.(tasks)
                 end
-                wait.(tasks)
-                # A[r, i] = 0        # unnecessary
+                # A[i, r] = 0        # unnecessary
             end
         end
         i = j
@@ -456,7 +462,7 @@ function _rref!(A::Matrix{Rational{BigInt}}, b::Matrix{Rational{BigInt}})
     # eliminate entries above A[i, i]
     for i in nr : -1 : 2      # can't be parallelized !
         chunk = 1 : i - 1
-        b[chunk] -= A[chunk, i] * b[i]
+        b[chunk] -= A[i, chunk] * b[i]
     end
 end # _rref!
 
@@ -567,7 +573,10 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
         _reset()
         return nothing
     end
-    A[1, 2 : len] .= 0                   # setup an equation so that k[1] = 1
+    # v1.3.4 algorithm takes advatage of the fact tha Julia's matrix operation is
+    # column major. The present A is the transpose of the old A in previous versions
+    # of this package/module.
+    A[2 : len, 1] .= 0                   # setup an equation so that k[1] = 1
     A[1, 1]        = 1
     k[1]           = 1
 
@@ -576,11 +585,11 @@ function _compute(n::Int, points::Vector{Int}, printformulaq::Bool = false)
         if order == n; continue; end     # skip f^(n)(x[i])
 
         # eliminating f^(order)(x[i])
-        # A[:,j] stores coefs of
+        # A[j, :] stores coefs of
         #  k[1]*coefs[1][j] + k[2]*coefs[2][j] + ... + k[len]*coefs[len][j] = 0
         tmp = order + 1
         @threads for j = 1 : len
-            A[row, j] = coefs[j][tmp]
+            A[j, row] = coefs[j][tmp]
         end
         if row == len; break; end
         row += 1
